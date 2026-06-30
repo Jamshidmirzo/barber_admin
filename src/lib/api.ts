@@ -24,4 +24,35 @@ api.interceptors.response.use(
   }
 );
 
+/**
+ * Единый парсер ошибок API. Backend (operhair) отдаёт доменные ошибки в форме
+ * `{ error: { code, message } }`, а FastAPI-валидация — в `{ detail: ... }`.
+ * Хелпер достаёт человекочитаемое сообщение из любой из этих форм.
+ */
+export function parseApiError(err: unknown, fallback = "Произошла ошибка"): string {
+  const data = (err as { response?: { data?: unknown } })?.response?.data as
+    | {
+        error?: { message?: string };
+        detail?: unknown;
+        message?: string;
+      }
+    | undefined;
+
+  if (!data) return fallback;
+
+  // Доменная ошибка operhair: { error: { message } }
+  if (data.error?.message) return data.error.message;
+
+  // FastAPI: detail может быть строкой или массивом ошибок валидации
+  if (typeof data.detail === "string") return data.detail;
+  if (Array.isArray(data.detail)) {
+    const first = data.detail[0] as { msg?: string } | undefined;
+    if (first?.msg) return first.msg;
+  }
+
+  if (typeof data.message === "string") return data.message;
+
+  return fallback;
+}
+
 export default api;
