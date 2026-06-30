@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/lib/api";
+import api, { parseApiError } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,15 +20,14 @@ export default function LoginPage() {
       const token = res.data?.tokens?.access_token;
       if (token) {
         localStorage.setItem("barber_admin_token", token);
-        router.push("/barbers");
+        // Нейтральный вход: «Записи» видны всем ролям (мастер не видит «Барберы»).
+        // Дашборд-layout сам отправит на /onboarding, если салона ещё нет.
+        router.push("/appointments");
       } else {
         setError("Неверный ответ сервера");
       }
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        "Неверный телефон или пароль";
-      setError(msg);
+      setError(parseApiError(err, "Неверный телефон или пароль"));
     } finally {
       setLoading(false);
     }
