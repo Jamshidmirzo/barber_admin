@@ -35,6 +35,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [isError, status, router]);
 
+  // Route guard: мастер не имеет доступа к managerOnly-разделам даже при
+  // прямом переходе по URL (sidebar их и так скрывает) — редиректим на «Записи».
+  const role = data?.role;
+  useEffect(() => {
+    if (!role || isManager(role)) return;
+    const blocked = nav.some(
+      (i) => i.managerOnly && (pathname === i.href || pathname.startsWith(i.href + "/")),
+    );
+    if (blocked) {
+      router.replace("/appointments");
+    }
+  }, [role, pathname, router]);
+
   if (isLoading || (isError && status === 404)) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#111827]">
