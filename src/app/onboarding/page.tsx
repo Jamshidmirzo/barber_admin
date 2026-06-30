@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Scissors, Check, X, Loader2 } from "lucide-react";
 import api, { parseApiError } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { useSalonContextQuery } from "@/hooks/useSalon";
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,98}[a-z0-9]$/;
 type Availability = "idle" | "checking" | "available" | "taken" | "invalid";
@@ -14,6 +15,12 @@ export default function OnboardingPage() {
   useAuth();
   const router = useRouter();
   const qc = useQueryClient();
+
+  // Салон уже создан → онбординг не нужен, уводим в дашборд.
+  const { data: salonCtx } = useSalonContextQuery();
+  useEffect(() => {
+    if (salonCtx?.salon) router.replace("/appointments");
+  }, [salonCtx, router]);
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
