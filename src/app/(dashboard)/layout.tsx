@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Users, Scissors, Calendar, UserRound, Clock, TrendingUp, Settings, LogOut } from "lucide-react";
+import { Users, Scissors, Calendar, UserRound, Clock, TrendingUp, Settings, LogOut, Sparkles, Globe } from "lucide-react";
 import { useAuth, logout } from "@/hooks/useAuth";
 import { SalonProvider, isManager, useSalonContextQuery } from "@/hooks/useSalon";
 
@@ -14,6 +14,8 @@ const nav = [
   { href: "/appointments", label: "Записи", icon: Calendar, managerOnly: false },
   { href: "/clients", label: "Клиенты", icon: UserRound, managerOnly: false },
   { href: "/schedule", label: "Расписание", icon: Clock, managerOnly: false },
+  { href: "/site-generator", label: "Сайт (AI)", icon: Sparkles, managerOnly: true },
+  { href: "/site-settings", label: "Настройки сайта", icon: Globe, managerOnly: true },
   { href: "/finance", label: "Финансы", icon: TrendingUp, managerOnly: true },
   { href: "/profile", label: "Профиль", icon: Settings, managerOnly: false },
 ];

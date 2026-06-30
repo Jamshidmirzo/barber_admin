@@ -6,6 +6,36 @@ import api from "@/lib/api";
 
 export type SalonRole = "owner" | "admin" | "master";
 
+export type SiteStyle = "modern" | "classic" | "luxury" | "minimal";
+
+/** Услуга витрины — хранится в site_content.services. */
+export interface SiteService {
+  name: string;
+  description?: string;
+  price?: string;
+}
+
+/** AI/ручной контент публичного сайта (JSONB Salon.site_content). */
+export interface SiteContent {
+  heading?: string;
+  subheading?: string;
+  about?: string;
+  services?: SiteService[];
+  cta?: { title?: string; button?: string };
+  style?: SiteStyle;
+  generated_at?: string;
+}
+
+export type WeekDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+
+export interface DayHours {
+  open: string;
+  close: string;
+  closed: boolean;
+}
+
+export type WorkingHours = Partial<Record<WeekDay, DayHours>>;
+
 export interface Salon {
   id: string;
   slug: string;
@@ -17,7 +47,9 @@ export interface Salon {
   phone: string | null;
   avatar_url: string | null;
   cover_url: string | null;
-  working_hours: Record<string, unknown>;
+  tagline: string | null;
+  working_hours: WorkingHours;
+  site_content: SiteContent | null;
   created_at: string | null;
 }
 
