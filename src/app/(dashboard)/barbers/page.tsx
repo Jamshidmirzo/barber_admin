@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, UserX, Eye, EyeOff, Copy, Check, Search, UserCheck } from "lucide-react";
+import { Plus, UserX, Eye, EyeOff, Copy, Check, Search, UserCheck, ChevronRight } from "lucide-react";
 import api from "@/lib/api";
 
 interface Barber {
@@ -35,6 +36,19 @@ function fullName(b: Barber | SearchResult) {
   return [b.name, b.last_name].filter(Boolean).join(" ") || "—";
 }
 
+interface TeamMemberStat {
+  master_id: string;
+  name: string;
+  photo_url: string | null;
+  total_revenue: number;
+  total_appointments: number;
+  worked_hours: number;
+}
+
+function fmtMoney(n: number) {
+  return n.toLocaleString("ru") + " сум";
+}
+
 type ModalTab = "create" | "search";
 
 export default function BarbersPage() {
@@ -57,6 +71,13 @@ export default function BarbersPage() {
     queryKey: ["team-members"],
     queryFn: () => api.get("/team/members").then((r) => r.data),
   });
+
+  const { data: teamStats } = useQuery<{ members: TeamMemberStat[] }>({
+    queryKey: ["team-stats", "30d"],
+    queryFn: () => api.get("/team/stats").then((r) => r.data),
+  });
+
+  const statsById = new Map((teamStats?.members ?? []).map((m) => [m.master_id, m]));
 
   const createMutation = useMutation({
     mutationFn: (body: typeof form) => api.post("/team/members", body),
@@ -184,39 +205,67 @@ export default function BarbersPage() {
 
       {!isLoading && data && data.items.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {data.items.map((b) => (
-            <div key={b.id} className="bg-[#1F2937] rounded-2xl p-5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full bg-[#F59E0B]/20 flex items-center justify-center text-[#F59E0B] font-bold text-sm shrink-0">
-                  {initials(b)}
+          {data.items.map((b) => {
+            const st = statsById.get(b.id);
+            return (
+              <Link
+                key={b.id}
+                href={`/barbers/${b.id}`}
+                className="group bg-[#1F2937] hover:bg-[#243040] rounded-2xl p-5 block transition-colors"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-[#F59E0B]/20 flex items-center justify-center text-[#F59E0B] font-bold text-sm shrink-0">
+                    {initials(b)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-white font-medium text-sm truncate">{fullName(b)}</p>
+                    <p className="text-gray-400 text-xs tabular-nums">{b.phone}</p>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ${b.is_active ? "bg-green-500/10 text-green-400" : "bg-gray-500/10 text-gray-500"}`}>
+                    {b.is_active ? "Активен" : "Неактивен"}
+                  </span>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-white font-medium text-sm truncate">{fullName(b)}</p>
-                  <p className="text-gray-400 text-xs tabular-nums">{b.phone}</p>
+                {b.specializations.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-4">
+                    {b.specializations.map((s) => (
+                      <span key={s} className="text-xs bg-white/5 text-gray-400 px-2 py-0.5 rounded-full">{s}</span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Метрики за 30 дней */}
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  <div className="bg-[#111827] rounded-xl px-3 py-2">
+                    <p className="text-gray-500 text-[10px] mb-0.5">Выручка 30д</p>
+                    <p className="text-white text-sm font-semibold truncate">{fmtMoney(st?.total_revenue ?? 0)}</p>
+                  </div>
+                  <div className="bg-[#111827] rounded-xl px-3 py-2">
+                    <p className="text-gray-500 text-[10px] mb-0.5">Записи 30д</p>
+                    <p className="text-white text-sm font-semibold">{st?.total_appointments ?? 0}</p>
+                  </div>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ${b.is_active ? "bg-green-500/10 text-green-400" : "bg-gray-500/10 text-gray-500"}`}>
-                  {b.is_active ? "Активен" : "Неактивен"}
-                </span>
-              </div>
-              {b.specializations.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {b.specializations.map((s) => (
-                    <span key={s} className="text-xs bg-white/5 text-gray-400 px-2 py-0.5 rounded-full">{s}</span>
-                  ))}
+
+                <div className="flex items-center justify-between">
+                  {b.is_active ? (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        deactivateMutation.mutate(b.id);
+                      }}
+                      disabled={deactivateMutation.isPending}
+                      className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-400 transition-colors disabled:opacity-50"
+                    >
+                      <UserX className="w-3.5 h-3.5" />
+                      Деактивировать
+                    </button>
+                  ) : (
+                    <span />
+                  )}
+                  <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-[#F59E0B] transition-colors" />
                 </div>
-              )}
-              {b.is_active && (
-                <button
-                  onClick={() => deactivateMutation.mutate(b.id)}
-                  disabled={deactivateMutation.isPending}
-                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-400 transition-colors disabled:opacity-50"
-                >
-                  <UserX className="w-3.5 h-3.5" />
-                  Деактивировать
-                </button>
-              )}
-            </div>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
 
