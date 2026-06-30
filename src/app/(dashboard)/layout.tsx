@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, Scissors, Calendar, Settings, LogOut } from "lucide-react";
+import { Users, Scissors, Calendar, UserRound, Clock, TrendingUp, Settings, LogOut } from "lucide-react";
 import { useAuth, logout } from "@/hooks/useAuth";
 
 const nav = [
   { href: "/barbers", label: "Барберы", icon: Users },
   { href: "/services", label: "Услуги", icon: Scissors },
   { href: "/appointments", label: "Записи", icon: Calendar },
+  { href: "/clients", label: "Клиенты", icon: UserRound },
+  { href: "/schedule", label: "Расписание", icon: Clock },
+  { href: "/finance", label: "Финансы", icon: TrendingUp },
   { href: "/profile", label: "Профиль", icon: Settings },
 ];
 
@@ -18,7 +21,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen bg-[#111827]">
-      {/* Sidebar */}
       <aside className="w-60 shrink-0 bg-[#1F2937] flex flex-col">
         <div className="px-5 py-6 border-b border-white/5">
           <div className="flex items-center gap-3">
@@ -32,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {nav.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(href + "/");
             return (
@@ -63,7 +65,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      {/* Main content */}
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );

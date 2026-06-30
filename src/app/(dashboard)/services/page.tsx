@@ -29,7 +29,7 @@ export default function ServicesPage() {
   const [form, setForm] = useState({ name: "", price: "", duration_min: "30", category: "haircut" });
   const [formErr, setFormErr] = useState("");
 
-  const { data, isLoading } = useQuery<{ items: Service[]; total: number }>({
+  const { data, isLoading } = useQuery<Service[]>({
     queryKey: ["services"],
     queryFn: () => api.get("/services").then((r) => r.data),
   });
@@ -55,7 +55,7 @@ export default function ServicesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-white">Услуги</h1>
-          <p className="text-gray-400 text-sm mt-0.5">{data?.total ?? 0} услуг</p>
+          <p className="text-gray-400 text-sm mt-0.5">{data?.length ?? 0} услуг</p>
         </div>
         <button
           onClick={() => { setShowModal(true); setFormErr(""); }}
@@ -77,7 +77,7 @@ export default function ServicesPage() {
         </div>
       )}
 
-      {!isLoading && data?.items.length === 0 && (
+      {!isLoading && data?.length === 0 && (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <div className="w-16 h-16 rounded-2xl bg-[#1F2937] flex items-center justify-center mb-4">
             <Scissors className="w-8 h-8 text-gray-600" />
@@ -86,7 +86,7 @@ export default function ServicesPage() {
         </div>
       )}
 
-      {!isLoading && data && data.items.length > 0 && (
+      {!isLoading && data && data.length > 0 && (
         <div className="bg-[#1F2937] rounded-2xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
@@ -99,8 +99,8 @@ export default function ServicesPage() {
               </tr>
             </thead>
             <tbody>
-              {data.items.map((s, i) => (
-                <tr key={s.id} className={i < data.items.length - 1 ? "border-b border-white/5" : ""}>
+              {data.map((s, i) => (
+                <tr key={s.id} className={i < data.length - 1 ? "border-b border-white/5" : ""}>
                   <td className="px-5 py-4 text-white font-medium">{s.name}</td>
                   <td className="px-5 py-4 text-gray-400">{s.category ? (CAT_LABELS[s.category] ?? s.category) : "—"}</td>
                   <td className="px-5 py-4 text-gray-400">{s.duration_min} мин</td>

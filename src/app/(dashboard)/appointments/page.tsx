@@ -7,13 +7,17 @@ import api from "@/lib/api";
 
 interface Appointment {
   id: string;
-  client_name?: string;
-  service_name?: string;
+  client_id: string;
+  service_id: string;
   starts_at: string;
   ends_at: string;
   status: string;
   price?: number;
+  note?: string | null;
 }
+
+interface Client { id: string; name: string; phone: string; }
+interface Service { id: string; name: string; }
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Ожидает",
@@ -45,7 +49,7 @@ export default function AppointmentsPage() {
   const start = `${date}T00:00:00`;
   const end = `${date}T23:59:59`;
 
-  const { data, isLoading } = useQuery<Appointment[]>({
+  const { data: appointments, isLoading } = useQuery<Appointment[]>({
     queryKey: ["appointments", date],
     queryFn: () =>
       api.get("/appointments", { params: { start, end } }).then((r) => {
@@ -54,16 +58,26 @@ export default function AppointmentsPage() {
       }),
   });
 
-  function prevDay() {
-    const d = new Date(date);
-    d.setDate(d.getDate() - 1);
-    setDate(d.toISOString().slice(0, 10));
-  }
+  const { data: clientsData } = useQuery<{ items: Client[]; total: number }>({
+    queryKey: ["clients", "all"],
+    queryFn: () => api.get("/clients", { params: { limit: 500, offset: 0 } }).then((r) => r.data),
+    staleTime: 60_000,
+  });
 
+  const { data: services } = useQuery<Service[]>({
+    queryKey: ["services"],
+    queryFn: () => api.get("/services").then((r) => r.data),
+    staleTime: 60_000,
+  });
+
+  const clientMap = Object.fromEntries((clientsData?.items ?? []).map((c) => [c.id, c.name]));
+  const serviceMap = Object.fromEntries((services ?? []).map((s) => [s.id, s.name]));
+
+  function prevDay() {
+    const d = new Date(date); d.setDate(d.getDate() - 1); setDate(d.toISOString().slice(0, 10));
+  }
   function nextDay() {
-    const d = new Date(date);
-    d.setDate(d.getDate() + 1);
-    setDate(d.toISOString().slice(0, 10));
+    const d = new Date(date); d.setDate(d.getDate() + 1); setDate(d.toISOString().slice(0, 10));
   }
 
   const displayDate = new Date(date).toLocaleDateString("ru", {
@@ -97,7 +111,7 @@ export default function AppointmentsPage() {
         </div>
       )}
 
-      {!isLoading && (!data || data.length === 0) && (
+      {!isLoading && (!appointments || appointments.length === 0) && (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <div className="w-16 h-16 rounded-2xl bg-[#1F2937] flex items-center justify-center mb-4">
             <Calendar className="w-8 h-8 text-gray-600" />
@@ -106,16 +120,21 @@ export default function AppointmentsPage() {
         </div>
       )}
 
-      {!isLoading && data && data.length > 0 && (
+      {!isLoading && appointments && appointments.length > 0 && (
         <div className="space-y-3">
-          {data.map((a) => (
+          {appointments.map((a) => (
             <div key={a.id} className="bg-[#1F2937] rounded-2xl p-4 flex items-center gap-4">
               <div className="text-[#F59E0B] font-mono text-sm font-semibold w-14 shrink-0">
                 {formatTime(a.starts_at)}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-white text-sm font-medium truncate">{a.client_name ?? "Клиент"}</p>
-                <p className="text-gray-400 text-xs truncate">{a.service_name ?? "Услуга"}</p>
+                <p className="text-white text-sm font-medium truncate">
+                  {clientMap[a.client_id] ?? "Клиент"}
+                </p>
+                <p className="text-gray-400 text-xs truncate">
+                  {serviceMap[a.service_id] ?? "Услуга"} · до {formatTime(a.ends_at)}
+                </p>
+                {a.note && <p className="text-gray-500 text-xs truncate mt-0.5">{a.note}</p>}
               </div>
               {a.price != null && (
                 <p className="text-gray-300 text-sm tabular-nums shrink-0">
