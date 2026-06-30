@@ -5,16 +5,17 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Users, Scissors, Calendar, UserRound, Clock, TrendingUp, Settings, LogOut } from "lucide-react";
 import { useAuth, logout } from "@/hooks/useAuth";
-import { SalonProvider, useSalonContextQuery } from "@/hooks/useSalon";
+import { SalonProvider, isManager, useSalonContextQuery } from "@/hooks/useSalon";
 
+// managerOnly: раздел доступен только владельцу/админу, мастер его не видит.
 const nav = [
-  { href: "/barbers", label: "Барберы", icon: Users },
-  { href: "/services", label: "Услуги", icon: Scissors },
-  { href: "/appointments", label: "Записи", icon: Calendar },
-  { href: "/clients", label: "Клиенты", icon: UserRound },
-  { href: "/schedule", label: "Расписание", icon: Clock },
-  { href: "/finance", label: "Финансы", icon: TrendingUp },
-  { href: "/profile", label: "Профиль", icon: Settings },
+  { href: "/barbers", label: "Барберы", icon: Users, managerOnly: true },
+  { href: "/services", label: "Услуги", icon: Scissors, managerOnly: false },
+  { href: "/appointments", label: "Записи", icon: Calendar, managerOnly: false },
+  { href: "/clients", label: "Клиенты", icon: UserRound, managerOnly: false },
+  { href: "/schedule", label: "Расписание", icon: Clock, managerOnly: false },
+  { href: "/finance", label: "Финансы", icon: TrendingUp, managerOnly: true },
+  { href: "/profile", label: "Профиль", icon: Settings, managerOnly: false },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -51,24 +52,40 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
+  const canManage = isManager(data.role);
+  const visibleNav = nav.filter((item) => canManage || !item.managerOnly);
+
   return (
     <SalonProvider value={data}>
       <div className="flex h-screen bg-[#111827]">
         <aside className="w-60 shrink-0 bg-[#1F2937] flex flex-col">
           <div className="px-5 py-6 border-b border-white/5">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[#F59E0B] flex items-center justify-center">
-                <Scissors className="w-4 h-4 text-white" />
+              <div className="w-9 h-9 shrink-0 rounded-xl bg-[#F59E0B] flex items-center justify-center overflow-hidden">
+                {data.salon.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={data.salon.avatar_url}
+                    alt={data.salon.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Scissors className="w-4 h-4 text-white" />
+                )}
               </div>
-              <div>
-                <p className="text-white font-semibold text-sm">BarberAdmin</p>
-                <p className="text-gray-500 text-xs">Панель управления</p>
+              <div className="min-w-0">
+                <p className="text-white font-semibold text-sm truncate" title={data.salon.name}>
+                  {data.salon.name}
+                </p>
+                <p className="text-gray-500 text-xs truncate">
+                  {data.salon.slug}.hayrli.app
+                </p>
               </div>
             </div>
           </div>
 
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            {nav.map(({ href, label, icon: Icon }) => {
+            {visibleNav.map(({ href, label, icon: Icon }) => {
               const active = pathname === href || pathname.startsWith(href + "/");
               return (
                 <Link
