@@ -7,19 +7,20 @@ import { Users, Scissors, Calendar, UserRound, Clock, TrendingUp, Settings, LogO
 import { useAuth, logout } from "@/hooks/useAuth";
 import { SalonProvider, isManager, useSalonContextQuery } from "@/hooks/useSalon";
 
-// managerOnly: раздел доступен только владельцу/админу, мастер его не видит.
+// managerOnly: только владелец/админ видит раздел.
+// masterOnly: только мастер (барбер в составе салона) видит раздел.
 const nav = [
-  { href: "/barbers", label: "Барберы", icon: Users, managerOnly: true },
-  { href: "/services", label: "Услуги", icon: Scissors, managerOnly: false },
-  { href: "/appointments", label: "Записи", icon: Calendar, managerOnly: false },
-  { href: "/clients", label: "Клиенты", icon: UserRound, managerOnly: false },
-  { href: "/analytics", label: "Аналитика", icon: BarChart3, managerOnly: true },
-  { href: "/schedule", label: "Расписание", icon: Clock, managerOnly: false },
-  { href: "/promotions", label: "Акции", icon: Tag, managerOnly: false },
-  { href: "/site-generator", label: "Сайт (AI)", icon: Sparkles, managerOnly: true },
-  { href: "/site-settings", label: "Настройки сайта", icon: Globe, managerOnly: true },
-  { href: "/finance", label: "Финансы", icon: TrendingUp, managerOnly: true },
-  { href: "/profile", label: "Профиль", icon: Settings, managerOnly: false },
+  { href: "/barbers",       label: "Барберы",        icon: Users,    managerOnly: true,  masterOnly: false },
+  { href: "/services",      label: "Услуги",          icon: Scissors, managerOnly: false, masterOnly: false },
+  { href: "/appointments",  label: "Записи",          icon: Calendar, managerOnly: false, masterOnly: false },
+  { href: "/clients",       label: "Клиенты",         icon: UserRound,managerOnly: false, masterOnly: false },
+  { href: "/analytics",     label: "Аналитика",       icon: BarChart3,managerOnly: true,  masterOnly: false },
+  { href: "/schedule",      label: "Расписание",      icon: Clock,    managerOnly: false, masterOnly: false },
+  { href: "/promotions",    label: "Акции",           icon: Tag,      managerOnly: false, masterOnly: true  },
+  { href: "/site-generator",label: "Сайт (AI)",       icon: Sparkles, managerOnly: true,  masterOnly: false },
+  { href: "/site-settings", label: "Настройки сайта", icon: Globe,    managerOnly: true,  masterOnly: false },
+  { href: "/finance",       label: "Финансы",         icon: TrendingUp,managerOnly: true, masterOnly: false },
+  { href: "/profile",       label: "Профиль",         icon: Settings, managerOnly: false, masterOnly: false },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -37,17 +38,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [isError, status, router]);
 
-  // Route guard: мастер не имеет доступа к managerOnly-разделам даже при
-  // прямом переходе по URL (sidebar их и так скрывает) — редиректим на «Записи».
+  // Route guard: неправильные роли → редиректим на «Записи».
+  // Мастер не может зайти на managerOnly-разделы, менеджер — на masterOnly.
   const role = data?.role;
   useEffect(() => {
-    if (!role || isManager(role)) return;
-    const blocked = nav.some(
-      (i) => i.managerOnly && (pathname === i.href || pathname.startsWith(i.href + "/")),
-    );
-    if (blocked) {
-      router.replace("/appointments");
-    }
+    if (!role) return;
+    const manager = isManager(role);
+    const blocked = nav.some((i) => {
+      const match = pathname === i.href || pathname.startsWith(i.href + "/");
+      if (!match) return false;
+      if (i.managerOnly && !manager) return true;
+      if (i.masterOnly && manager) return true;
+      return false;
+    });
+    if (blocked) router.replace("/appointments");
   }, [role, pathname, router]);
 
   if (isLoading || (isError && status === 404)) {
@@ -70,7 +74,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   const canManage = isManager(data.role);
-  const visibleNav = nav.filter((item) => canManage || !item.managerOnly);
+  const visibleNav = nav.filter((item) => {
+    if (item.managerOnly && !canManage) return false;
+    if (item.masterOnly && canManage) return false;
+    return true;
+  });
 
   return (
     <SalonProvider value={data}>
