@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, UserX, Eye, EyeOff, Copy, Check, Search, UserCheck, ChevronRight } from "lucide-react";
+import { Plus, UserX, Eye, EyeOff, Copy, Check, Search, UserCheck, ChevronRight, X } from "lucide-react";
 import api from "@/lib/api";
 
 interface Barber {
@@ -27,15 +27,6 @@ interface SearchResult {
   is_already_in_team: boolean;
 }
 
-function initials(b: Barber | SearchResult) {
-  const n = [b.name, b.last_name].filter(Boolean).join(" ");
-  return n ? n.slice(0, 2).toUpperCase() : b.phone.slice(-2);
-}
-
-function fullName(b: Barber | SearchResult) {
-  return [b.name, b.last_name].filter(Boolean).join(" ") || "—";
-}
-
 interface TeamMemberStat {
   master_id: string;
   name: string;
@@ -45,9 +36,25 @@ interface TeamMemberStat {
   worked_hours: number;
 }
 
+function initials(b: Barber | SearchResult) {
+  const n = [b.name, b.last_name].filter(Boolean).join(" ");
+  return n ? n.slice(0, 2).toUpperCase() : b.phone.slice(-2);
+}
+
+function fullName(b: Barber | SearchResult) {
+  return [b.name, b.last_name].filter(Boolean).join(" ") || "—";
+}
+
 function fmtMoney(n: number) {
   return n.toLocaleString("ru") + " сум";
 }
+
+const inputStyle: React.CSSProperties = {
+  width:"100%", background:"var(--bg)", color:"var(--text)",
+  border:"1px solid var(--border)", borderRadius:"var(--radius)",
+  padding:"10px 14px", fontSize:13, fontFamily:"'Manrope',sans-serif",
+  outline:"none",
+};
 
 type ModalTab = "create" | "search";
 
@@ -58,10 +65,8 @@ export default function BarbersPage() {
   const [created, setCreated] = useState<{ phone: string; password: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [showPass, setShowPass] = useState(false);
-  const [form, setForm] = useState({ name: "", last_name: "", phone: "+998", password: "" });
+  const [form, setForm] = useState({ name:"", last_name:"", phone:"+998", password:"" });
   const [formErr, setFormErr] = useState("");
-
-  // Search tab state
   const [searchQ, setSearchQ] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -84,13 +89,11 @@ export default function BarbersPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["team-members"] });
       setCreated({ phone: form.phone, password: form.password });
-      setForm({ name: "", last_name: "", phone: "+998", password: "" });
+      setForm({ name:"", last_name:"", phone:"+998", password:"" });
       setShowModal(false);
     },
     onError: (err: unknown) => {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        "Ошибка создания";
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Ошибка создания";
       setFormErr(msg);
     },
   });
@@ -105,37 +108,22 @@ export default function BarbersPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["team-members"] });
       setShowModal(false);
-      setSearchQ("");
-      setSearchResults([]);
+      setSearchQ(""); setSearchResults([]);
     },
   });
 
   useEffect(() => {
-    if (searchQ.length < 2) {
-      setSearchResults([]);
-      return;
-    }
+    if (searchQ.length < 2) { setSearchResults([]); return; }
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(async () => {
       setSearching(true);
       try {
         const res = await api.get("/team/search", { params: { q: searchQ } });
         setSearchResults(res.data);
-      } catch {
-        setSearchResults([]);
-      } finally {
-        setSearching(false);
-      }
+      } catch { setSearchResults([]); }
+      finally { setSearching(false); }
     }, 300);
   }, [searchQ]);
-
-  function openModal() {
-    setShowModal(true);
-    setTab("create");
-    setFormErr("");
-    setSearchQ("");
-    setSearchResults([]);
-  }
 
   function copyCreated() {
     if (!created) return;
@@ -145,123 +133,193 @@ export default function BarbersPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+    <div style={{ padding:"32px 36px" }}>
+
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28 }}>
         <div>
-          <h1 className="text-xl font-bold text-white">Барберы</h1>
-          <p className="text-gray-400 text-sm mt-0.5">{data?.total ?? 0} сотрудников</p>
+          <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>
+            Барберы
+          </h1>
+          <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>{data?.total ?? 0} сотрудников</p>
         </div>
         <button
-          onClick={openModal}
-          className="flex items-center gap-2 bg-[#F59E0B] hover:bg-[#D97706] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+          onClick={() => { setShowModal(true); setTab("create"); setFormErr(""); setSearchQ(""); setSearchResults([]); }}
+          style={{
+            display:"flex", alignItems:"center", gap:8, background:"var(--gold)", color:"#0a0a0b",
+            border:"none", borderRadius:"var(--radius)", padding:"9px 18px",
+            fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'Manrope',sans-serif",
+          }}
         >
-          <Plus className="w-4 h-4" />
-          Добавить барбера
+          <Plus size={15} /> Добавить барбера
         </button>
       </div>
 
       {/* Credential banner */}
       {created && (
-        <div className="mb-6 bg-green-500/10 border border-green-500/20 rounded-xl p-4 flex items-start justify-between gap-4">
+        <div style={{
+          marginBottom:24, background:"rgba(76,175,125,0.08)",
+          border:"1px solid rgba(76,175,125,0.2)", borderRadius:"var(--radius-lg)",
+          padding:"16px 20px", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16,
+        }}>
           <div>
-            <p className="text-green-400 text-sm font-semibold mb-1">Барбер создан — передайте данные для входа:</p>
-            <p className="text-white text-sm font-mono">📱 {created.phone}</p>
-            <p className="text-white text-sm font-mono">🔑 {created.password}</p>
+            <p style={{ color:"var(--green)", fontWeight:600, fontSize:13, margin:"0 0 8px" }}>
+              Барбер создан — передайте данные для входа:
+            </p>
+            <p style={{ color:"var(--text)", fontFamily:"monospace", fontSize:13, margin:"0 0 4px" }}>📱 {created.phone}</p>
+            <p style={{ color:"var(--text)", fontFamily:"monospace", fontSize:13, margin:0 }}>🔑 {created.password}</p>
           </div>
-          <div className="flex gap-2 shrink-0">
-            <button onClick={copyCreated} className="flex items-center gap-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-400 text-xs px-3 py-1.5 rounded-lg transition-colors">
-              {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+          <div style={{ display:"flex", gap:8, flexShrink:0 }}>
+            <button
+              onClick={copyCreated}
+              style={{
+                display:"flex", alignItems:"center", gap:6,
+                background:"rgba(76,175,125,0.15)", border:"none", borderRadius:"var(--radius)",
+                color:"var(--green)", fontSize:12, fontWeight:600, padding:"6px 12px", cursor:"pointer",
+              }}
+            >
+              {copied ? <Check size={13} /> : <Copy size={13} />}
               {copied ? "Скопировано" : "Копировать"}
             </button>
-            <button onClick={() => setCreated(null)} className="text-gray-500 hover:text-white text-xs px-2">✕</button>
+            <button
+              onClick={() => setCreated(null)}
+              style={{ background:"none", border:"none", cursor:"pointer", color:"var(--text3)", padding:"6px" }}
+            >
+              <X size={14} />
+            </button>
           </div>
         </div>
       )}
 
+      {/* Skeleton */}
       {isLoading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-[#1F2937] rounded-2xl p-5 animate-pulse">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full bg-white/10" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3.5 bg-white/10 rounded w-28" />
-                  <div className="h-3 bg-white/10 rounded w-20" />
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:16 }}>
+          {[1,2,3].map((i) => (
+            <div key={i} style={{
+              background:"var(--surface)", border:"1px solid var(--border)",
+              borderRadius:"var(--radius-lg)", padding:20, animation:"pulse 1.5s infinite",
+            }}>
+              <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
+                <div style={{ width:48, height:48, borderRadius:"50%", background:"var(--border)" }} />
+                <div style={{ flex:1 }}>
+                  <div style={{ height:13, background:"var(--border)", borderRadius:4, marginBottom:8, width:"60%" }} />
+                  <div style={{ height:11, background:"var(--border)", borderRadius:4, width:"40%" }} />
                 </div>
               </div>
             </div>
           ))}
+          <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
         </div>
       )}
 
+      {/* Empty */}
       {!isLoading && data?.items.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#1F2937] flex items-center justify-center mb-4">
-            <Plus className="w-8 h-8 text-gray-600" />
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"80px 0", textAlign:"center" }}>
+          <div style={{
+            width:64, height:64, borderRadius:"var(--radius-lg)",
+            background:"var(--surface)", border:"1px solid var(--border)",
+            display:"flex", alignItems:"center", justifyContent:"center", marginBottom:16,
+          }}>
+            <Plus size={28} style={{ color:"var(--text3)" }} />
           </div>
-          <p className="text-gray-400 text-sm">Нет барберов. Добавьте первого!</p>
+          <p style={{ color:"var(--text2)", fontSize:14 }}>Нет барберов. Добавьте первого!</p>
         </div>
       )}
 
+      {/* Grid */}
       {!isLoading && data && data.items.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:16 }}>
           {data.items.map((b) => {
             const st = statsById.get(b.id);
             return (
               <Link
                 key={b.id}
                 href={`/barbers/${b.id}`}
-                className="group bg-[#1F2937] hover:bg-[#243040] rounded-2xl p-5 block transition-colors"
+                style={{
+                  display:"block", textDecoration:"none",
+                  background:"var(--surface)", border:"1px solid var(--border)",
+                  borderRadius:"var(--radius-lg)", padding:20,
+                  transition:"border-color 0.15s, box-shadow 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = "var(--gold-dim2)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(201,164,92,0.06)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "none";
+                }}
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-[#F59E0B]/20 flex items-center justify-center text-[#F59E0B] font-bold text-sm shrink-0">
-                    {initials(b)}
+                {/* Avatar row */}
+                <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14 }}>
+                  <div style={{
+                    width:48, height:48, borderRadius:"50%",
+                    background:"var(--gold-dim)", color:"var(--gold)",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    fontWeight:700, fontSize:15, flexShrink:0, overflow:"hidden",
+                  }}>
+                    {b.photo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={b.photo_url} alt={fullName(b)} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                    ) : initials(b)}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-white font-medium text-sm truncate">{fullName(b)}</p>
-                    <p className="text-gray-400 text-xs tabular-nums">{b.phone}</p>
+                  <div style={{ minWidth:0, flex:1 }}>
+                    <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {fullName(b)}
+                    </p>
+                    <p style={{ color:"var(--text3)", fontSize:12, margin:0 }}>{b.phone}</p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ${b.is_active ? "bg-green-500/10 text-green-400" : "bg-gray-500/10 text-gray-500"}`}>
+                  <span style={{
+                    fontSize:11, fontWeight:600, padding:"3px 8px", borderRadius:20, flexShrink:0,
+                    background: b.is_active ? "rgba(76,175,125,0.12)" : "rgba(90,90,82,0.12)",
+                    color: b.is_active ? "var(--green)" : "var(--text3)",
+                  }}>
                     {b.is_active ? "Активен" : "Неактивен"}
                   </span>
                 </div>
+
+                {/* Specs */}
                 {b.specializations.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-4">
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginBottom:14 }}>
                     {b.specializations.map((s) => (
-                      <span key={s} className="text-xs bg-white/5 text-gray-400 px-2 py-0.5 rounded-full">{s}</span>
+                      <span key={s} style={{
+                        fontSize:11, background:"var(--bg2)", color:"var(--text2)",
+                        padding:"2px 8px", borderRadius:12, border:"1px solid var(--border)",
+                      }}>{s}</span>
                     ))}
                   </div>
                 )}
 
-                {/* Метрики за 30 дней */}
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                  <div className="bg-[#111827] rounded-xl px-3 py-2">
-                    <p className="text-gray-500 text-[10px] mb-0.5">Выручка 30д</p>
-                    <p className="text-white text-sm font-semibold truncate">{fmtMoney(st?.total_revenue ?? 0)}</p>
+                {/* Stats */}
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:14 }}>
+                  <div style={{ background:"var(--bg2)", borderRadius:10, padding:"10px 12px" }}>
+                    <p style={{ color:"var(--text3)", fontSize:10, margin:"0 0 3px", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.05em" }}>Выручка 30д</p>
+                    <p style={{ color:"var(--text)", fontSize:13, fontWeight:700, margin:0 }}>{fmtMoney(st?.total_revenue ?? 0)}</p>
                   </div>
-                  <div className="bg-[#111827] rounded-xl px-3 py-2">
-                    <p className="text-gray-500 text-[10px] mb-0.5">Записи 30д</p>
-                    <p className="text-white text-sm font-semibold">{st?.total_appointments ?? 0}</p>
+                  <div style={{ background:"var(--bg2)", borderRadius:10, padding:"10px 12px" }}>
+                    <p style={{ color:"var(--text3)", fontSize:10, margin:"0 0 3px", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.05em" }}>Записи 30д</p>
+                    <p style={{ color:"var(--text)", fontSize:13, fontWeight:700, margin:0 }}>{st?.total_appointments ?? 0}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
+                {/* Actions */}
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                   {b.is_active ? (
                     <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        deactivateMutation.mutate(b.id);
-                      }}
+                      onClick={(e) => { e.preventDefault(); deactivateMutation.mutate(b.id); }}
                       disabled={deactivateMutation.isPending}
-                      className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-400 transition-colors disabled:opacity-50"
+                      style={{
+                        display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
+                        cursor:"pointer", color:"var(--text3)", fontSize:12, fontWeight:500,
+                        padding:0, opacity: deactivateMutation.isPending ? 0.5 : 1,
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--red)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text3)"; }}
                     >
-                      <UserX className="w-3.5 h-3.5" />
-                      Деактивировать
+                      <UserX size={13} /> Деактивировать
                     </button>
-                  ) : (
-                    <span />
-                  )}
-                  <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-[#F59E0B] transition-colors" />
+                  ) : <span />}
+                  <ChevronRight size={15} style={{ color:"var(--text3)" }} />
                 </div>
               </Link>
             );
@@ -271,86 +329,108 @@ export default function BarbersPage() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1F2937] rounded-2xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white font-semibold">Добавить барбера</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-white">✕</button>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex bg-[#111827] rounded-xl p-1 mb-5">
-              <button
-                onClick={() => setTab("create")}
-                className={`flex-1 text-sm font-medium py-2 rounded-lg transition-colors ${tab === "create" ? "bg-[#F59E0B] text-white" : "text-gray-400 hover:text-white"}`}
-              >
-                Создать нового
-              </button>
-              <button
-                onClick={() => setTab("search")}
-                className={`flex-1 text-sm font-medium py-2 rounded-lg transition-colors ${tab === "search" ? "bg-[#F59E0B] text-white" : "text-gray-400 hover:text-white"}`}
-              >
-                Найти в системе
+        <div style={{
+          position:"fixed", inset:0, background:"rgba(0,0,0,0.7)",
+          display:"flex", alignItems:"center", justifyContent:"center", zIndex:50, padding:20,
+        }}>
+          <div style={{
+            background:"var(--surface)", border:"1px solid var(--border)",
+            borderRadius:"var(--radius-lg)", width:"100%", maxWidth:440, padding:28,
+          }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
+              <h2 style={{ color:"var(--text)", fontSize:17, fontWeight:600, margin:0 }}>Добавить барбера</h2>
+              <button onClick={() => setShowModal(false)} style={{ background:"none", border:"none", cursor:"pointer", color:"var(--text2)" }}>
+                <X size={18} />
               </button>
             </div>
 
-            {/* Tab: Create */}
+            {/* Modal tabs */}
+            <div style={{
+              display:"flex", background:"var(--bg)", border:"1px solid var(--border)",
+              borderRadius:"var(--radius)", padding:4, marginBottom:20,
+            }}>
+              {(["create","search"] as ModalTab[]).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  style={{
+                    flex:1, padding:"7px 0", fontSize:13, fontWeight:600,
+                    borderRadius:9, border:"none", cursor:"pointer",
+                    background: tab === t ? "var(--gold)" : "transparent",
+                    color: tab === t ? "#0a0a0b" : "var(--text2)",
+                    transition:"background 0.15s, color 0.15s",
+                  }}
+                >
+                  {t === "create" ? "Создать нового" : "Найти в системе"}
+                </button>
+              ))}
+            </div>
+
+            {/* Create tab */}
             {tab === "create" && (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1.5">Имя</label>
-                    <input
-                      value={form.name}
-                      onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                      placeholder="Алишер"
-                      className="w-full bg-[#111827] text-white rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#F59E0B] placeholder-gray-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1.5">Фамилия</label>
-                    <input
-                      value={form.last_name}
-                      onChange={(e) => setForm((f) => ({ ...f, last_name: e.target.value }))}
-                      placeholder="Каримов"
-                      className="w-full bg-[#111827] text-white rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#F59E0B] placeholder-gray-600"
-                    />
-                  </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                  {(["name","last_name"] as const).map((f) => (
+                    <div key={f}>
+                      <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>
+                        {f === "name" ? "Имя" : "Фамилия"}
+                      </label>
+                      <input
+                        value={form[f]}
+                        onChange={(e) => setForm((p) => ({ ...p, [f]: e.target.value }))}
+                        placeholder={f === "name" ? "Алишер" : "Каримов"}
+                        style={inputStyle}
+                      />
+                    </div>
+                  ))}
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1.5">Телефон</label>
+                  <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>Телефон</label>
                   <input
                     value={form.phone}
-                    onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                    placeholder="+998901234567"
-                    type="tel"
-                    className="w-full bg-[#111827] text-white rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#F59E0B] placeholder-gray-600"
+                    onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+                    placeholder="+998901234567" type="tel" style={inputStyle}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1.5">Пароль</label>
-                  <div className="relative">
+                  <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>Пароль</label>
+                  <div style={{ position:"relative" }}>
                     <input
                       value={form.password}
-                      onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                      onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
                       type={showPass ? "text" : "password"}
                       placeholder="Минимум 6 символов"
-                      className="w-full bg-[#111827] text-white rounded-xl px-3 py-2.5 pr-10 text-sm outline-none focus:ring-2 focus:ring-[#F59E0B] placeholder-gray-600"
+                      style={{ ...inputStyle, paddingRight:40 }}
                     />
-                    <button type="button" onClick={() => setShowPass((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
-                      {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    <button
+                      type="button" onClick={() => setShowPass((v) => !v)}
+                      style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"var(--text2)" }}
+                    >
+                      {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
                 </div>
-                {formErr && <p className="text-red-400 text-xs bg-red-400/10 rounded-lg px-3 py-2">{formErr}</p>}
-                <div className="flex gap-3 pt-1">
-                  <button onClick={() => setShowModal(false)} className="flex-1 bg-white/5 hover:bg-white/10 text-gray-300 text-sm font-medium py-2.5 rounded-xl transition-colors">
+                {formErr && (
+                  <div style={{ background:"rgba(224,90,90,0.08)", border:"1px solid rgba(224,90,90,0.2)", borderRadius:"var(--radius)", padding:"9px 13px", color:"var(--red)", fontSize:13 }}>
+                    {formErr}
+                  </div>
+                )}
+                <div style={{ display:"flex", gap:10, marginTop:4 }}>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    style={{ flex:1, background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"10px", fontSize:13, fontWeight:500, color:"var(--text2)", cursor:"pointer" }}
+                  >
                     Отмена
                   </button>
                   <button
                     onClick={() => { setFormErr(""); createMutation.mutate(form); }}
                     disabled={createMutation.isPending || !form.phone || !form.password}
-                    className="flex-1 bg-[#F59E0B] hover:bg-[#D97706] disabled:opacity-50 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
+                    style={{
+                      flex:1, background:"var(--gold)", color:"#0a0a0b",
+                      border:"none", borderRadius:"var(--radius)", padding:"10px",
+                      fontSize:13, fontWeight:700, cursor:"pointer",
+                      opacity: (createMutation.isPending || !form.phone || !form.password) ? 0.5 : 1,
+                    }}
                   >
                     {createMutation.isPending ? "Создаём..." : "Создать"}
                   </button>
@@ -358,49 +438,57 @@ export default function BarbersPage() {
               </div>
             )}
 
-            {/* Tab: Search */}
+            {/* Search tab */}
             {tab === "search" && (
-              <div className="space-y-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                <div style={{ position:"relative" }}>
+                  <Search size={14} style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"var(--text3)", pointerEvents:"none" }} />
                   <input
                     value={searchQ}
                     onChange={(e) => setSearchQ(e.target.value)}
                     placeholder="Имя или телефон..."
-                    className="w-full bg-[#111827] text-white rounded-xl pl-9 pr-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#F59E0B] placeholder-gray-600"
+                    style={{ ...inputStyle, paddingLeft:36 }}
                     autoFocus
                   />
                 </div>
-
-                {searching && (
-                  <p className="text-gray-500 text-xs text-center py-4">Ищем...</p>
-                )}
-
+                {searching && <p style={{ color:"var(--text2)", fontSize:13, textAlign:"center", padding:"12px 0" }}>Ищем...</p>}
                 {!searching && searchQ.length >= 2 && searchResults.length === 0 && (
-                  <p className="text-gray-500 text-xs text-center py-4">Никого не нашли</p>
+                  <p style={{ color:"var(--text2)", fontSize:13, textAlign:"center", padding:"12px 0" }}>Никого не нашли</p>
                 )}
-
                 {searchResults.length > 0 && (
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                  <div style={{ display:"flex", flexDirection:"column", gap:6, maxHeight:240, overflowY:"auto" }}>
                     {searchResults.map((r) => (
-                      <div key={r.id} className="flex items-center gap-3 bg-[#111827] rounded-xl px-3 py-2.5">
-                        <div className="w-9 h-9 rounded-full bg-[#F59E0B]/20 flex items-center justify-center text-[#F59E0B] font-bold text-xs shrink-0">
+                      <div key={r.id} style={{
+                        display:"flex", alignItems:"center", gap:12,
+                        background:"var(--bg)", border:"1px solid var(--border)",
+                        borderRadius:"var(--radius)", padding:"10px 14px",
+                      }}>
+                        <div style={{
+                          width:36, height:36, borderRadius:"50%",
+                          background:"var(--gold-dim)", color:"var(--gold)",
+                          display:"flex", alignItems:"center", justifyContent:"center",
+                          fontWeight:700, fontSize:12, flexShrink:0,
+                        }}>
                           {initials(r)}
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-white text-sm font-medium truncate">{fullName(r)}</p>
-                          <p className="text-gray-400 text-xs tabular-nums">{r.phone}</p>
+                        <div style={{ minWidth:0, flex:1 }}>
+                          <p style={{ color:"var(--text)", fontSize:13, fontWeight:600, margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{fullName(r)}</p>
+                          <p style={{ color:"var(--text3)", fontSize:12, margin:0 }}>{r.phone}</p>
                         </div>
                         {r.is_already_in_team ? (
-                          <span className="flex items-center gap-1 text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded-full shrink-0">
-                            <UserCheck className="w-3 h-3" />
-                            В команде
+                          <span style={{ display:"flex", alignItems:"center", gap:4, fontSize:11, color:"var(--green)", background:"rgba(76,175,125,0.1)", padding:"3px 8px", borderRadius:20, flexShrink:0 }}>
+                            <UserCheck size={11} /> В команде
                           </span>
                         ) : (
                           <button
                             onClick={() => transferMutation.mutate(r.id)}
                             disabled={transferMutation.isPending}
-                            className="text-xs bg-[#F59E0B] hover:bg-[#D97706] disabled:opacity-50 text-white font-medium px-3 py-1.5 rounded-lg transition-colors shrink-0"
+                            style={{
+                              background:"var(--gold)", color:"#0a0a0b", border:"none",
+                              borderRadius:"var(--radius)", padding:"5px 12px",
+                              fontSize:12, fontWeight:700, cursor:"pointer", flexShrink:0,
+                              opacity: transferMutation.isPending ? 0.5 : 1,
+                            }}
                           >
                             Добавить
                           </button>
@@ -409,12 +497,16 @@ export default function BarbersPage() {
                     ))}
                   </div>
                 )}
-
                 {searchQ.length < 2 && (
-                  <p className="text-gray-600 text-xs text-center py-6">Введите минимум 2 символа для поиска</p>
+                  <p style={{ color:"var(--text3)", fontSize:12, textAlign:"center", padding:"16px 0" }}>Введите минимум 2 символа</p>
                 )}
-
-                <button onClick={() => setShowModal(false)} className="w-full bg-white/5 hover:bg-white/10 text-gray-300 text-sm font-medium py-2.5 rounded-xl transition-colors mt-2">
+                <button
+                  onClick={() => setShowModal(false)}
+                  style={{
+                    background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)",
+                    padding:"10px", fontSize:13, fontWeight:500, color:"var(--text2)", cursor:"pointer", marginTop:4,
+                  }}
+                >
                   Закрыть
                 </button>
               </div>

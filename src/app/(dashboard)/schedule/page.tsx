@@ -106,6 +106,11 @@ interface SelectedSlot {
   slot: Slot;
 }
 
+// CSS var shorthands for schedule grid
+const S = {
+  card: { background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)" } as React.CSSProperties,
+};
+
 function TeamScheduleGrid() {
   const { salon } = useSalon();
   const qc = useQueryClient();
@@ -174,54 +179,61 @@ function TeamScheduleGrid() {
   }, [weekStart]);
 
   return (
-    <div className="p-6 lg:p-8">
+    <div style={{ padding:"28px 32px" }}>
       {/* Header */}
-      <div className="flex flex-col gap-4 mb-5">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+      <div style={{ display:"flex", flexDirection:"column", gap:16, marginBottom:20 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
           <div>
-            <h1 className="text-xl font-bold text-white">Расписание команды</h1>
-            <p className="text-gray-400 text-sm mt-0.5">Сетка занятости барберов на неделю</p>
+            <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>
+              Расписание команды
+            </h1>
+            <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>Сетка занятости барберов на неделю</p>
           </div>
           <button
             onClick={() => fillGapMutation.mutate()}
             disabled={fillGapMutation.isPending || !data}
-            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 disabled:opacity-50 text-gray-200 text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+            style={{
+              display:"flex", alignItems:"center", gap:8,
+              background:"var(--surface)", border:"1px solid var(--border)",
+              borderRadius:"var(--radius)", padding:"9px 16px",
+              color:"var(--text2)", fontSize:13, fontWeight:500, cursor:"pointer",
+              opacity:(fillGapMutation.isPending || !data) ? 0.5 : 1,
+            }}
           >
-            {fillGapMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+            {fillGapMutation.isPending ? <Loader2 size={14} style={{ animation:"spin 0.8s linear infinite" }} /> : <Wand2 size={14} />}
             Заполнить пустые окна
+            <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </button>
         </div>
 
         {/* Week nav + barber chips */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-2">
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <button
               onClick={() => setAnchor(fmtDateISO(addDays(weekStart, -7)))}
-              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300"
               aria-label="Предыдущая неделя"
+              style={{ padding:8, borderRadius:"var(--radius)", background:"var(--surface)", border:"1px solid var(--border)", cursor:"pointer", color:"var(--text2)", display:"flex" }}
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft size={15} />
             </button>
-            <span className="text-white text-sm font-medium min-w-[140px] text-center">{weekLabel}</span>
+            <span style={{ color:"var(--text)", fontSize:13, fontWeight:500, minWidth:140, textAlign:"center" }}>{weekLabel}</span>
             <button
               onClick={() => setAnchor(fmtDateISO(addDays(weekStart, 7)))}
-              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300"
               aria-label="Следующая неделя"
+              style={{ padding:8, borderRadius:"var(--radius)", background:"var(--surface)", border:"1px solid var(--border)", cursor:"pointer", color:"var(--text2)", display:"flex" }}
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight size={15} />
             </button>
             <button
               onClick={() => setAnchor(fmtDateISO(new Date()))}
-              className="ml-1 text-xs text-[#F59E0B] hover:underline"
+              style={{ fontSize:12, color:"var(--gold)", background:"none", border:"none", cursor:"pointer", marginLeft:4 }}
             >
               Сегодня
             </button>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <Chip active={barberFilter === "all"} onClick={() => setBarberFilter("all")}>
-              Все
-            </Chip>
+          <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+            <Chip active={barberFilter === "all"} onClick={() => setBarberFilter("all")}>Все</Chip>
             {data?.barbers.map((b) => (
               <Chip key={b.master_id} active={barberFilter === b.master_id} onClick={() => setBarberFilter(b.master_id)}>
                 {b.name}
@@ -232,7 +244,7 @@ function TeamScheduleGrid() {
       </div>
 
       {/* Day stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:20 }}>
         <StatCard label={`Загрузка (${DAY_SHORT[DAY_KEYS.indexOf(selectedDay)]})`} value={`${dayAgg.load}%`} />
         <StatCard label="Выручка дня" value={fmtMoney(dayAgg.revenue)} />
         <StatCard label="Пустые окна" value={String(dayAgg.free)} />
@@ -241,31 +253,37 @@ function TeamScheduleGrid() {
 
       {/* Grid */}
       {isLoading ? (
-        <div className="bg-[#1F2937] rounded-2xl p-6 animate-pulse h-80" />
+        <div style={{ ...S.card, padding:24, height:320, animation:"pulse 1.5s infinite" }}>
+          <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
+        </div>
       ) : isError ? (
-        <div className="bg-[#1F2937] rounded-2xl p-6 text-red-400 text-sm">
+        <div style={{ ...S.card, padding:24, color:"var(--red)", fontSize:13 }}>
           {parseApiError(error, "Не удалось загрузить расписание")}
         </div>
       ) : barbers.length === 0 ? (
-        <div className="bg-[#1F2937] rounded-2xl p-10 text-center text-gray-400 text-sm">
+        <div style={{ ...S.card, padding:40, textAlign:"center", color:"var(--text2)", fontSize:14 }}>
           В салоне пока нет барберов.
         </div>
       ) : (
-        <div className="bg-[#1F2937] rounded-2xl p-3 overflow-x-auto">
-          <table className="border-separate border-spacing-2 w-full min-w-[820px]">
+        <div style={{ ...S.card, padding:12, overflowX:"auto" }}>
+          <table style={{ borderSpacing:6, borderCollapse:"separate", width:"100%", minWidth:820 }}>
             <thead>
               <tr>
-                <th className="w-32 sticky left-0 z-10 bg-[#1F2937]" />
+                <th style={{ width:128, position:"sticky", left:0, zIndex:10, background:"var(--surface)" }} />
                 {DAY_KEYS.map((key, i) => {
                   const d = weekDates[i];
                   const isSel = key === selectedDay;
                   return (
-                    <th key={key} className="p-0">
+                    <th key={key} style={{ padding:0 }}>
                       <button
                         onClick={() => setSelectedDay(key)}
-                        className={`w-full rounded-lg px-2 py-1.5 text-xs font-medium transition-colors ${
-                          isSel ? "bg-[#F59E0B]/15 text-[#F59E0B]" : "text-gray-400 hover:bg-white/5"
-                        }`}
+                        style={{
+                          width:"100%", borderRadius:"var(--radius)", padding:"6px 8px",
+                          fontSize:11, fontWeight:600, border:"none", cursor:"pointer",
+                          background: isSel ? "var(--gold-dim)" : "transparent",
+                          color: isSel ? "var(--gold)" : "var(--text2)",
+                          transition:"background 0.15s, color 0.15s",
+                        }}
                       >
                         {DAY_SHORT[i]} {d.getDate()}
                       </button>
@@ -277,28 +295,22 @@ function TeamScheduleGrid() {
             <tbody>
               {barbers.map((b) => (
                 <tr key={b.master_id}>
-                  <td className="sticky left-0 z-10 bg-[#1F2937] align-top">
-                    <div className="flex items-center gap-2 pr-2 pt-1">
+                  <td style={{ position:"sticky", left:0, zIndex:10, background:"var(--surface)", verticalAlign:"top" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, paddingRight:8, paddingTop:4 }}>
                       <Avatar name={b.name} url={b.avatar_url} />
-                      <span className="text-white text-sm font-medium truncate max-w-[88px]">{b.name}</span>
+                      <span style={{ color:"var(--text)", fontSize:13, fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:88 }}>{b.name}</span>
                     </div>
                   </td>
                   {DAY_KEYS.map((key, i) => {
                     const day = b.days[key];
                     const dateISO = fmtDateISO(weekDates[i]);
                     return (
-                      <td key={key} className="align-top">
+                      <td key={key} style={{ verticalAlign:"top" }}>
                         <DayCell
                           day={day}
                           highlight={key === selectedDay}
                           onSlot={(slot) =>
-                            setSelected({
-                              masterId: b.master_id,
-                              masterName: b.name,
-                              dayKey: key,
-                              date: dateISO,
-                              slot,
-                            })
+                            setSelected({ masterId: b.master_id, masterName: b.name, dayKey: key, date: dateISO, slot })
                           }
                         />
                       </td>
@@ -312,10 +324,10 @@ function TeamScheduleGrid() {
       )}
 
       {/* Legend */}
-      <div className="flex items-center gap-4 mt-4 text-xs text-gray-400">
-        <LegendDot className="bg-emerald-500/80" label="Занято" />
-        <LegendDot className="bg-white/10" label="Свободно" />
-        <LegendDot className="bg-red-500/70" label="Заблокировано" />
+      <div style={{ display:"flex", alignItems:"center", gap:16, marginTop:16 }}>
+        <LegendDot color="rgba(76,175,125,0.8)" label="Занято" />
+        <LegendDot color="var(--border)" label="Свободно" />
+        <LegendDot color="rgba(224,90,90,0.7)" label="Заблокировано" />
       </div>
 
       {selected && (
@@ -339,9 +351,13 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-        active ? "bg-[#F59E0B] text-white" : "bg-white/5 text-gray-300 hover:bg-white/10"
-      }`}
+      style={{
+        padding:"5px 12px", borderRadius:"var(--radius)", border:"none", cursor:"pointer",
+        fontSize:11, fontWeight:600,
+        background: active ? "var(--gold)" : "var(--surface)",
+        color: active ? "#0a0a0b" : "var(--text2)",
+        transition:"background 0.15s, color 0.15s",
+      }}
     >
       {children}
     </button>
@@ -350,59 +366,56 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-[#1F2937] rounded-2xl p-4">
-      <p className="text-gray-400 text-xs">{label}</p>
-      <p className="text-white text-lg font-bold mt-1">{value}</p>
+    <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:16 }}>
+      <p style={{ color:"var(--text2)", fontSize:11, margin:0, fontWeight:600 }}>{label}</p>
+      <p style={{ color:"var(--text)", fontSize:18, fontWeight:700, margin:"4px 0 0" }}>{value}</p>
     </div>
   );
 }
 
-function LegendDot({ className, label }: { className: string; label: string }) {
+function LegendDot({ color, label }: { color: string; label: string }) {
   return (
-    <span className="flex items-center gap-1.5">
-      <span className={`w-3 h-3 rounded ${className}`} />
+    <span style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, color:"var(--text2)" }}>
+      <span style={{ width:12, height:12, borderRadius:3, background:color, display:"inline-block" }} />
       {label}
     </span>
   );
 }
 
 function Avatar({ name, url }: { name: string; url: string | null }) {
-  const initials = name
-    .split(" ")
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  const initials = name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
   return (
-    <div className="w-7 h-7 shrink-0 rounded-full bg-[#F59E0B]/20 text-[#F59E0B] text-[10px] font-semibold flex items-center justify-center overflow-hidden">
+    <div style={{
+      width:28, height:28, borderRadius:"50%", background:"var(--gold-dim)", color:"var(--gold)",
+      fontSize:10, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center",
+      overflow:"hidden", flexShrink:0,
+    }}>
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt={name} className="w-full h-full object-cover" />
-      ) : (
-        initials || "?"
-      )}
+        <img src={url} alt={name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+      ) : (initials || "?")}
     </div>
   );
 }
 
-function DayCell({
-  day,
-  highlight,
-  onSlot,
-}: {
-  day: DaySchedule | undefined;
-  highlight: boolean;
-  onSlot: (slot: Slot) => void;
-}) {
+function DayCell({ day, highlight, onSlot }: { day: DaySchedule | undefined; highlight: boolean; onSlot: (slot: Slot) => void }) {
   if (!day || !day.working_hours) {
     return (
-      <div className={`rounded-lg min-h-[88px] h-full flex items-center justify-center text-[11px] text-gray-600 ${highlight ? "bg-white/5" : ""}`}>
+      <div style={{
+        borderRadius:"var(--radius)", minHeight:88, display:"flex", alignItems:"center", justifyContent:"center",
+        fontSize:11, color:"var(--text3)",
+        background: highlight ? "rgba(255,255,255,0.03)" : "transparent",
+      }}>
         Выходной
       </div>
     );
   }
   return (
-    <div className={`flex flex-col gap-1 min-w-[96px] rounded-lg p-1 ${highlight ? "bg-white/5" : ""}`}>
+    <div style={{
+      display:"flex", flexDirection:"column", gap:4, minWidth:96,
+      borderRadius:"var(--radius)", padding:4,
+      background: highlight ? "rgba(255,255,255,0.03)" : "transparent",
+    }}>
       {day.slots.map((s) => (
         <SlotBlock key={s.slot_id} slot={s} onClick={() => onSlot(s)} />
       ))}
@@ -411,29 +424,34 @@ function DayCell({
 }
 
 function SlotBlock({ slot, onClick }: { slot: Slot; onClick: () => void }) {
-  const base = "w-full text-left rounded-md px-2 py-1 text-[11px] leading-tight transition-colors";
+  const base: React.CSSProperties = {
+    width:"100%", textAlign:"left", borderRadius:6, padding:"4px 7px",
+    fontSize:11, lineHeight:1.4, border:"none", cursor:"pointer",
+    transition:"opacity 0.15s",
+  };
   if (slot.status === "booked") {
     return (
-      <button onClick={onClick} className={`${base} bg-emerald-500/80 hover:bg-emerald-500 text-white`}>
-        <span className="font-medium">{slot.starts_at}</span>
-        <span className="block truncate">{slot.client_name}</span>
-        {slot.service ? <span className="block truncate opacity-80">{slot.service}</span> : null}
+      <button onClick={onClick} style={{ ...base, background:"rgba(76,175,125,0.75)", color:"#fff" }}>
+        <span style={{ fontWeight:600 }}>{slot.starts_at}</span>
+        <span style={{ display:"block", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{slot.client_name}</span>
+        {slot.service && <span style={{ display:"block", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", opacity:0.8 }}>{slot.service}</span>}
       </button>
     );
   }
   if (slot.status === "blocked") {
     return (
-      <button
-        onClick={onClick}
-        className={`${base} bg-red-500/70 hover:bg-red-500/90 text-white bg-[repeating-linear-gradient(45deg,transparent,transparent_4px,rgba(0,0,0,0.12)_4px,rgba(0,0,0,0.12)_8px)]`}
-      >
-        <span className="font-medium">{slot.starts_at}</span>
-        <span className="block truncate opacity-90">{slot.reason || "Блок"}</span>
+      <button onClick={onClick} style={{
+        ...base,
+        background:"rgba(224,90,90,0.65)", color:"#fff",
+        backgroundImage:"repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(0,0,0,0.12) 4px,rgba(0,0,0,0.12) 8px)",
+      }}>
+        <span style={{ fontWeight:600 }}>{slot.starts_at}</span>
+        <span style={{ display:"block", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", opacity:0.9 }}>{slot.reason || "Блок"}</span>
       </button>
     );
   }
   return (
-    <button onClick={onClick} className={`${base} bg-white/5 hover:bg-white/10 text-gray-400`}>
+    <button onClick={onClick} style={{ ...base, background:"rgba(255,255,255,0.05)", color:"var(--text2)" }}>
       {slot.starts_at}–{slot.ends_at}
     </button>
   );
@@ -486,83 +504,106 @@ function SlotPanel({
   }, [date]);
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-sm h-full bg-[#1F2937] p-6 overflow-y-auto shadow-2xl">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-white font-semibold">Слот</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400">
-            <X className="w-4 h-4" />
+    <div style={{ position:"fixed", inset:0, zIndex:50, display:"flex", justifyContent:"flex-end" }}>
+      <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.6)" }} onClick={onClose} />
+      <div style={{
+        position:"relative", width:"100%", maxWidth:360, height:"100%",
+        background:"var(--surface)", borderLeft:"1px solid var(--border)",
+        padding:24, overflowY:"auto",
+      }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
+          <h2 style={{ color:"var(--text)", fontWeight:600, fontSize:16, margin:0 }}>Слот</h2>
+          <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:"var(--text2)", padding:4 }}>
+            <X size={16} />
           </button>
         </div>
 
-        <div className="space-y-1.5 text-sm mb-6">
+        <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:24 }}>
           <Row label="Барбер" value={masterName} />
           <Row label="День" value={dateLabel} />
           <Row label="Время" value={`${slot.starts_at} – ${slot.ends_at}`} />
         </div>
 
         {slot.status === "booked" && (
-          <div className="space-y-4">
-            <div className="bg-[#111827] rounded-xl p-4 space-y-1.5 text-sm">
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            <div style={{ background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:14, display:"flex", flexDirection:"column", gap:8 }}>
               <Row label="Клиент" value={slot.client_name || "—"} />
               <Row label="Услуга" value={slot.service || "—"} />
             </div>
             <button
-              onClick={() => {
-                if (confirm("Отменить запись клиента?")) cancelMutation.mutate();
-              }}
+              onClick={() => { if (confirm("Отменить запись клиента?")) cancelMutation.mutate(); }}
               disabled={cancelMutation.isPending}
-              className="w-full flex items-center justify-center gap-2 bg-red-500/90 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-semibold px-4 py-2.5 rounded-xl"
+              style={{
+                display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                background:"rgba(224,90,90,0.9)", color:"#fff", border:"none", borderRadius:"var(--radius)",
+                padding:"10px", fontSize:13, fontWeight:600, cursor:"pointer",
+                opacity: cancelMutation.isPending ? 0.5 : 1,
+              }}
             >
-              <Ban className="w-4 h-4" />
-              Отменить запись
+              <Ban size={14} /> Отменить запись
             </button>
           </div>
         )}
 
         {slot.status === "free" && (
-          <div className="space-y-4">
+          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
             <div>
-              <label className="text-gray-400 text-xs block mb-1.5">Причина блокировки (необязательно)</label>
+              <label style={{ color:"var(--text2)", fontSize:12, display:"block", marginBottom:6, fontWeight:500 }}>
+                Причина блокировки (необязательно)
+              </label>
               <input
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 maxLength={200}
                 placeholder="Обед, перерыв…"
-                className="w-full bg-[#111827] text-white text-sm rounded-xl px-3 py-2.5 outline-none focus:ring-1 focus:ring-[#F59E0B]"
+                style={{
+                  width:"100%", background:"var(--bg)", color:"var(--text)",
+                  border:"1px solid var(--border)", borderRadius:"var(--radius)",
+                  padding:"9px 12px", fontSize:13, outline:"none",
+                }}
               />
             </div>
             <button
               onClick={() => blockMutation.mutate()}
               disabled={blockMutation.isPending}
-              className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 disabled:opacity-50 text-gray-200 text-sm font-semibold px-4 py-2.5 rounded-xl"
+              style={{
+                display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)",
+                color:"var(--text2)", padding:"10px", fontSize:13, fontWeight:500, cursor:"pointer",
+                opacity: blockMutation.isPending ? 0.5 : 1,
+              }}
             >
-              <Ban className="w-4 h-4" />
-              Заблокировать
+              <Ban size={14} /> Заблокировать
             </button>
             <Link
               href="/appointments"
-              className="w-full flex items-center justify-center gap-2 bg-[#F59E0B] hover:bg-[#D97706] text-white text-sm font-semibold px-4 py-2.5 rounded-xl"
+              style={{
+                display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                background:"var(--gold)", color:"#0a0a0b", borderRadius:"var(--radius)",
+                padding:"10px", fontSize:13, fontWeight:700, textDecoration:"none",
+              }}
             >
-              <CalendarPlus className="w-4 h-4" />
-              Создать запись
+              <CalendarPlus size={14} /> Создать запись
             </Link>
           </div>
         )}
 
         {slot.status === "blocked" && (
-          <div className="space-y-4">
-            <div className="bg-[#111827] rounded-xl p-4 text-sm">
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            <div style={{ background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:14 }}>
               <Row label="Причина" value={slot.reason || "—"} />
             </div>
             <button
               onClick={() => unblockMutation.mutate()}
               disabled={unblockMutation.isPending}
-              className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 disabled:opacity-50 text-gray-200 text-sm font-semibold px-4 py-2.5 rounded-xl"
+              style={{
+                display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)",
+                color:"var(--text2)", padding:"10px", fontSize:13, fontWeight:500, cursor:"pointer",
+                opacity: unblockMutation.isPending ? 0.5 : 1,
+              }}
             >
-              <Unlock className="w-4 h-4" />
-              Разблокировать
+              <Unlock size={14} /> Разблокировать
             </button>
           </div>
         )}
@@ -573,9 +614,9 @@ function SlotPanel({
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="text-gray-400">{label}</span>
-      <span className="text-white text-right truncate">{value}</span>
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+      <span style={{ color:"var(--text2)", fontSize:13, flexShrink:0 }}>{label}</span>
+      <span style={{ color:"var(--text)", fontSize:13, textAlign:"right", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{value}</span>
     </div>
   );
 }
@@ -636,82 +677,85 @@ function WorkdaysEditor() {
     setDays((prev) => prev.map((d, i) => (i === idx ? { ...d, ...patch } : d)));
   }
 
+  const timeInput: React.CSSProperties = {
+    background:"var(--bg)", color:"var(--text)", border:"1px solid var(--border)",
+    borderRadius:"var(--radius)", padding:"6px 10px", fontSize:13, outline:"none",
+  };
+
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+    <div style={{ padding:"32px 36px" }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28 }}>
         <div>
-          <h1 className="text-xl font-bold text-white">Расписание</h1>
-          <p className="text-gray-400 text-sm mt-0.5">Рабочие часы барбершопа</p>
+          <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>
+            Расписание
+          </h1>
+          <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>Рабочие часы барбершопа</p>
         </div>
         <button
           onClick={() => saveMutation.mutate()}
           disabled={saveMutation.isPending}
-          className="flex items-center gap-2 bg-[#F59E0B] hover:bg-[#D97706] disabled:opacity-50 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+          style={{
+            display:"flex", alignItems:"center", gap:8, background:"var(--gold)", color:"#0a0a0b",
+            border:"none", borderRadius:"var(--radius)", padding:"9px 18px",
+            fontSize:13, fontWeight:700, cursor:"pointer", opacity: saveMutation.isPending ? 0.5 : 1,
+          }}
         >
-          <Save className="w-4 h-4" />
+          <Save size={14} />
           {saved ? "Сохранено!" : saveMutation.isPending ? "Сохраняем..." : "Сохранить"}
         </button>
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
-          {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <div key={i} className="bg-[#1F2937] rounded-2xl p-4 animate-pulse h-16" />
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          {[1,2,3,4,5,6,7].map((i) => (
+            <div key={i} style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:16, height:60, animation:"pulse 1.5s infinite" }} />
           ))}
+          <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           {days.map((day, idx) => (
-            <div key={day.day_of_week} className="bg-[#1F2937] rounded-2xl p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-32 shrink-0">
-                  <p className="text-white text-sm font-medium">{DAY_NAMES[day.day_of_week]}</p>
+            <div key={day.day_of_week} style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"14px 20px" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:20 }}>
+                <div style={{ width:128, flexShrink:0 }}>
+                  <p style={{ color:"var(--text)", fontSize:14, fontWeight:500, margin:0 }}>{DAY_NAMES[day.day_of_week]}</p>
                 </div>
 
+                {/* Toggle */}
                 <button
                   onClick={() => update(idx, { is_working: !day.is_working })}
-                  className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${day.is_working ? "bg-[#F59E0B]" : "bg-white/10"}`}
+                  style={{
+                    position:"relative", width:40, height:20, borderRadius:10,
+                    background: day.is_working ? "var(--gold)" : "var(--border)",
+                    border:"none", cursor:"pointer", flexShrink:0,
+                    transition:"background 0.2s",
+                  }}
                 >
-                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${day.is_working ? "translate-x-5" : "translate-x-0.5"}`} />
+                  <span style={{
+                    position:"absolute", top:2, width:16, height:16, borderRadius:"50%",
+                    background:"#fff", boxShadow:"0 1px 3px rgba(0,0,0,0.3)",
+                    transition:"transform 0.2s",
+                    transform: day.is_working ? "translateX(22px)" : "translateX(2px)",
+                  }} />
                 </button>
 
                 {day.is_working ? (
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-gray-500" />
-                      <input
-                        type="time"
-                        value={day.start_time}
-                        onChange={(e) => update(idx, { start_time: e.target.value })}
-                        className="bg-[#111827] text-white text-sm rounded-lg px-2 py-1 outline-none focus:ring-1 focus:ring-[#F59E0B]"
-                      />
-                      <span className="text-gray-500 text-xs">—</span>
-                      <input
-                        type="time"
-                        value={day.end_time}
-                        onChange={(e) => update(idx, { end_time: e.target.value })}
-                        className="bg-[#111827] text-white text-sm rounded-lg px-2 py-1 outline-none focus:ring-1 focus:ring-[#F59E0B]"
-                      />
+                  <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                      <Clock size={13} style={{ color:"var(--text3)" }} />
+                      <input type="time" value={day.start_time} onChange={(e) => update(idx, { start_time: e.target.value })} style={timeInput} />
+                      <span style={{ color:"var(--text3)", fontSize:12 }}>—</span>
+                      <input type="time" value={day.end_time} onChange={(e) => update(idx, { end_time: e.target.value })} style={timeInput} />
                     </div>
-                    <span className="text-gray-600 text-xs">Перерыв:</span>
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        type="time"
-                        value={day.break_start ?? ""}
-                        onChange={(e) => update(idx, { break_start: e.target.value || null })}
-                        className="bg-[#111827] text-white text-sm rounded-lg px-2 py-1 outline-none focus:ring-1 focus:ring-[#F59E0B]"
-                      />
-                      <span className="text-gray-500 text-xs">—</span>
-                      <input
-                        type="time"
-                        value={day.break_end ?? ""}
-                        onChange={(e) => update(idx, { break_end: e.target.value || null })}
-                        className="bg-[#111827] text-white text-sm rounded-lg px-2 py-1 outline-none focus:ring-1 focus:ring-[#F59E0B]"
-                      />
+                    <span style={{ color:"var(--text3)", fontSize:12 }}>Перерыв:</span>
+                    <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                      <input type="time" value={day.break_start ?? ""} onChange={(e) => update(idx, { break_start: e.target.value || null })} style={timeInput} />
+                      <span style={{ color:"var(--text3)", fontSize:12 }}>—</span>
+                      <input type="time" value={day.break_end ?? ""} onChange={(e) => update(idx, { break_end: e.target.value || null })} style={timeInput} />
                     </div>
                   </div>
                 ) : (
-                  <span className="text-gray-600 text-sm">Выходной</span>
+                  <span style={{ color:"var(--text3)", fontSize:13 }}>Выходной</span>
                 )}
               </div>
             </div>

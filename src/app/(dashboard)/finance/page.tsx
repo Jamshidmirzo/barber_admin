@@ -32,17 +32,29 @@ function fmt(n: number) {
   return n.toLocaleString("ru") + " сум";
 }
 
-function delta(pct: number | null) {
+function Delta({ pct }: { pct: number | null }) {
   if (pct === null) return null;
   const sign = pct >= 0 ? "+" : "";
-  const color = pct >= 0 ? "text-green-400" : "text-red-400";
-  return <span className={`text-xs ${color}`}>{sign}{pct.toFixed(0)}% к прошлой неделе</span>;
+  return (
+    <span style={{ fontSize:12, color: pct >= 0 ? "var(--green)" : "var(--red)", fontWeight:500 }}>
+      {sign}{pct.toFixed(0)}% к прошлой неделе
+    </span>
+  );
 }
+
+const cardStyle: React.CSSProperties = {
+  background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)",
+};
+
+const periods: { key: Period; label: string }[] = [
+  { key:"week", label:"Неделя" },
+  { key:"month", label:"Месяц" },
+  { key:"year", label:"Год" },
+];
 
 export default function FinancePage() {
   const [period, setPeriod] = useState<Period>("week");
 
-  // Use existing weekly-stats endpoint; for month/year we still call it but note it's weekly granularity
   const { data: stats, isLoading: statsLoading } = useQuery<WeeklyStats>({
     queryKey: ["finance", "weekly-stats", period],
     queryFn: () => api.get("/masters/me/weekly-stats").then((r) => r.data),
@@ -55,27 +67,31 @@ export default function FinancePage() {
 
   const maxCount = Math.max(...(stats?.appointments_by_day?.map((d) => d.count) ?? [1]), 1);
 
-  const periods: { key: Period; label: string }[] = [
-    { key: "week", label: "Неделя" },
-    { key: "month", label: "Месяц" },
-    { key: "year", label: "Год" },
-  ];
-
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+    <div style={{ padding:"32px 36px" }}>
+
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28 }}>
         <div>
-          <h1 className="text-xl font-bold text-white">Финансы</h1>
-          <p className="text-gray-400 text-sm mt-0.5">Аналитика и доходы</p>
+          <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>
+            Финансы
+          </h1>
+          <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>Аналитика и доходы</p>
         </div>
-        <div className="flex bg-[#1F2937] rounded-xl p-1 gap-1">
+        <div style={{
+          display:"flex", background:"var(--surface)", border:"1px solid var(--border)",
+          borderRadius:"var(--radius)", padding:4, gap:4,
+        }}>
           {periods.map((p) => (
             <button
               key={p.key}
               onClick={() => setPeriod(p.key)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                period === p.key ? "bg-[#F59E0B] text-white" : "text-gray-400 hover:text-white"
-              }`}
+              style={{
+                padding:"6px 14px", borderRadius:9, border:"none", cursor:"pointer",
+                background: period === p.key ? "var(--gold)" : "transparent",
+                color: period === p.key ? "#0a0a0b" : "var(--text2)",
+                fontSize:12, fontWeight:600, transition:"background 0.15s, color 0.15s",
+              }}
             >
               {p.label}
             </button>
@@ -84,45 +100,50 @@ export default function FinancePage() {
       </div>
 
       {statsLoading ? (
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          {[1, 2, 3].map((i) => <div key={i} className="bg-[#1F2937] rounded-2xl p-5 animate-pulse h-24" />)}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16, marginBottom:24 }}>
+          {[1,2,3].map((i) => (
+            <div key={i} style={{ ...cardStyle, padding:24, height:100, animation:"pulse 1.5s infinite" }} />
+          ))}
+          <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
         </div>
       ) : stats ? (
         <>
-          {/* KPI cards */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          {/* KPI */}
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16, marginBottom:24 }}>
             <KpiCard
               label="Выручка"
               value={fmt(stats.revenue_total_uzs)}
-              sub={delta(stats.compared_to_previous_week.revenue_delta_pct)}
+              sub={<Delta pct={stats.compared_to_previous_week.revenue_delta_pct} />}
             />
             <KpiCard
               label="Завершено записей"
               value={String(stats.appointments_completed)}
-              sub={delta(stats.compared_to_previous_week.appointments_delta_pct)}
+              sub={<Delta pct={stats.compared_to_previous_week.appointments_delta_pct} />}
             />
             <KpiCard
               label="Средний чек"
               value={stats.appointments_completed > 0
                 ? fmt(Math.round(stats.revenue_total_uzs / stats.appointments_completed))
                 : "—"}
-              sub={<span className="text-xs text-gray-500">{stats.new_clients} новых клиентов</span>}
+              sub={<span style={{ fontSize:12, color:"var(--text2)" }}>{stats.new_clients} новых клиентов</span>}
             />
           </div>
 
           {/* Bar chart */}
-          <div className="bg-[#1F2937] rounded-2xl p-5 mb-6">
-            <p className="text-white font-semibold text-sm mb-4">Записи по дням</p>
-            <div className="flex items-end gap-2 h-32">
+          <div style={{ ...cardStyle, padding:24, marginBottom:20 }}>
+            <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 18px" }}>Записи по дням</p>
+            <div style={{ display:"flex", alignItems:"flex-end", gap:8, height:120 }}>
               {stats.appointments_by_day.map((d) => (
-                <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
-                  <span className="text-[10px] text-gray-500">{d.count || ""}</span>
-                  <div
-                    className="w-full rounded-t-lg bg-[#F59E0B]/80 transition-all"
-                    style={{ height: `${Math.max((d.count / maxCount) * 96, d.count > 0 ? 8 : 2)}px` }}
-                  />
-                  <span className="text-[10px] text-gray-500">
-                    {new Date(d.date).toLocaleDateString("ru", { weekday: "short" })}
+                <div key={d.date} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+                  <span style={{ fontSize:10, color:"var(--text3)" }}>{d.count || ""}</span>
+                  <div style={{
+                    width:"100%", borderRadius:"6px 6px 0 0",
+                    background:"var(--gold)", opacity:0.85,
+                    height: `${Math.max((d.count / maxCount) * 88, d.count > 0 ? 8 : 2)}px`,
+                    transition:"height 0.3s",
+                  }} />
+                  <span style={{ fontSize:10, color:"var(--text3)" }}>
+                    {new Date(d.date).toLocaleDateString("ru", { weekday:"short" })}
                   </span>
                 </div>
               ))}
@@ -131,15 +152,15 @@ export default function FinancePage() {
 
           {/* Top services */}
           {stats.top_services.length > 0 && (
-            <div className="bg-[#1F2937] rounded-2xl p-5 mb-6">
-              <p className="text-white font-semibold text-sm mb-3">Топ услуги</p>
-              <div className="space-y-2">
+            <div style={{ ...cardStyle, padding:24, marginBottom:20 }}>
+              <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 14px" }}>Топ услуги</p>
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 {stats.top_services.map((s) => (
-                  <div key={s.service_name} className="flex items-center justify-between">
-                    <span className="text-gray-300 text-sm">{s.service_name}</span>
-                    <div className="text-right">
-                      <span className="text-[#F59E0B] text-sm font-medium">{fmt(s.revenue)}</span>
-                      <span className="text-gray-500 text-xs ml-2">× {s.count}</span>
+                  <div key={s.service_name} style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                    <span style={{ color:"var(--text2)", fontSize:13 }}>{s.service_name}</span>
+                    <div style={{ textAlign:"right" }}>
+                      <span style={{ color:"var(--gold)", fontSize:13, fontWeight:700 }}>{fmt(s.revenue)}</span>
+                      <span style={{ color:"var(--text3)", fontSize:12, marginLeft:8 }}>× {s.count}</span>
                     </div>
                   </div>
                 ))}
@@ -148,31 +169,41 @@ export default function FinancePage() {
           )}
         </>
       ) : (
-        <div className="flex flex-col items-center justify-center py-24">
-          <TrendingUp className="w-8 h-8 text-gray-600 mb-3" />
-          <p className="text-gray-400 text-sm">Нет данных</p>
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"80px 0" }}>
+          <TrendingUp size={32} style={{ color:"var(--text3)", marginBottom:12 }} />
+          <p style={{ color:"var(--text2)", fontSize:14 }}>Нет данных</p>
         </div>
       )}
 
       {/* Team table */}
       {team && team.items.length > 0 && (
-        <div className="bg-[#1F2937] rounded-2xl p-5">
-          <p className="text-white font-semibold text-sm mb-3">Барберы</p>
-          <table className="w-full text-sm">
+        <div style={{ ...cardStyle, padding:24 }}>
+          <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 14px" }}>Барберы</p>
+          <table style={{ width:"100%", borderCollapse:"collapse" }}>
             <thead>
-              <tr className="border-b border-white/5">
-                <th className="text-left text-gray-400 font-medium pb-2">Имя</th>
-                <th className="text-left text-gray-400 font-medium pb-2">Телефон</th>
-                <th className="text-right text-gray-400 font-medium pb-2">Статус</th>
+              <tr style={{ borderBottom:"1px solid var(--border)" }}>
+                {["Имя","Телефон","Статус"].map((h, i) => (
+                  <th key={h} style={{
+                    textAlign: i === 2 ? "right" : "left",
+                    color:"var(--text3)", fontWeight:600, fontSize:11, padding:"0 0 10px",
+                    textTransform:"uppercase", letterSpacing:"0.05em",
+                  }}>{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {team.items.map((m) => (
-                <tr key={m.id} className="border-b border-white/5 last:border-0">
-                  <td className="py-2.5 text-white">{[m.name, m.last_name].filter(Boolean).join(" ") || "—"}</td>
-                  <td className="py-2.5 text-gray-400">{m.phone}</td>
-                  <td className="py-2.5 text-right">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${m.is_active ? "bg-green-500/10 text-green-400" : "bg-gray-500/10 text-gray-500"}`}>
+              {team.items.map((m, idx) => (
+                <tr key={m.id} style={{ borderBottom: idx < team.items.length-1 ? "1px solid var(--border)" : "none" }}>
+                  <td style={{ padding:"12px 0", color:"var(--text)", fontSize:13, fontWeight:500 }}>
+                    {[m.name, m.last_name].filter(Boolean).join(" ") || "—"}
+                  </td>
+                  <td style={{ padding:"12px 0", color:"var(--text2)", fontSize:13 }}>{m.phone}</td>
+                  <td style={{ padding:"12px 0", textAlign:"right" }}>
+                    <span style={{
+                      fontSize:11, fontWeight:600, padding:"3px 9px", borderRadius:20,
+                      background: m.is_active ? "rgba(76,175,125,0.12)" : "rgba(90,90,82,0.12)",
+                      color: m.is_active ? "var(--green)" : "var(--text3)",
+                    }}>
                       {m.is_active ? "Активен" : "Неактивен"}
                     </span>
                   </td>
@@ -188,9 +219,9 @@ export default function FinancePage() {
 
 function KpiCard({ label, value, sub }: { label: string; value: string; sub?: React.ReactNode }) {
   return (
-    <div className="bg-[#1F2937] rounded-2xl p-5">
-      <p className="text-gray-400 text-xs mb-1">{label}</p>
-      <p className="text-white text-xl font-bold mb-1">{value}</p>
+    <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:24 }}>
+      <p style={{ color:"var(--text2)", fontSize:11, margin:"0 0 6px", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.05em" }}>{label}</p>
+      <p style={{ color:"var(--text)", fontSize:22, fontWeight:700, margin:"0 0 5px" }}>{value}</p>
       {sub}
     </div>
   );

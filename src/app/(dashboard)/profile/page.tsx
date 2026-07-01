@@ -24,12 +24,17 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="p-8">
-        <div className="bg-[#1F2937] rounded-2xl p-6 max-w-lg animate-pulse space-y-4">
-          <div className="w-20 h-20 rounded-full bg-white/10" />
-          <div className="h-5 bg-white/10 rounded w-40" />
-          <div className="h-4 bg-white/10 rounded w-32" />
+      <div style={{ padding:"32px 36px" }}>
+        <div style={{
+          background:"var(--surface)", border:"1px solid var(--border)",
+          borderRadius:"var(--radius-lg)", padding:28, maxWidth:520,
+          animation:"pulse 1.5s infinite",
+        }}>
+          <div style={{ width:72, height:72, borderRadius:"50%", background:"var(--border)", marginBottom:20 }} />
+          <div style={{ height:18, background:"var(--border)", borderRadius:4, width:160, marginBottom:10 }} />
+          <div style={{ height:14, background:"var(--border)", borderRadius:4, width:120 }} />
         </div>
+        <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
       </div>
     );
   }
@@ -39,58 +44,88 @@ export default function ProfilePage() {
   const fullName = [data.name, data.last_name].filter(Boolean).join(" ") || "—";
   const initials = fullName !== "—" ? fullName.slice(0, 2).toUpperCase() : data.phone.slice(-2);
 
-  return (
-    <div className="p-8">
-      <h1 className="text-xl font-bold text-white mb-6">Профиль</h1>
+  const rowStyle: React.CSSProperties = {
+    display:"flex", justifyContent:"space-between", alignItems:"flex-start",
+    padding:"14px 0", borderBottom:"1px solid var(--border)",
+  };
 
-      <div className="bg-[#1F2937] rounded-2xl p-6 max-w-lg">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-[#F59E0B]/20 flex items-center justify-center text-[#F59E0B] font-bold text-lg">
-            {initials}
+  return (
+    <div style={{ padding:"32px 36px" }}>
+      <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:"0 0 28px" }}>
+        Профиль
+      </h1>
+
+      <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:28, maxWidth:520 }}>
+
+        {/* Avatar row */}
+        <div style={{ display:"flex", alignItems:"center", gap:18, marginBottom:24 }}>
+          <div style={{
+            width:68, height:68, borderRadius:"50%",
+            background: data.photo_url ? "transparent" : "var(--gold-dim)",
+            color:"var(--gold)", fontWeight:700, fontSize:22,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            overflow:"hidden", flexShrink:0,
+          }}>
+            {data.photo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={data.photo_url} alt={fullName} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+            ) : initials}
           </div>
           <div>
-            <p className="text-white font-semibold text-lg">{fullName}</p>
-            <p className="text-gray-400 text-sm tabular-nums">{data.phone}</p>
+            <p style={{ color:"var(--text)", fontWeight:600, fontSize:18, margin:0, marginBottom:4 }}>{fullName}</p>
+            <p style={{ color:"var(--text2)", fontSize:13, margin:0 }}>{data.phone}</p>
           </div>
         </div>
 
-        <div className="space-y-3 text-sm">
+        {/* Fields */}
+        <div>
           {data.city && (
-            <div className="flex justify-between py-3 border-b border-white/5">
-              <span className="text-gray-400">Город</span>
-              <span className="text-white">{data.city}</span>
+            <div style={rowStyle}>
+              <span style={{ color:"var(--text2)", fontSize:13 }}>Город</span>
+              <span style={{ color:"var(--text)", fontSize:13 }}>{data.city}</span>
             </div>
           )}
           {data.bio && (
-            <div className="flex justify-between py-3 border-b border-white/5">
-              <span className="text-gray-400">О себе</span>
-              <span className="text-white text-right max-w-xs">{data.bio}</span>
+            <div style={rowStyle}>
+              <span style={{ color:"var(--text2)", fontSize:13 }}>О себе</span>
+              <span style={{ color:"var(--text)", fontSize:13, textAlign:"right", maxWidth:240 }}>{data.bio}</span>
             </div>
           )}
           {data.specializations.length > 0 && (
-            <div className="flex justify-between py-3 border-b border-white/5">
-              <span className="text-gray-400">Специализации</span>
-              <div className="flex flex-wrap gap-1 justify-end max-w-xs">
+            <div style={rowStyle}>
+              <span style={{ color:"var(--text2)", fontSize:13 }}>Специализации</span>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:4, justifyContent:"flex-end", maxWidth:240 }}>
                 {data.specializations.map((s) => (
-                  <span key={s} className="text-xs bg-white/5 text-gray-400 px-2 py-0.5 rounded-full">{s}</span>
+                  <span key={s} style={{
+                    fontSize:11, background:"var(--gold-dim)", color:"var(--gold)",
+                    padding:"2px 8px", borderRadius:20, fontWeight:500,
+                  }}>{s}</span>
                 ))}
               </div>
             </div>
           )}
-          <div className="flex justify-between py-3">
-            <span className="text-gray-400">Онбординг</span>
-            <span className={data.is_onboarded ? "text-green-400" : "text-yellow-400"}>
+          <div style={{ ...rowStyle, borderBottom:"none" }}>
+            <span style={{ color:"var(--text2)", fontSize:13 }}>Онбординг</span>
+            <span style={{ fontSize:13, color: data.is_onboarded ? "var(--green)" : "var(--gold)" }}>
               {data.is_onboarded ? "Завершён" : "Не завершён"}
             </span>
           </div>
         </div>
 
-        <div className="mt-6 p-4 bg-[#F59E0B]/5 border border-[#F59E0B]/20 rounded-xl">
-          <div className="flex items-center gap-2 text-[#F59E0B] text-sm">
-            <Settings className="w-4 h-4" />
-            <span className="font-medium">Редактирование профиля</span>
+        {/* Info banner */}
+        <div style={{
+          marginTop:20, padding:16,
+          background:"var(--gold-dim)", border:"1px solid var(--gold-dim2)",
+          borderRadius:"var(--radius)",
+          display:"flex", alignItems:"center", gap:10,
+        }}>
+          <Settings size={15} style={{ color:"var(--gold)", flexShrink:0 }} />
+          <div>
+            <p style={{ color:"var(--gold)", fontSize:13, fontWeight:600, margin:0 }}>Редактирование профиля</p>
+            <p style={{ color:"var(--text2)", fontSize:12, margin:"3px 0 0" }}>
+              Используйте мобильное приложение для редактирования профиля
+            </p>
           </div>
-          <p className="text-gray-500 text-xs mt-1">Используйте мобильное приложение для редактирования профиля</p>
         </div>
       </div>
     </div>

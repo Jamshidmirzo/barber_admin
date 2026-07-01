@@ -29,25 +29,35 @@ const STATUS_LABEL: Record<string, string> = {
   no_show: "Не явился",
 };
 
-const STATUS_COLOR: Record<string, string> = {
-  pending: "bg-yellow-500/10 text-yellow-400",
-  scheduled: "bg-blue-500/10 text-blue-400",
-  confirmed: "bg-blue-500/10 text-blue-400",
-  in_progress: "bg-purple-500/10 text-purple-400",
-  completed: "bg-green-500/10 text-green-400",
-  cancelled: "bg-red-500/10 text-red-400",
-  no_show: "bg-gray-500/10 text-gray-400",
+const STATUS_STYLE: Record<string, React.CSSProperties> = {
+  pending:     { background:"rgba(201,164,92,0.12)",  color:"#c9a45c",  borderLeft:"3px solid #c9a45c" },
+  scheduled:   { background:"rgba(91,141,238,0.10)",  color:"#5b8dee",  borderLeft:"3px solid #5b8dee" },
+  confirmed:   { background:"rgba(91,141,238,0.10)",  color:"#5b8dee",  borderLeft:"3px solid #5b8dee" },
+  in_progress: { background:"rgba(168,85,247,0.10)",  color:"#a855f7",  borderLeft:"3px solid #a855f7" },
+  completed:   { background:"rgba(76,175,125,0.10)",  color:"#4caf7d",  borderLeft:"3px solid #4caf7d" },
+  cancelled:   { background:"rgba(224,90,90,0.08)",   color:"#e05a5a",  borderLeft:"3px solid #e05a5a" },
+  no_show:     { background:"rgba(90,90,82,0.15)",    color:"#9a9690",  borderLeft:"3px solid #5a5852" },
+};
+
+const BADGE_STYLE: Record<string, React.CSSProperties> = {
+  pending:     { background:"rgba(201,164,92,0.14)",  color:"#c9a45c" },
+  scheduled:   { background:"rgba(91,141,238,0.12)",  color:"#5b8dee" },
+  confirmed:   { background:"rgba(91,141,238,0.12)",  color:"#5b8dee" },
+  in_progress: { background:"rgba(168,85,247,0.12)",  color:"#a855f7" },
+  completed:   { background:"rgba(76,175,125,0.12)",  color:"#4caf7d" },
+  cancelled:   { background:"rgba(224,90,90,0.10)",   color:"#e05a5a" },
+  no_show:     { background:"rgba(90,90,82,0.12)",    color:"#9a9690" },
 };
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString("ru", { hour:"2-digit", minute:"2-digit" });
 }
 
 export default function AppointmentsPage() {
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   const start = `${date}T00:00:00`;
-  const end = `${date}T23:59:59`;
+  const end   = `${date}T23:59:59`;
 
   const { data: appointments, isLoading } = useQuery<Appointment[]>({
     queryKey: ["appointments", date],
@@ -60,7 +70,7 @@ export default function AppointmentsPage() {
 
   const { data: clientsData } = useQuery<{ items: Client[]; total: number }>({
     queryKey: ["clients", "all"],
-    queryFn: () => api.get("/clients", { params: { limit: 500, offset: 0 } }).then((r) => r.data),
+    queryFn: () => api.get("/clients", { params: { limit:500, offset:0 } }).then((r) => r.data),
     staleTime: 60_000,
   });
 
@@ -74,78 +84,157 @@ export default function AppointmentsPage() {
   const serviceMap = Object.fromEntries((services ?? []).map((s) => [s.id, s.name]));
 
   function prevDay() {
-    const d = new Date(date); d.setDate(d.getDate() - 1); setDate(d.toISOString().slice(0, 10));
+    const d = new Date(date); d.setDate(d.getDate() - 1);
+    setDate(d.toISOString().slice(0, 10));
   }
   function nextDay() {
-    const d = new Date(date); d.setDate(d.getDate() + 1); setDate(d.toISOString().slice(0, 10));
+    const d = new Date(date); d.setDate(d.getDate() + 1);
+    setDate(d.toISOString().slice(0, 10));
   }
 
+  const isToday = date === new Date().toISOString().slice(0, 10);
   const displayDate = new Date(date).toLocaleDateString("ru", {
-    weekday: "long", day: "numeric", month: "long",
+    weekday:"long", day:"numeric", month:"long",
   });
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-white">Записи</h1>
-        <div className="flex items-center gap-2">
-          <button onClick={prevDay} className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#1F2937] hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
-            <ChevronLeft className="w-4 h-4" />
+    <div style={{ padding:"32px 36px", maxWidth:900 }}>
+
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28 }}>
+        <div>
+          <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>
+            Записи
+          </h1>
+          {isToday && (
+            <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>Сегодня</p>
+          )}
+        </div>
+
+        {/* Day navigator */}
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <button
+            onClick={prevDay}
+            style={{
+              width:36, height:36, borderRadius:"var(--radius)",
+              background:"var(--surface)", border:"1px solid var(--border)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              cursor:"pointer", color:"var(--text2)",
+            }}
+          >
+            <ChevronLeft size={16} />
           </button>
-          <span className="text-white text-sm font-medium capitalize min-w-[180px] text-center">{displayDate}</span>
-          <button onClick={nextDay} className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#1F2937] hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
-            <ChevronRight className="w-4 h-4" />
+
+          <div style={{
+            padding:"7px 18px", background:"var(--surface)", border:"1px solid var(--border)",
+            borderRadius:"var(--radius)", minWidth:220, textAlign:"center",
+          }}>
+            <span style={{ color:"var(--text)", fontSize:13, fontWeight:500, textTransform:"capitalize" }}>
+              {displayDate}
+            </span>
+          </div>
+
+          <button
+            onClick={nextDay}
+            style={{
+              width:36, height:36, borderRadius:"var(--radius)",
+              background:"var(--surface)", border:"1px solid var(--border)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              cursor:"pointer", color:"var(--text2)",
+            }}
+          >
+            <ChevronRight size={16} />
           </button>
         </div>
       </div>
 
+      {/* Skeleton */}
       {isLoading && (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-[#1F2937] rounded-2xl p-4 animate-pulse flex gap-4">
-              <div className="h-4 bg-white/10 rounded w-16" />
-              <div className="h-4 bg-white/10 rounded w-40" />
-              <div className="h-4 bg-white/10 rounded w-24 ml-auto" />
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          {[1,2,3,4].map((i) => (
+            <div key={i} style={{
+              background:"var(--surface)", border:"1px solid var(--border)",
+              borderRadius:"var(--radius-lg)", padding:"16px 20px",
+              display:"flex", gap:20, alignItems:"center", animation:"pulse 1.5s infinite",
+            }}>
+              <div style={{ width:40, height:14, background:"var(--border)", borderRadius:4 }} />
+              <div style={{ flex:1, height:14, background:"var(--border)", borderRadius:4 }} />
+              <div style={{ width:80, height:14, background:"var(--border)", borderRadius:4 }} />
             </div>
           ))}
+          <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
         </div>
       )}
 
+      {/* Empty */}
       {!isLoading && (!appointments || appointments.length === 0) && (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#1F2937] flex items-center justify-center mb-4">
-            <Calendar className="w-8 h-8 text-gray-600" />
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"80px 0", textAlign:"center" }}>
+          <div style={{
+            width:64, height:64, borderRadius:"var(--radius-lg)",
+            background:"var(--surface)", border:"1px solid var(--border)",
+            display:"flex", alignItems:"center", justifyContent:"center", marginBottom:16,
+          }}>
+            <Calendar size={28} style={{ color:"var(--text3)" }} />
           </div>
-          <p className="text-gray-400 text-sm">Нет записей на этот день</p>
+          <p style={{ color:"var(--text2)", fontSize:14 }}>Нет записей на этот день</p>
         </div>
       )}
 
+      {/* List */}
       {!isLoading && appointments && appointments.length > 0 && (
-        <div className="space-y-3">
-          {appointments.map((a) => (
-            <div key={a.id} className="bg-[#1F2937] rounded-2xl p-4 flex items-center gap-4">
-              <div className="text-[#F59E0B] font-mono text-sm font-semibold w-14 shrink-0">
-                {formatTime(a.starts_at)}
+        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+          {appointments.map((a) => {
+            const statusStyle = STATUS_STYLE[a.status] ?? { background:"var(--surface)", color:"var(--text2)", borderLeft:"3px solid var(--border)" };
+            const badgeStyle  = BADGE_STYLE[a.status]  ?? { background:"var(--gold-dim)", color:"var(--gold)" };
+            return (
+              <div
+                key={a.id}
+                style={{
+                  ...statusStyle,
+                  border:"1px solid var(--border)",
+                  borderRadius:"var(--radius-lg)",
+                  padding:"14px 20px",
+                  display:"flex", alignItems:"center", gap:20,
+                }}
+              >
+                {/* Time */}
+                <div style={{ fontFamily:"monospace", fontSize:15, fontWeight:700, color:"var(--gold)", flexShrink:0, width:42 }}>
+                  {formatTime(a.starts_at)}
+                </div>
+
+                {/* Info */}
+                <div style={{ minWidth:0, flex:1 }}>
+                  <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    {clientMap[a.client_id] ?? "Клиент"}
+                  </p>
+                  <p style={{ color:"var(--text2)", fontSize:12, margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    {serviceMap[a.service_id] ?? "Услуга"} · до {formatTime(a.ends_at)}
+                  </p>
+                  {a.note && (
+                    <p style={{ color:"var(--text3)", fontSize:12, margin:"3px 0 0", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {a.note}
+                    </p>
+                  )}
+                </div>
+
+                {/* Price */}
+                {a.price != null && (
+                  <p style={{ color:"var(--text)", fontSize:13, fontWeight:500, flexShrink:0 }}>
+                    {a.price.toLocaleString("ru")} сум
+                  </p>
+                )}
+
+                {/* Status badge */}
+                <span style={{
+                  ...badgeStyle,
+                  fontSize:11, fontWeight:600, padding:"3px 10px",
+                  borderRadius:20, flexShrink:0,
+                }}>
+                  {STATUS_LABEL[a.status] ?? a.status}
+                </span>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-white text-sm font-medium truncate">
-                  {clientMap[a.client_id] ?? "Клиент"}
-                </p>
-                <p className="text-gray-400 text-xs truncate">
-                  {serviceMap[a.service_id] ?? "Услуга"} · до {formatTime(a.ends_at)}
-                </p>
-                {a.note && <p className="text-gray-500 text-xs truncate mt-0.5">{a.note}</p>}
-              </div>
-              {a.price != null && (
-                <p className="text-gray-300 text-sm tabular-nums shrink-0">
-                  {a.price.toLocaleString()} сум
-                </p>
-              )}
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium shrink-0 ${STATUS_COLOR[a.status] ?? "bg-gray-500/10 text-gray-400"}`}>
-                {STATUS_LABEL[a.status] ?? a.status}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

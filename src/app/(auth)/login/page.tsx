@@ -6,15 +6,36 @@ import api, { parseApiError } from "@/lib/api";
 
 type Tab = "login" | "register";
 
+const inputStyle: React.CSSProperties = {
+  width:"100%", background:"var(--bg2)", color:"var(--text)",
+  border:"1px solid var(--border)", borderRadius:"var(--radius)",
+  padding:"11px 14px", fontSize:14, fontFamily:"'Manrope',sans-serif",
+  outline:"none", transition:"border-color 0.15s",
+};
+
+function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  const [foc, setFoc] = useState(false);
+  return (
+    <input
+      {...props}
+      onFocus={(e) => { setFoc(true); props.onFocus?.(e); }}
+      onBlur={(e) => { setFoc(false); props.onBlur?.(e); }}
+      style={{ ...inputStyle, borderColor: foc ? "var(--gold)" : "var(--border)" }}
+    />
+  );
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:6, fontWeight:500 }}>{children}</label>;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("login");
 
-  // Login state
   const [phone, setPhone] = useState("+998");
   const [password, setPassword] = useState("");
 
-  // Register state
   const [regPhone, setRegPhone] = useState("+998");
   const [regName, setRegName] = useState("");
   const [regLastName, setRegLastName] = useState("");
@@ -48,21 +69,13 @@ export default function LoginPage() {
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (regPassword !== regPassword2) {
-      setError("Пароли не совпадают");
-      return;
-    }
-    if (regPassword.length < 6) {
-      setError("Пароль минимум 6 символов");
-      return;
-    }
+    if (regPassword !== regPassword2) { setError("Пароли не совпадают"); return; }
+    if (regPassword.length < 6) { setError("Пароль минимум 6 символов"); return; }
     setLoading(true);
     try {
       const res = await api.post("/auth/register", {
-        phone: regPhone,
-        password: regPassword,
-        name: regName,
-        last_name: regLastName,
+        phone: regPhone, password: regPassword,
+        name: regName, last_name: regLastName,
       });
       const token = res.data?.tokens?.access_token;
       if (token) saveToken(token);
@@ -75,146 +88,130 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#111827]">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#F59E0B] mb-4">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+    <div style={{
+      minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center",
+      background:"var(--bg)",
+      backgroundImage:"radial-gradient(ellipse 80% 50% at 50% -10%, rgba(201,164,92,0.08) 0%, transparent 70%)",
+    }}>
+      <div style={{ width:"100%", maxWidth:400, padding:"0 20px" }}>
+
+        {/* Logo */}
+        <div style={{ textAlign:"center", marginBottom:36 }}>
+          <div style={{
+            width:56, height:56, borderRadius:14, background:"var(--gold)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            margin:"0 auto 16px",
+          }}>
+            <span style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:700, color:"#0a0a0b" }}>H</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">BarberAdmin</h1>
-          <p className="text-gray-400 text-sm mt-1">Панель управления барбершопом</p>
+          <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:600, color:"var(--text)", margin:0 }}>
+            BarberAdmin
+          </h1>
+          <p style={{ color:"var(--text2)", fontSize:13, marginTop:6 }}>Панель управления барбершопом</p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex bg-[#1F2937] rounded-xl p-1 mb-4">
-          <button
-            onClick={() => { setTab("login"); setError(""); }}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
-              tab === "login" ? "bg-[#F59E0B] text-white" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            Войти
-          </button>
-          <button
-            onClick={() => { setTab("register"); setError(""); }}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
-              tab === "register" ? "bg-[#F59E0B] text-white" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            Регистрация
-          </button>
+        {/* Tab switcher */}
+        <div style={{
+          display:"flex", background:"var(--surface)", border:"1px solid var(--border)",
+          borderRadius:"var(--radius)", padding:4, marginBottom:20,
+        }}>
+          {(["login","register"] as Tab[]).map((t) => (
+            <button
+              key={t}
+              onClick={() => { setTab(t); setError(""); }}
+              style={{
+                flex:1, padding:"8px 0", fontSize:13, fontWeight:600,
+                borderRadius:9, border:"none", cursor:"pointer",
+                transition:"background 0.15s, color 0.15s",
+                background: tab === t ? "var(--gold)" : "transparent",
+                color: tab === t ? "#0a0a0b" : "var(--text2)",
+              }}
+            >
+              {t === "login" ? "Войти" : "Регистрация"}
+            </button>
+          ))}
         </div>
 
-        {/* Login form */}
-        {tab === "login" && (
-          <form onSubmit={handleLogin} className="bg-[#1F2937] rounded-2xl p-6 space-y-4">
-            <div>
-              <label className="block text-sm text-gray-400 mb-1.5">Телефон</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+998901234567"
-                required
-                className="w-full bg-[#111827] text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#F59E0B] placeholder-gray-600"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-1.5">Пароль</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••"
-                required
-                className="w-full bg-[#111827] text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#F59E0B] placeholder-gray-600"
-              />
-            </div>
-            {error && <p className="text-red-400 text-sm bg-red-400/10 rounded-lg px-3 py-2">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#F59E0B] hover:bg-[#D97706] disabled:opacity-50 text-white font-semibold rounded-xl py-3 text-sm transition-colors"
-            >
-              {loading ? "Входим..." : "Войти"}
-            </button>
-          </form>
-        )}
-
-        {/* Register form */}
-        {tab === "register" && (
-          <form onSubmit={handleRegister} className="bg-[#1F2937] rounded-2xl p-6 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+        {/* Card */}
+        <div style={{
+          background:"var(--surface)", border:"1px solid var(--border)",
+          borderRadius:"var(--radius-lg)", padding:28,
+        }}>
+          {tab === "login" ? (
+            <form onSubmit={handleLogin} style={{ display:"flex", flexDirection:"column", gap:16 }}>
               <div>
-                <label className="block text-sm text-gray-400 mb-1.5">Имя</label>
-                <input
-                  type="text"
-                  value={regName}
-                  onChange={(e) => setRegName(e.target.value)}
-                  placeholder="Алишер"
-                  required
-                  className="w-full bg-[#111827] text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#F59E0B] placeholder-gray-600"
-                />
+                <Label>Телефон</Label>
+                <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+998901234567" required />
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-1.5">Фамилия</label>
-                <input
-                  type="text"
-                  value={regLastName}
-                  onChange={(e) => setRegLastName(e.target.value)}
-                  placeholder="Каримов"
-                  className="w-full bg-[#111827] text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#F59E0B] placeholder-gray-600"
-                />
+                <Label>Пароль</Label>
+                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••" required />
               </div>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-1.5">Телефон</label>
-              <input
-                type="tel"
-                value={regPhone}
-                onChange={(e) => setRegPhone(e.target.value)}
-                placeholder="+998901234567"
-                required
-                className="w-full bg-[#111827] text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#F59E0B] placeholder-gray-600"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-1.5">Пароль</label>
-              <input
-                type="password"
-                value={regPassword}
-                onChange={(e) => setRegPassword(e.target.value)}
-                placeholder="Минимум 6 символов"
-                required
-                className="w-full bg-[#111827] text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#F59E0B] placeholder-gray-600"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-1.5">Повторите пароль</label>
-              <input
-                type="password"
-                value={regPassword2}
-                onChange={(e) => setRegPassword2(e.target.value)}
-                placeholder="••••••"
-                required
-                className="w-full bg-[#111827] text-white rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#F59E0B] placeholder-gray-600"
-              />
-            </div>
-            {error && <p className="text-red-400 text-sm bg-red-400/10 rounded-lg px-3 py-2">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#F59E0B] hover:bg-[#D97706] disabled:opacity-50 text-white font-semibold rounded-xl py-3 text-sm transition-colors"
-            >
-              {loading ? "Регистрируем..." : "Создать аккаунт"}
-            </button>
-            <p className="text-center text-xs text-gray-500">
-              После регистрации создашь свой барбершоп
-            </p>
-          </form>
-        )}
+              {error && (
+                <div style={{ background:"rgba(224,90,90,0.08)", border:"1px solid rgba(224,90,90,0.2)", borderRadius:"var(--radius)", padding:"10px 14px", color:"var(--red)", fontSize:13 }}>
+                  {error}
+                </div>
+              )}
+              <button
+                type="submit" disabled={loading}
+                style={{
+                  width:"100%", background:"var(--gold)", color:"#0a0a0b",
+                  border:"none", borderRadius:"var(--radius)", padding:"12px",
+                  fontSize:14, fontWeight:700, cursor: loading ? "not-allowed" : "pointer",
+                  opacity: loading ? 0.6 : 1, fontFamily:"'Manrope',sans-serif",
+                  transition:"opacity 0.15s",
+                }}
+              >
+                {loading ? "Входим..." : "Войти"}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleRegister} style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <div>
+                  <Label>Имя</Label>
+                  <Input type="text" value={regName} onChange={(e) => setRegName(e.target.value)} placeholder="Алишер" required />
+                </div>
+                <div>
+                  <Label>Фамилия</Label>
+                  <Input type="text" value={regLastName} onChange={(e) => setRegLastName(e.target.value)} placeholder="Каримов" />
+                </div>
+              </div>
+              <div>
+                <Label>Телефон</Label>
+                <Input type="tel" value={regPhone} onChange={(e) => setRegPhone(e.target.value)} placeholder="+998901234567" required />
+              </div>
+              <div>
+                <Label>Пароль</Label>
+                <Input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} placeholder="Минимум 6 символов" required />
+              </div>
+              <div>
+                <Label>Повторите пароль</Label>
+                <Input type="password" value={regPassword2} onChange={(e) => setRegPassword2(e.target.value)} placeholder="••••••" required />
+              </div>
+              {error && (
+                <div style={{ background:"rgba(224,90,90,0.08)", border:"1px solid rgba(224,90,90,0.2)", borderRadius:"var(--radius)", padding:"10px 14px", color:"var(--red)", fontSize:13 }}>
+                  {error}
+                </div>
+              )}
+              <button
+                type="submit" disabled={loading}
+                style={{
+                  width:"100%", background:"var(--gold)", color:"#0a0a0b",
+                  border:"none", borderRadius:"var(--radius)", padding:"12px",
+                  fontSize:14, fontWeight:700, cursor: loading ? "not-allowed" : "pointer",
+                  opacity: loading ? 0.6 : 1, fontFamily:"'Manrope',sans-serif",
+                  transition:"opacity 0.15s",
+                }}
+              >
+                {loading ? "Регистрируем..." : "Создать аккаунт"}
+              </button>
+              <p style={{ textAlign:"center", color:"var(--text3)", fontSize:12 }}>
+                После регистрации создашь свой барбершоп
+              </p>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,45 +1,85 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Users, Scissors, Calendar, UserRound, Clock, TrendingUp, Settings, LogOut, Sparkles, Globe, BarChart3, Tag } from "lucide-react";
+import {
+  Users, Scissors, Calendar, UserRound, Clock,
+  TrendingUp, Settings, LogOut, Sparkles, Globe,
+  BarChart3, Tag, Sun, Moon,
+} from "lucide-react";
 import { useAuth, logout } from "@/hooks/useAuth";
 import { SalonProvider, isManager, useSalonContextQuery } from "@/hooks/useSalon";
 
-// managerOnly: только владелец/админ видит раздел.
-// masterOnly: только мастер (барбер в составе салона) видит раздел.
 const nav = [
-  { href: "/barbers",       label: "Барберы",        icon: Users,    managerOnly: true,  masterOnly: false },
-  { href: "/services",      label: "Услуги",          icon: Scissors, managerOnly: false, masterOnly: false },
-  { href: "/appointments",  label: "Записи",          icon: Calendar, managerOnly: false, masterOnly: false },
-  { href: "/clients",       label: "Клиенты",         icon: UserRound,managerOnly: false, masterOnly: false },
-  { href: "/analytics",     label: "Аналитика",       icon: BarChart3,managerOnly: true,  masterOnly: false },
-  { href: "/schedule",      label: "Расписание",      icon: Clock,    managerOnly: false, masterOnly: false },
-  { href: "/promotions",    label: "Акции",           icon: Tag,      managerOnly: false, masterOnly: true  },
-  { href: "/site-generator",label: "Сайт (AI)",       icon: Sparkles, managerOnly: true,  masterOnly: false },
-  { href: "/site-settings", label: "Настройки сайта", icon: Globe,    managerOnly: true,  masterOnly: false },
-  { href: "/finance",       label: "Финансы",         icon: TrendingUp,managerOnly: true, masterOnly: false },
-  { href: "/profile",       label: "Профиль",         icon: Settings, managerOnly: false, masterOnly: false },
+  { href: "/barbers",        label: "Барберы",         icon: Users,      managerOnly: true,  masterOnly: false },
+  { href: "/services",       label: "Услуги",           icon: Scissors,   managerOnly: false, masterOnly: false },
+  { href: "/appointments",   label: "Записи",           icon: Calendar,   managerOnly: false, masterOnly: false },
+  { href: "/clients",        label: "Клиенты",          icon: UserRound,  managerOnly: false, masterOnly: false },
+  { href: "/analytics",      label: "Аналитика",        icon: BarChart3,  managerOnly: true,  masterOnly: false },
+  { href: "/schedule",       label: "Расписание",       icon: Clock,      managerOnly: false, masterOnly: false },
+  { href: "/promotions",     label: "Акции",            icon: Tag,        managerOnly: false, masterOnly: true  },
+  { href: "/site-generator", label: "Сайт (AI)",        icon: Sparkles,   managerOnly: true,  masterOnly: false },
+  { href: "/site-settings",  label: "Настройки сайта",  icon: Globe,      managerOnly: true,  masterOnly: false },
+  { href: "/finance",        label: "Финансы",          icon: TrendingUp, managerOnly: true,  masterOnly: false },
+  { href: "/profile",        label: "Профиль",          icon: Settings,   managerOnly: false, masterOnly: false },
 ];
+
+const S = {
+  root: { display:"flex", height:"100vh", background:"var(--bg)" } as React.CSSProperties,
+  aside: {
+    width: "var(--sidebar-w)", minWidth: "var(--sidebar-w)",
+    background: "var(--bg2)", borderRight: "1px solid var(--border)",
+    display:"flex", flexDirection:"column", overflow:"hidden",
+  } as React.CSSProperties,
+  logo: { padding:"22px 18px 18px", borderBottom:"1px solid var(--border)" } as React.CSSProperties,
+  logoRow: { display:"flex", alignItems:"center", gap:12 } as React.CSSProperties,
+  logoIcon: {
+    width:38, height:38, borderRadius:10, background:"var(--gold)",
+    display:"flex", alignItems:"center", justifyContent:"center",
+    overflow:"hidden", flexShrink:0,
+  } as React.CSSProperties,
+  nav: { flex:1, padding:"10px 8px", overflowY:"auto", display:"flex", flexDirection:"column", gap:1 } as React.CSSProperties,
+  bottom: { padding:"8px", borderTop:"1px solid var(--border)", display:"flex", flexDirection:"column", gap:1 } as React.CSSProperties,
+  main: { flex:1, overflowY:"auto" } as React.CSSProperties,
+};
+
+function NavBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        display:"flex", alignItems:"center", gap:10, padding:"9px 12px",
+        borderRadius:"var(--radius)", background: hov ? "rgba(255,255,255,0.04)" : "transparent",
+        border:"none", cursor:"pointer", color: hov ? "var(--text)" : "var(--text2)",
+        fontSize:13, fontWeight:500, width:"100%", textAlign:"left",
+        transition:"background 0.15s, color 0.15s",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { data, isLoading, isError, error } = useSalonContextQuery();
+  const [dark, setDark] = useState(true);
 
-  // 404 → пользователь авторизован, но салона ещё нет → ведём на онбординг.
-  // (401 уже перехватывает axios-интерсептор → /login.)
+  useEffect(() => {
+    document.documentElement.classList.toggle("light", !dark);
+  }, [dark]);
+
   const status = (error as { response?: { status?: number } })?.response?.status;
   useEffect(() => {
-    if (isError && status === 404) {
-      router.replace("/onboarding");
-    }
+    if (isError && status === 404) router.replace("/onboarding");
   }, [isError, status, router]);
 
-  // Route guard: неправильные роли → редиректим на «Записи».
-  // Мастер не может зайти на managerOnly-разделы, менеджер — на masterOnly.
   const role = data?.role;
   useEffect(() => {
     if (!role) return;
@@ -56,18 +96,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (isLoading || (isError && status === 404)) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#111827]">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-[#F59E0B]" />
+      <div style={{ display:"flex", height:"100vh", alignItems:"center", justifyContent:"center", background:"var(--bg)" }}>
+        <div style={{
+          width:32, height:32, borderRadius:"50%",
+          border:"2px solid var(--border)", borderTopColor:"var(--gold)",
+          animation:"spin 0.8s linear infinite",
+        }} />
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
   }
 
   if (isError || !data) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#111827] px-6">
-        <div className="max-w-sm text-center">
-          <p className="text-white font-semibold mb-1">Не удалось загрузить салон</p>
-          <p className="text-gray-400 text-sm">Проверьте подключение и обновите страницу.</p>
+      <div style={{ display:"flex", height:"100vh", alignItems:"center", justifyContent:"center", background:"var(--bg)", padding:"0 24px" }}>
+        <div style={{ textAlign:"center" }}>
+          <p style={{ color:"var(--text)", fontWeight:600, marginBottom:4 }}>Не удалось загрузить салон</p>
+          <p style={{ color:"var(--text2)", fontSize:13 }}>Проверьте подключение и обновите страницу.</p>
         </div>
       </div>
     );
@@ -82,66 +127,98 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <SalonProvider value={data}>
-      <div className="flex h-screen bg-[#111827]">
-        <aside className="w-60 shrink-0 bg-[#1F2937] flex flex-col">
-          <div className="px-5 py-6 border-b border-white/5">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 shrink-0 rounded-xl bg-[#F59E0B] flex items-center justify-center overflow-hidden">
+      <div style={S.root}>
+
+        <aside style={S.aside}>
+          {/* Logo */}
+          <div style={S.logo}>
+            <div style={S.logoRow}>
+              <div style={S.logoIcon}>
                 {data.salon.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={data.salon.avatar_url}
-                    alt={data.salon.name}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={data.salon.avatar_url} alt={data.salon.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                 ) : (
-                  <Scissors className="w-4 h-4 text-white" />
+                  <span style={{ fontFamily:"'Playfair Display',serif", fontSize:19, fontWeight:700, color:"#0a0a0b" }}>H</span>
                 )}
               </div>
-              <div className="min-w-0">
-                <p className="text-white font-semibold text-sm truncate" title={data.salon.name}>
+              <div style={{ minWidth:0 }}>
+                <p style={{ color:"var(--text)", fontWeight:600, fontSize:13, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:2 }} title={data.salon.name}>
                   {data.salon.name}
                 </p>
-                <p className="text-gray-500 text-xs truncate">
+                <p style={{ color:"var(--text3)", fontSize:11, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
                   {data.salon.slug}.hayrli.app
                 </p>
               </div>
             </div>
           </div>
 
-          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          {/* Nav links */}
+          <nav style={S.nav}>
             {visibleNav.map(({ href, label, icon: Icon }) => {
               const active = pathname === href || pathname.startsWith(href + "/");
               return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    active
-                      ? "bg-[#F59E0B]/10 text-[#F59E0B]"
-                      : "text-gray-400 hover:bg-white/5 hover:text-white"
-                  }`}
-                >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  {label}
-                </Link>
+                <NavLink key={href} href={href} active={active} icon={Icon} label={label} />
               );
             })}
           </nav>
 
-          <div className="px-3 py-4 border-t border-white/5">
-            <button
-              onClick={logout}
-              className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-sm text-gray-400 hover:bg-white/5 hover:text-red-400 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Выйти
-            </button>
+          {/* Bottom */}
+          <div style={S.bottom}>
+            <NavBtn onClick={() => setDark((d) => !d)}>
+              {dark ? <Sun size={14} /> : <Moon size={14} />}
+              {dark ? "Светлая тема" : "Тёмная тема"}
+            </NavBtn>
+            <LogoutBtn />
           </div>
         </aside>
 
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main style={S.main}>{children}</main>
       </div>
     </SalonProvider>
+  );
+}
+
+function NavLink({ href, active, icon: Icon, label }: { href: string; active: boolean; icon: React.ElementType; label: string }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <Link
+      href={href}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        display:"flex", alignItems:"center", gap:10, padding:"9px 12px",
+        borderRadius:"var(--radius)", textDecoration:"none",
+        color: active ? "var(--gold)" : hov ? "var(--text)" : "var(--text2)",
+        background: active ? "var(--gold-dim)" : hov ? "rgba(255,255,255,0.04)" : "transparent",
+        fontSize:13, fontWeight: active ? 600 : 500,
+        transition:"background 0.15s, color 0.15s",
+      }}
+    >
+      <Icon size={14} style={{ flexShrink:0 }} />
+      {label}
+    </Link>
+  );
+}
+
+function LogoutBtn() {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      onClick={logout}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        display:"flex", alignItems:"center", gap:10, padding:"9px 12px",
+        borderRadius:"var(--radius)",
+        background: hov ? "rgba(224,90,90,0.08)" : "transparent",
+        border:"none", cursor:"pointer",
+        color: hov ? "var(--red)" : "var(--text2)",
+        fontSize:13, fontWeight:500, width:"100%", textAlign:"left",
+        transition:"background 0.15s, color 0.15s",
+      }}
+    >
+      <LogOut size={14} />
+      Выйти
+    </button>
   );
 }
