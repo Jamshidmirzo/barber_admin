@@ -137,7 +137,13 @@ export default function SiteGeneratorPage() {
               <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Ташкент, Чиланзар" style={inputStyle} />
             </Field>
             <Field label="Телефон">
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+998 90 123 45 67" style={inputStyle} />
+              <input value={phone} onChange={(e) => {
+                const raw = e.target.value; const d = raw.replace(/\D/g,"");
+                const l = d.startsWith("998") ? d.slice(3) : d; let o = "+998";
+                if (l.length>0) o+=" "+l.slice(0,2); if (l.length>2) o+=" "+l.slice(2,5);
+                if (l.length>5) o+=" "+l.slice(5,7); if (l.length>7) o+=" "+l.slice(7,9);
+                setPhone(o);
+              }} placeholder="+998 90 123 45 67" style={inputStyle} />
             </Field>
           </div>
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import api, { parseApiError } from "@/lib/api";
 
 type Tab = "login" | "register";
@@ -13,15 +14,63 @@ const inputStyle: React.CSSProperties = {
   outline:"none", transition:"border-color 0.15s",
 };
 
-function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
+function formatPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  const local = digits.startsWith("998") ? digits.slice(3) : digits;
+  let out = "+998";
+  if (local.length > 0) out += " " + local.slice(0, 2);
+  if (local.length > 2) out += " " + local.slice(2, 5);
+  if (local.length > 5) out += " " + local.slice(5, 7);
+  if (local.length > 7) out += " " + local.slice(7, 9);
+  return out;
+}
+
+function PhoneInput({ value, onChange, ...rest }: React.InputHTMLAttributes<HTMLInputElement>) {
   const [foc, setFoc] = useState(false);
   return (
     <input
-      {...props}
-      onFocus={(e) => { setFoc(true); props.onFocus?.(e); }}
-      onBlur={(e) => { setFoc(false); props.onBlur?.(e); }}
+      type="tel"
+      value={value}
+      onChange={(e) => {
+        const raw = e.target.value;
+        if (!raw.startsWith("+998")) { onChange?.({ ...e, target: { ...e.target, value: "+998" } }); return; }
+        onChange?.({ ...e, target: { ...e.target, value: formatPhone(raw) } });
+      }}
+      onFocus={(e) => { setFoc(true); rest.onFocus?.(e); }}
+      onBlur={(e) => { setFoc(false); rest.onBlur?.(e); }}
+      {...rest}
       style={{ ...inputStyle, borderColor: foc ? "var(--gold)" : "var(--border)" }}
     />
+  );
+}
+
+function PasswordInput({ value, onChange, placeholder }: React.InputHTMLAttributes<HTMLInputElement>) {
+  const [show, setShow] = useState(false);
+  const [foc, setFoc] = useState(false);
+  return (
+    <div style={{ position:"relative" }}>
+      <input
+        type={show ? "text" : "password"}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        required
+        onFocus={() => setFoc(true)}
+        onBlur={() => setFoc(false)}
+        style={{ ...inputStyle, borderColor: foc ? "var(--gold)" : "var(--border)", paddingRight:42 }}
+      />
+      <button
+        type="button"
+        onClick={() => setShow((s) => !s)}
+        style={{
+          position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
+          background:"none", border:"none", cursor:"pointer", color:"var(--text3)",
+          display:"flex", alignItems:"center", padding:0,
+        }}
+      >
+        {show ? <EyeOff size={16} /> : <Eye size={16} />}
+      </button>
+    </div>
   );
 }
 
@@ -55,7 +104,8 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await api.post("/auth/login", { phone, password });
+      const cleanPhone = phone.replace(/\s/g, "");
+      const res = await api.post("/auth/login", { phone: cleanPhone, password });
       const token = res.data?.tokens?.access_token;
       if (token) saveToken(token);
       else setError("Неверный ответ сервера");
@@ -73,8 +123,9 @@ export default function LoginPage() {
     if (regPassword.length < 6) { setError("Пароль минимум 6 символов"); return; }
     setLoading(true);
     try {
+      const cleanPhone = regPhone.replace(/\s/g, "");
       const res = await api.post("/auth/register", {
-        phone: regPhone, password: regPassword,
+        phone: cleanPhone, password: regPassword,
         name: regName, last_name: regLastName,
       });
       const token = res.data?.tokens?.access_token;
@@ -95,7 +146,6 @@ export default function LoginPage() {
     }}>
       <div style={{ width:"100%", maxWidth:400, padding:"0 20px" }}>
 
-        {/* Logo */}
         <div style={{ textAlign:"center", marginBottom:36 }}>
           <div style={{
             width:56, height:56, borderRadius:14, background:"var(--gold)",
@@ -110,7 +160,6 @@ export default function LoginPage() {
           <p style={{ color:"var(--text2)", fontSize:13, marginTop:6 }}>Панель управления барбершопом</p>
         </div>
 
-        {/* Tab switcher */}
         <div style={{
           display:"flex", background:"var(--surface)", border:"1px solid var(--border)",
           borderRadius:"var(--radius)", padding:4, marginBottom:20,
@@ -132,7 +181,6 @@ export default function LoginPage() {
           ))}
         </div>
 
-        {/* Card */}
         <div style={{
           background:"var(--surface)", border:"1px solid var(--border)",
           borderRadius:"var(--radius-lg)", padding:28,
@@ -141,11 +189,11 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} style={{ display:"flex", flexDirection:"column", gap:16 }}>
               <div>
                 <Label>Телефон</Label>
-                <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+998901234567" required />
+                <PhoneInput value={phone} onChange={(e) => setPhone((e.target as HTMLInputElement).value)} placeholder="+998 90 123 45 67" required />
               </div>
               <div>
                 <Label>Пароль</Label>
-                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••" required />
+                <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••" />
               </div>
               {error && (
                 <div style={{ background:"rgba(224,90,90,0.08)", border:"1px solid rgba(224,90,90,0.2)", borderRadius:"var(--radius)", padding:"10px 14px", color:"var(--red)", fontSize:13 }}>
@@ -170,24 +218,26 @@ export default function LoginPage() {
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
                   <Label>Имя</Label>
-                  <Input type="text" value={regName} onChange={(e) => setRegName(e.target.value)} placeholder="Алишер" required />
+                  <input type="text" value={regName} onChange={(e) => setRegName(e.target.value)} placeholder="Алишер" required
+                    style={inputStyle} />
                 </div>
                 <div>
                   <Label>Фамилия</Label>
-                  <Input type="text" value={regLastName} onChange={(e) => setRegLastName(e.target.value)} placeholder="Каримов" />
+                  <input type="text" value={regLastName} onChange={(e) => setRegLastName(e.target.value)} placeholder="Каримов"
+                    style={inputStyle} />
                 </div>
               </div>
               <div>
                 <Label>Телефон</Label>
-                <Input type="tel" value={regPhone} onChange={(e) => setRegPhone(e.target.value)} placeholder="+998901234567" required />
+                <PhoneInput value={regPhone} onChange={(e) => setRegPhone((e.target as HTMLInputElement).value)} placeholder="+998 90 123 45 67" required />
               </div>
               <div>
                 <Label>Пароль</Label>
-                <Input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} placeholder="Минимум 6 символов" required />
+                <PasswordInput value={regPassword} onChange={(e) => setRegPassword(e.target.value)} placeholder="Минимум 6 символов" />
               </div>
               <div>
                 <Label>Повторите пароль</Label>
-                <Input type="password" value={regPassword2} onChange={(e) => setRegPassword2(e.target.value)} placeholder="••••••" required />
+                <PasswordInput value={regPassword2} onChange={(e) => setRegPassword2(e.target.value)} placeholder="••••••" />
               </div>
               {error && (
                 <div style={{ background:"rgba(224,90,90,0.08)", border:"1px solid rgba(224,90,90,0.2)", borderRadius:"var(--radius)", padding:"10px 14px", color:"var(--red)", fontSize:13 }}>

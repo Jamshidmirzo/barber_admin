@@ -84,8 +84,19 @@ export default function BarbersPage() {
 
   const statsById = new Map((teamStats?.members ?? []).map((m) => [m.master_id, m]));
 
+  function formatPhone(raw: string): string {
+    const digits = raw.replace(/\D/g, "");
+    const local = digits.startsWith("998") ? digits.slice(3) : digits;
+    let out = "+998";
+    if (local.length > 0) out += " " + local.slice(0, 2);
+    if (local.length > 2) out += " " + local.slice(2, 5);
+    if (local.length > 5) out += " " + local.slice(5, 7);
+    if (local.length > 7) out += " " + local.slice(7, 9);
+    return out;
+  }
+
   const createMutation = useMutation({
-    mutationFn: (body: typeof form) => api.post("/team/members", body),
+    mutationFn: (body: typeof form) => api.post("/team/members", { ...body, phone: body.phone.replace(/\s/g, "") }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["team-members"] });
       setCreated({ phone: form.phone, password: form.password });
@@ -388,8 +399,12 @@ export default function BarbersPage() {
                   <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>Телефон</label>
                   <input
                     value={form.phone}
-                    onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
-                    placeholder="+998901234567" type="tel" style={inputStyle}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (!raw.startsWith("+998")) { setForm((p) => ({ ...p, phone: "+998" })); return; }
+                      setForm((p) => ({ ...p, phone: formatPhone(raw) }));
+                    }}
+                    placeholder="+998 90 123 45 67" type="tel" style={inputStyle}
                   />
                 </div>
                 <div>
