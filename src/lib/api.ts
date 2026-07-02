@@ -16,7 +16,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (r) => r,
   (err) => {
-    if (err.response?.status === 401 && typeof window !== "undefined") {
+    const url: string = err.config?.url ?? "";
+    const isAuthEndpoint = url.includes("/auth/login") || url.includes("/auth/register");
+    if (err.response?.status === 401 && !isAuthEndpoint && typeof window !== "undefined") {
       localStorage.removeItem("barber_admin_token");
       window.location.href = "/login";
     }
