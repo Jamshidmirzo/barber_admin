@@ -11,19 +11,37 @@ import {
 import { useAuth, logout } from "@/hooks/useAuth";
 import { SalonProvider, isManager, useSalonContextQuery } from "@/hooks/useSalon";
 
-const nav = [
-  { href: "/barbers",        label: "Барберы",         icon: Users,      managerOnly: true,  masterOnly: false },
-  { href: "/services",       label: "Услуги",           icon: Scissors,   managerOnly: false, masterOnly: false },
-  { href: "/appointments",   label: "Записи",           icon: Calendar,   managerOnly: false, masterOnly: false },
-  { href: "/clients",        label: "Клиенты",          icon: UserRound,  managerOnly: false, masterOnly: false },
-  { href: "/analytics",      label: "Аналитика",        icon: BarChart3,  managerOnly: true,  masterOnly: false },
-  { href: "/schedule",       label: "Расписание",       icon: Clock,      managerOnly: false, masterOnly: false },
-  { href: "/promotions",     label: "Акции",            icon: Tag,        managerOnly: false, masterOnly: true  },
-  { href: "/site-generator", label: "Сайт (AI)",        icon: Sparkles,   managerOnly: true,  masterOnly: false },
-  { href: "/site-settings",  label: "Настройки сайта",  icon: Globe,      managerOnly: true,  masterOnly: false },
-  { href: "/finance",        label: "Финансы",          icon: TrendingUp, managerOnly: true,  masterOnly: false },
-  { href: "/profile",        label: "Профиль",          icon: Settings,   managerOnly: false, masterOnly: false },
+const NAV_GROUPS = [
+  {
+    label: "Главное",
+    items: [
+      { href: "/appointments",   label: "Записи",        icon: Calendar,   managerOnly: false, masterOnly: false },
+      { href: "/schedule",       label: "Расписание",    icon: Clock,      managerOnly: false, masterOnly: false },
+      { href: "/promotions",     label: "Акции",         icon: Tag,        managerOnly: false, masterOnly: true  },
+    ],
+  },
+  {
+    label: "Клиентура",
+    items: [
+      { href: "/clients",        label: "Клиенты",       icon: UserRound,  managerOnly: false, masterOnly: false },
+      { href: "/services",       label: "Услуги",        icon: Scissors,   managerOnly: false, masterOnly: false },
+      { href: "/barbers",        label: "Мастера",       icon: Users,      managerOnly: true,  masterOnly: false },
+    ],
+  },
+  {
+    label: "Бизнес",
+    managerOnly: true,
+    items: [
+      { href: "/analytics",      label: "Аналитика",     icon: BarChart3,  managerOnly: true,  masterOnly: false },
+      { href: "/finance",        label: "Финансы",       icon: TrendingUp, managerOnly: true,  masterOnly: false },
+      { href: "/site-generator", label: "Сайт (AI)",     icon: Sparkles,   managerOnly: true,  masterOnly: false },
+      { href: "/site-settings",  label: "Настройки",     icon: Globe,      managerOnly: true,  masterOnly: false },
+    ],
+  },
 ];
+
+// flat list used for route-blocking checks
+const nav = NAV_GROUPS.flatMap(g => g.items);
 
 const S = {
   root: { display:"flex", height:"100vh", background:"var(--bg)" } as React.CSSProperties,
@@ -44,18 +62,19 @@ const S = {
   main: { flex:1, overflowY:"auto" } as React.CSSProperties,
 };
 
-function NavBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+function NavBtn({ onClick, children, title }: { onClick: () => void; children: React.ReactNode; title?: string }) {
   const [hov, setHov] = useState(false);
   return (
     <button
       onClick={onClick}
+      title={title}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        display:"flex", alignItems:"center", gap:10, padding:"9px 12px",
-        borderRadius:"var(--radius)", background: hov ? "rgba(255,255,255,0.04)" : "transparent",
-        border:"none", cursor:"pointer", color: hov ? "var(--text)" : "var(--text2)",
-        fontSize:13, fontWeight:500, width:"100%", textAlign:"left",
+        display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"8px",
+        borderRadius:"var(--radius)", background: hov ? "rgba(255,255,255,0.06)" : "transparent",
+        border:"1px solid var(--border)", cursor:"pointer", color: hov ? "var(--text)" : "var(--text2)",
+        fontSize:13, fontWeight:500, flex:1,
         transition:"background 0.15s, color 0.15s",
       }}
     >
@@ -119,11 +138,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   const canManage = isManager(data.role);
-  const visibleNav = nav.filter((item) => {
-    if (item.managerOnly && !canManage) return false;
-    if (item.masterOnly && canManage) return false;
-    return true;
-  });
 
   return (
     <SalonProvider value={data}>
@@ -154,21 +168,51 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Nav links */}
           <nav style={S.nav}>
-            {visibleNav.map(({ href, label, icon: Icon }) => {
-              const active = pathname === href || pathname.startsWith(href + "/");
+            {NAV_GROUPS.filter(g => !g.managerOnly || canManage).map((group) => {
+              const groupItems = group.items.filter(item => {
+                if (item.managerOnly && !canManage) return false;
+                if (item.masterOnly && canManage) return false;
+                return true;
+              });
+              if (groupItems.length === 0) return null;
               return (
-                <NavLink key={href} href={href} active={active} icon={Icon} label={label} />
+                <div key={group.label} style={{ marginBottom: 4 }}>
+                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: ".14em", color: "var(--text3)", padding: "12px 10px 5px", fontWeight: 600 }}>
+                    {group.label}
+                  </div>
+                  {groupItems.map(({ href, label, icon: Icon }) => {
+                    const active = pathname === href || pathname.startsWith(href + "/");
+                    return <NavLink key={href} href={href} active={active} icon={Icon} label={label} />;
+                  })}
+                </div>
               );
             })}
           </nav>
 
           {/* Bottom */}
           <div style={S.bottom}>
-            <NavBtn onClick={() => setDark((d) => !d)}>
-              {dark ? <Sun size={14} /> : <Moon size={14} />}
-              {dark ? "Светлая тема" : "Тёмная тема"}
-            </NavBtn>
-            <LogoutBtn />
+            <div style={{ display: "flex", gap: 4, marginBottom: 4 }}>
+              <NavBtn onClick={() => setDark((d) => !d)} title={dark ? "Светлая тема" : "Тёмная тема"}>
+                {dark ? <Sun size={14} /> : <Moon size={14} />}
+              </NavBtn>
+              <LogoutBtn />
+            </div>
+            <Link
+              href="/profile"
+              style={{ display:"flex", alignItems:"center", gap:11, padding:"8px", border:"1px solid var(--border)", background:"var(--surface)", borderRadius:12, cursor:"pointer", textDecoration:"none" }}
+            >
+              <span style={{ width:34, height:34, flexShrink:0, borderRadius:9, background:"var(--gold-dim)", border:"1px solid var(--gold-dim2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"var(--gold)" }}>
+                {(data.salon.name || "?")[0].toUpperCase()}
+              </span>
+              <span style={{ flex:1, minWidth:0 }}>
+                <span style={{ display:"block", fontWeight:600, fontSize:13, color:"var(--text)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                  {data.salon.name}
+                </span>
+                <span style={{ display:"block", fontSize:11, color:"var(--text3)" }}>
+                  {canManage ? "Владелец" : "Мастер"}
+                </span>
+              </span>
+            </Link>
           </div>
         </aside>
 
@@ -186,15 +230,19 @@ function NavLink({ href, active, icon: Icon, label }: { href: string; active: bo
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        display:"flex", alignItems:"center", gap:10, padding:"9px 12px",
+        position: "relative",
+        display:"flex", alignItems:"center", gap:12, padding:"9px 11px",
         borderRadius:"var(--radius)", textDecoration:"none",
-        color: active ? "var(--gold)" : hov ? "var(--text)" : "var(--text2)",
+        color: active ? "var(--text)" : hov ? "var(--text)" : "var(--text2)",
         background: active ? "var(--gold-dim)" : hov ? "rgba(255,255,255,0.04)" : "transparent",
         fontSize:13, fontWeight: active ? 600 : 500,
         transition:"background 0.15s, color 0.15s",
       }}
     >
-      <Icon size={14} style={{ flexShrink:0 }} />
+      {active && (
+        <span style={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", width: 3, height: 20, background: "var(--gold)", borderRadius: "0 3px 3px 0" }} />
+      )}
+      <Icon size={14} style={{ flexShrink:0, color: active ? "var(--gold)" : undefined }} />
       {label}
     </Link>
   );
@@ -205,20 +253,20 @@ function LogoutBtn() {
   return (
     <button
       onClick={logout}
+      title="Выйти"
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        display:"flex", alignItems:"center", gap:10, padding:"9px 12px",
+        display:"flex", alignItems:"center", justifyContent:"center", padding:"8px",
         borderRadius:"var(--radius)",
         background: hov ? "rgba(224,90,90,0.08)" : "transparent",
-        border:"none", cursor:"pointer",
+        border:"1px solid var(--border)", cursor:"pointer",
         color: hov ? "var(--red)" : "var(--text2)",
-        fontSize:13, fontWeight:500, width:"100%", textAlign:"left",
+        flex:1,
         transition:"background 0.15s, color 0.15s",
       }}
     >
       <LogOut size={14} />
-      Выйти
     </button>
   );
 }
