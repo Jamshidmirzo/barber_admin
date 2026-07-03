@@ -43,9 +43,43 @@ type Sort = "visits" | "revenue" | "last_visit";
 type Tab = "list" | "rating";
 const SORT_LABELS: Record<Sort, string> = { visits:"По визитам", revenue:"По выручке", last_visit:"По дате" };
 
-function LoyaltyBadge({ loyalty }: { loyalty: SalonClient["loyalty"] }) {
-  if (loyalty === "gold") return <span title="Топ-10%">🥇</span>;
-  if (loyalty === "silver") return <span title="Топ-30%">🥈</span>;
+function TierBadge({ tier }: { tier: SalonClient["loyalty"] }) {
+  if (tier === "gold") {
+    return (
+      <span style={{
+        fontSize: 9.5,
+        fontWeight: 700,
+        letterSpacing: "0.06em",
+        padding: "2px 7px",
+        borderRadius: 20,
+        background: "rgba(201,164,92,0.13)",
+        color: "var(--gold)",
+        border: "1px solid rgba(201,164,92,0.32)",
+        textTransform: "uppercase" as const,
+        lineHeight: 1,
+      }}>
+        GOLD
+      </span>
+    );
+  }
+  if (tier === "silver") {
+    return (
+      <span style={{
+        fontSize: 9.5,
+        fontWeight: 700,
+        letterSpacing: "0.06em",
+        padding: "2px 7px",
+        borderRadius: 20,
+        background: "rgba(255,255,255,0.06)",
+        color: "var(--text2)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        textTransform: "uppercase" as const,
+        lineHeight: 1,
+      }}>
+        SILVER
+      </span>
+    );
+  }
   return null;
 }
 
@@ -165,7 +199,10 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
                       <td style={{ padding:"12px 16px" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                           <div style={{ width:34, height:34, borderRadius:"50%", background:"var(--gold-dim)", color:"var(--gold)", fontWeight:700, fontSize:11, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{initials(c.name)}</div>
-                          <span style={{ color:"var(--text)", fontWeight:500 }}>{c.name} <LoyaltyBadge loyalty={c.loyalty} /></span>
+                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                            <span style={{ color:"var(--text)", fontWeight:500 }}>{c.name}</span>
+                            <TierBadge tier={c.loyalty} />
+                          </div>
                         </div>
                       </td>
                       <td style={{ padding:"12px 16px", color:"var(--text2)" }}>{c.phone}</td>

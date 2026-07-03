@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Users, Scissors, Calendar, UserRound, Clock,
   TrendingUp, Settings, LogOut, Sparkles, Globe,
-  BarChart3, Tag, Sun, Moon,
+  BarChart3, Tag, Sun, Moon, LayoutDashboard,
 } from "lucide-react";
 import { useAuth, logout } from "@/hooks/useAuth";
 import { SalonProvider, isManager, useSalonContextQuery } from "@/hooks/useSalon";
@@ -15,6 +15,7 @@ const NAV_GROUPS = [
   {
     label: "Главное",
     items: [
+      { href: "/dashboard",      label: "Обзор",         icon: LayoutDashboard, managerOnly: true,  masterOnly: false },
       { href: "/appointments",   label: "Записи",        icon: Calendar,   managerOnly: false, masterOnly: false },
       { href: "/schedule",       label: "Расписание",    icon: Clock,      managerOnly: false, masterOnly: false },
       { href: "/promotions",     label: "Акции",         icon: Tag,        managerOnly: false, masterOnly: true  },
