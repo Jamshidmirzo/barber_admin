@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, UserX, Eye, EyeOff, Copy, Check, Search, UserCheck, ChevronRight, X } from "lucide-react";
+import { Plus, UserX, Eye, EyeOff, Copy, Check, Search, UserCheck, X } from "lucide-react";
 import api from "@/lib/api";
 
 interface Barber {
@@ -67,6 +67,7 @@ export default function BarbersPage() {
   const [showPass, setShowPass] = useState(false);
   const [form, setForm] = useState({ name:"", last_name:"", phone:"+998", password:"" });
   const [formErr, setFormErr] = useState("");
+  const [filterQ, setFilterQ] = useState("");
   const [searchQ, setSearchQ] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -147,23 +148,46 @@ export default function BarbersPage() {
     <div style={{ padding:"32px 36px" }}>
 
       {/* Header */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28 }}>
-        <div>
-          <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>
-            Барберы
-          </h1>
-          <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>{data?.total ?? 0} сотрудников</p>
+      <div style={{ marginBottom:28 }}>
+        <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:"0 0 20px" }}>
+          Мастера
+        </h1>
+        <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+          <div style={{ position:"relative", flex:1, minWidth:220, maxWidth:360 }}>
+            <Search size={16} style={{ position:"absolute", left:13, top:"50%", transform:"translateY(-50%)", color:"var(--text3)", pointerEvents:"none" }} />
+            <input
+              value={filterQ}
+              onChange={(e) => setFilterQ(e.target.value)}
+              placeholder="Найти по телефону"
+              style={{
+                width:"100%", padding:"10px 14px 10px 38px",
+                background:"var(--card)", border:"1px solid var(--border)",
+                borderRadius:11, color:"var(--text)", fontSize:13.5, outline:"none",
+              }}
+            />
+          </div>
+          <button
+            onClick={() => { setShowModal(true); setTab("search"); setFormErr(""); }}
+            style={{
+              padding:"10px 16px", border:"1px solid rgba(201,164,92,0.20)",
+              background:"rgba(201,164,92,0.12)", color:"var(--gold)",
+              borderRadius:11, cursor:"pointer", fontSize:12.5, fontWeight:600,
+            }}
+          >
+            Пригласить
+          </button>
+          <div style={{ flex:1 }} />
+          <button
+            onClick={() => { setShowModal(true); setTab("create"); setFormErr(""); setSearchQ(""); setSearchResults([]); }}
+            style={{
+              display:"flex", alignItems:"center", gap:7, background:"var(--gold)", color:"#171205",
+              border:"none", borderRadius:11, padding:"10px 16px",
+              fontSize:13, fontWeight:700, cursor:"pointer",
+            }}
+          >
+            <Plus size={16} /> Добавить мастера
+          </button>
         </div>
-        <button
-          onClick={() => { setShowModal(true); setTab("create"); setFormErr(""); setSearchQ(""); setSearchResults([]); }}
-          style={{
-            display:"flex", alignItems:"center", gap:8, background:"var(--gold)", color:"#0a0a0b",
-            border:"none", borderRadius:"var(--radius)", padding:"9px 18px",
-            fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'Manrope',sans-serif",
-          }}
-        >
-          <Plus size={15} /> Добавить барбера
-        </button>
       </div>
 
       {/* Credential banner */}
@@ -239,8 +263,12 @@ export default function BarbersPage() {
 
       {/* Grid */}
       {!isLoading && data && data.items.length > 0 && (
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:16 }}>
-          {data.items.map((b) => {
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:16 }}>
+          {data.items.filter((b) => {
+            if (!filterQ) return true;
+            const q = filterQ.toLowerCase();
+            return fullName(b).toLowerCase().includes(q) || b.phone.includes(q);
+          }).map((b) => {
             const st = statsById.get(b.id);
             return (
               <Link
@@ -248,89 +276,62 @@ export default function BarbersPage() {
                 href={`/barbers/${b.id}`}
                 style={{
                   display:"block", textDecoration:"none",
-                  background:"var(--surface)", border:"1px solid var(--border)",
-                  borderRadius:"var(--radius-lg)", padding:20,
-                  transition:"border-color 0.15s, box-shadow 0.15s",
+                  background:"var(--card)", border:"1px solid var(--border)",
+                  borderRadius:16, padding:20, cursor:"pointer",
+                  transition:"border-color 0.15s",
                 }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "var(--gold-dim2)";
-                  (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(201,164,92,0.06)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
-                  (e.currentTarget as HTMLElement).style.boxShadow = "none";
-                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(201,164,92,0.20)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; }}
               >
-                {/* Avatar row */}
-                <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14 }}>
+                {/* Avatar + name + status */}
+                <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:18 }}>
                   <div style={{
-                    width:48, height:48, borderRadius:"50%",
-                    background:"var(--gold-dim)", color:"var(--gold)",
+                    width:48, height:48, flexShrink:0, borderRadius:13,
+                    background:"rgba(201,164,92,0.12)", border:"1px solid rgba(201,164,92,0.20)",
                     display:"flex", alignItems:"center", justifyContent:"center",
-                    fontWeight:700, fontSize:15, flexShrink:0, overflow:"hidden",
+                    fontWeight:700, fontSize:17, color:"var(--gold)", overflow:"hidden",
                   }}>
                     {b.photo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={b.photo_url} alt={fullName(b)} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                     ) : initials(b)}
                   </div>
-                  <div style={{ minWidth:0, flex:1 }}>
-                    <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16.5, fontWeight:600, color:"var(--text)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                       {fullName(b)}
-                    </p>
-                    <p style={{ color:"var(--text3)", fontSize:12, margin:0 }}>{b.phone}</p>
+                    </div>
+                    <div style={{ fontSize:12, color:"var(--text3)", marginTop:2 }}>{b.phone}</div>
                   </div>
                   <span style={{
-                    fontSize:11, fontWeight:600, padding:"3px 8px", borderRadius:20, flexShrink:0,
+                    fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:20, flexShrink:0,
                     background: b.is_active ? "rgba(76,175,125,0.12)" : "rgba(90,90,82,0.12)",
                     color: b.is_active ? "var(--green)" : "var(--text3)",
+                    border: `1px solid ${b.is_active ? "rgba(76,175,125,0.18)" : "rgba(90,90,82,0.18)"}`,
                   }}>
                     {b.is_active ? "Активен" : "Неактивен"}
                   </span>
                 </div>
 
-                {/* Specs */}
-                {b.specializations.length > 0 && (
-                  <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginBottom:14 }}>
-                    {b.specializations.map((s) => (
-                      <span key={s} style={{
-                        fontSize:11, background:"var(--bg2)", color:"var(--text2)",
-                        padding:"2px 8px", borderRadius:12, border:"1px solid var(--border)",
-                      }}>{s}</span>
-                    ))}
+                {/* 3-stat row */}
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, paddingTop:16, borderTop:"1px solid var(--border)" }}>
+                  <div>
+                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, color:"var(--gold)" }}>
+                      {st ? (st.total_revenue >= 1_000_000 ? (st.total_revenue / 1_000_000).toFixed(1) + "M" : fmtMoney(st.total_revenue)) : "—"}
+                    </div>
+                    <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>выручка</div>
                   </div>
-                )}
-
-                {/* Stats */}
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:14 }}>
-                  <div style={{ background:"var(--bg2)", borderRadius:10, padding:"10px 12px" }}>
-                    <p style={{ color:"var(--text3)", fontSize:10, margin:"0 0 3px", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.05em" }}>Выручка 30д</p>
-                    <p style={{ color:"var(--text)", fontSize:13, fontWeight:700, margin:0 }}>{fmtMoney(st?.total_revenue ?? 0)}</p>
+                  <div>
+                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600 }}>
+                      {st?.total_appointments ?? "—"}
+                    </div>
+                    <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>записей</div>
                   </div>
-                  <div style={{ background:"var(--bg2)", borderRadius:10, padding:"10px 12px" }}>
-                    <p style={{ color:"var(--text3)", fontSize:10, margin:"0 0 3px", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.05em" }}>Записи 30д</p>
-                    <p style={{ color:"var(--text)", fontSize:13, fontWeight:700, margin:0 }}>{st?.total_appointments ?? 0}</p>
+                  <div>
+                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600 }}>
+                      {st ? Math.round(st.worked_hours) : "—"}ч
+                    </div>
+                    <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>отработано</div>
                   </div>
-                </div>
-
-                {/* Actions */}
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                  {b.is_active ? (
-                    <button
-                      onClick={(e) => { e.preventDefault(); deactivateMutation.mutate(b.id); }}
-                      disabled={deactivateMutation.isPending}
-                      style={{
-                        display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
-                        cursor:"pointer", color:"var(--text3)", fontSize:12, fontWeight:500,
-                        padding:0, opacity: deactivateMutation.isPending ? 0.5 : 1,
-                      }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--red)"; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text3)"; }}
-                    >
-                      <UserX size={13} /> Деактивировать
-                    </button>
-                  ) : <span />}
-                  <ChevronRight size={15} style={{ color:"var(--text3)" }} />
                 </div>
               </Link>
             );

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { TrendingUp } from "lucide-react";
 import api from "@/lib/api";
+import { useSalon } from "@/hooks/useSalon";
 
-type Period = "week" | "month" | "year";
+type Period = "month" | "quarter" | "year";
 
 interface WeeklyStats {
   week_start: string;
@@ -20,209 +21,183 @@ interface WeeklyStats {
   compared_to_previous_week: { appointments_delta_pct: number | null; revenue_delta_pct: number | null };
 }
 
-interface TeamMember {
-  id: string;
-  name: string | null;
-  last_name: string | null;
-  phone: string;
-  is_active: boolean;
-}
-
 function fmt(n: number) {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(".", ",") + " млн";
   return n.toLocaleString("ru") + " сум";
 }
 
-function Delta({ pct }: { pct: number | null }) {
-  if (pct === null) return null;
-  const sign = pct >= 0 ? "+" : "";
-  return (
-    <span style={{ fontSize:12, color: pct >= 0 ? "var(--green)" : "var(--red)", fontWeight:500 }}>
-      {sign}{pct.toFixed(0)}% к прошлой неделе
-    </span>
-  );
-}
-
-const cardStyle: React.CSSProperties = {
-  background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)",
-};
-
-const periods: { key: Period; label: string }[] = [
-  { key:"week", label:"Неделя" },
-  { key:"month", label:"Месяц" },
-  { key:"year", label:"Год" },
+const PERIODS: { key: Period; label: string }[] = [
+  { key:"month",   label:"Месяц"   },
+  { key:"quarter", label:"Квартал" },
+  { key:"year",    label:"Год"     },
 ];
 
+const card: React.CSSProperties = {
+  background:"var(--card)", border:"1px solid var(--border)", borderRadius:16, padding:20,
+};
+
 export default function FinancePage() {
-  const [period, setPeriod] = useState<Period>("week");
+  const { salon } = useSalon();
+  const [period, setPeriod] = useState<Period>("month");
 
-  const { data: stats, isLoading: statsLoading } = useQuery<WeeklyStats>({
-    queryKey: ["finance", "weekly-stats", period],
-    queryFn: () => api.get("/masters/me/weekly-stats").then((r) => r.data),
+  const { data: stats, isLoading } = useQuery<WeeklyStats>({
+    queryKey: ["finance", "stats", salon.id, period],
+    queryFn: () => api.get("/masters/me/weekly-stats", { params: { period } }).then((r) => r.data),
   });
 
-  const { data: team } = useQuery<{ items: TeamMember[]; total: number }>({
-    queryKey: ["team", "members"],
-    queryFn: () => api.get("/team/members").then((r) => r.data),
-  });
+  const maxCount = useMemo(
+    () => Math.max(...(stats?.appointments_by_day?.map((d) => d.count) ?? [1]), 1),
+    [stats],
+  );
 
-  const maxCount = Math.max(...(stats?.appointments_by_day?.map((d) => d.count) ?? [1]), 1);
+  const maxRevSvc = useMemo(
+    () => Math.max(...(stats?.top_services?.map((s) => s.revenue) ?? [1]), 1),
+    [stats],
+  );
+
+  const revDelta = stats?.compared_to_previous_week.revenue_delta_pct ?? null;
 
   return (
     <div style={{ padding:"32px 36px" }}>
-
-      {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28 }}>
         <div>
           <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>
             Финансы
           </h1>
-          <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>Аналитика и доходы</p>
+          <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>Выручка и показатели</p>
         </div>
-        <div style={{
-          display:"flex", background:"var(--surface)", border:"1px solid var(--border)",
-          borderRadius:"var(--radius)", padding:4, gap:4,
-        }}>
-          {periods.map((p) => (
-            <button
-              key={p.key}
-              onClick={() => setPeriod(p.key)}
-              style={{
-                padding:"6px 14px", borderRadius:9, border:"none", cursor:"pointer",
-                background: period === p.key ? "var(--gold)" : "transparent",
-                color: period === p.key ? "#0a0a0b" : "var(--text2)",
-                fontSize:12, fontWeight:600, transition:"background 0.15s, color 0.15s",
-              }}
-            >
-              {p.label}
-            </button>
+        <div style={{ display:"flex", background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:4, gap:4 }}>
+          {PERIODS.map((p) => (
+            <button key={p.key} onClick={() => setPeriod(p.key)} style={{
+              padding:"6px 14px", borderRadius:9, border:"none", cursor:"pointer",
+              background: period === p.key ? "var(--gold)" : "transparent",
+              color: period === p.key ? "#0a0a0b" : "var(--text2)",
+              fontSize:12, fontWeight:600, transition:"background 0.15s, color 0.15s",
+            }}>{p.label}</button>
           ))}
         </div>
       </div>
 
-      {statsLoading ? (
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16, marginBottom:24 }}>
-          {[1,2,3].map((i) => (
-            <div key={i} style={{ ...cardStyle, padding:24, height:100, animation:"pulse 1.5s infinite" }} />
-          ))}
+      {isLoading ? (
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:16 }}>
+          {[1,2,3,4].map((i) => <div key={i} style={{ ...card, height:100, animation:"pulse 1.5s infinite" }} />)}
           <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
         </div>
       ) : stats ? (
         <>
-          {/* KPI */}
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16, marginBottom:24 }}>
-            <KpiCard
-              label="Выручка"
-              value={fmt(stats.revenue_total_uzs)}
-              sub={<Delta pct={stats.compared_to_previous_week.revenue_delta_pct} />}
-            />
-            <KpiCard
-              label="Завершено записей"
-              value={String(stats.appointments_completed)}
-              sub={<Delta pct={stats.compared_to_previous_week.appointments_delta_pct} />}
-            />
-            <KpiCard
-              label="Средний чек"
-              value={stats.appointments_completed > 0
-                ? fmt(Math.round(stats.revenue_total_uzs / stats.appointments_completed))
-                : "—"}
-              sub={<span style={{ fontSize:12, color:"var(--text2)" }}>{stats.new_clients} новых клиентов</span>}
-            />
-          </div>
-
-          {/* Bar chart */}
-          <div style={{ ...cardStyle, padding:24, marginBottom:20 }}>
-            <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 18px" }}>Записи по дням</p>
-            <div style={{ display:"flex", alignItems:"flex-end", gap:8, height:120 }}>
-              {stats.appointments_by_day.map((d) => (
-                <div key={d.date} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
-                  <span style={{ fontSize:10, color:"var(--text3)" }}>{d.count || ""}</span>
-                  <div style={{
-                    width:"100%", borderRadius:"6px 6px 0 0",
-                    background:"var(--gold)", opacity:0.85,
-                    height: `${Math.max((d.count / maxCount) * 88, d.count > 0 ? 8 : 2)}px`,
-                    transition:"height 0.3s",
-                  }} />
-                  <span style={{ fontSize:10, color:"var(--text3)" }}>
-                    {new Date(d.date).toLocaleDateString("ru", { weekday:"short" })}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Top services */}
-          {stats.top_services.length > 0 && (
-            <div style={{ ...cardStyle, padding:24, marginBottom:20 }}>
-              <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 14px" }}>Топ услуги</p>
-              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                {stats.top_services.map((s) => (
-                  <div key={s.service_name} style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                    <span style={{ color:"var(--text2)", fontSize:13 }}>{s.service_name}</span>
-                    <div style={{ textAlign:"right" }}>
-                      <span style={{ color:"var(--gold)", fontSize:13, fontWeight:700 }}>{fmt(s.revenue)}</span>
-                      <span style={{ color:"var(--text3)", fontSize:12, marginLeft:8 }}>× {s.count}</span>
-                    </div>
-                  </div>
-                ))}
+          {/* 4 KPI cards */}
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:16 }}>
+            {/* Revenue — gold gradient */}
+            <div style={{
+              background:"linear-gradient(150deg,rgba(201,164,92,0.12),transparent 60%),var(--card)",
+              border:"1px solid rgba(201,164,92,0.20)", borderRadius:16, padding:20,
+            }}>
+              <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>Общая выручка</div>
+              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:600, color:"var(--gold)" }}>
+                {fmt(stats.revenue_total_uzs)}
+              </div>
+              <div style={{ fontSize:12, color: revDelta != null && revDelta >= 0 ? "var(--green)" : "var(--red)", fontWeight:600, marginTop:8 }}>
+                {revDelta != null ? `${revDelta >= 0 ? "+" : ""}${revDelta.toFixed(0)}%` : "—"}{" "}
+                <span style={{ color:"var(--text3)", fontWeight:400 }}>к прошлому</span>
               </div>
             </div>
-          )}
+
+            <div style={card}>
+              <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>Записей</div>
+              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:600 }}>
+                {stats.appointments_total}
+              </div>
+              <div style={{ fontSize:12, color:"var(--text3)", marginTop:8 }}>
+                {stats.appointments_completed} завершено
+              </div>
+            </div>
+
+            <div style={card}>
+              <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>Новые клиенты</div>
+              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:600 }}>
+                {stats.new_clients}
+              </div>
+              <div style={{ fontSize:12, color:"var(--text3)", marginTop:8 }}>впервые за период</div>
+            </div>
+
+            <div style={card}>
+              <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>Постоянные</div>
+              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:600 }}>
+                {stats.returning_clients}
+              </div>
+              <div style={{ fontSize:12, color:"var(--text3)", marginTop:8 }}>вернулись</div>
+            </div>
+          </div>
+
+          {/* Chart + Top services side by side */}
+          <div style={{ display:"grid", gridTemplateColumns:"1.5fr 1fr", gap:16 }}>
+            {/* Bar chart */}
+            <div style={{ ...card, padding:22 }}>
+              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, marginBottom:18 }}>
+                Записи по дням
+              </div>
+              {stats.appointments_by_day.length > 0 ? (
+                <div style={{ display:"flex", alignItems:"flex-end", gap:6, height:170 }}>
+                  {stats.appointments_by_day.map((d) => {
+                    const pct = d.count / maxCount;
+                    const isMax = d.count === maxCount;
+                    return (
+                      <div key={d.date} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6, height:"100%", justifyContent:"flex-end" }}>
+                        <div style={{
+                          width:"100%", borderRadius:"4px 4px 1px 1px",
+                          background: isMax ? "var(--gold)" : "rgba(201,164,92,0.35)",
+                          height: `${Math.max(pct * 136, d.count > 0 ? 8 : 2)}px`,
+                        }} />
+                        <div style={{ fontSize:9.5, color:"var(--text3)" }}>
+                          {new Date(d.date).toLocaleDateString("ru", { weekday:"short" })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ height:170, display:"flex", alignItems:"center", justifyContent:"center", color:"var(--text3)", fontSize:13 }}>
+                  Нет данных
+                </div>
+              )}
+            </div>
+
+            {/* Top services */}
+            <div style={{ ...card, padding:22 }}>
+              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, marginBottom:16 }}>
+                Топ услуг
+              </div>
+              {stats.top_services.length > 0 ? (
+                <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+                  {stats.top_services.slice(0, 5).map((s) => (
+                    <div key={s.service_name}>
+                      <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:6 }}>
+                        <span style={{ fontSize:13, fontWeight:600, color:"var(--text)" }}>{s.service_name}</span>
+                        <span style={{ fontFamily:"'Playfair Display',serif", fontSize:12.5, color:"var(--gold)", fontWeight:600 }}>
+                          {fmt(s.revenue)}
+                        </span>
+                      </div>
+                      <div style={{ height:6, background:"var(--surface)", borderRadius:6, overflow:"hidden" }}>
+                        <div style={{ height:"100%", width:`${(s.revenue / maxRevSvc) * 100}%`, background:"var(--gold)", borderRadius:6 }} />
+                      </div>
+                      <div style={{ fontSize:11, color:"var(--text3)", marginTop:5 }}>{s.count} записей</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:170, color:"var(--text3)", fontSize:13 }}>
+                  Нет данных
+                </div>
+              )}
+            </div>
+          </div>
         </>
       ) : (
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"80px 0" }}>
           <TrendingUp size={32} style={{ color:"var(--text3)", marginBottom:12 }} />
-          <p style={{ color:"var(--text2)", fontSize:14 }}>Нет данных</p>
+          <p style={{ color:"var(--text2)", fontSize:14 }}>Нет данных за период</p>
         </div>
       )}
-
-      {/* Team table */}
-      {team && team.items.length > 0 && (
-        <div style={{ ...cardStyle, padding:24 }}>
-          <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 14px" }}>Барберы</p>
-          <table style={{ width:"100%", borderCollapse:"collapse" }}>
-            <thead>
-              <tr style={{ borderBottom:"1px solid var(--border)" }}>
-                {["Имя","Телефон","Статус"].map((h, i) => (
-                  <th key={h} style={{
-                    textAlign: i === 2 ? "right" : "left",
-                    color:"var(--text3)", fontWeight:600, fontSize:11, padding:"0 0 10px",
-                    textTransform:"uppercase", letterSpacing:"0.05em",
-                  }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {team.items.map((m, idx) => (
-                <tr key={m.id} style={{ borderBottom: idx < team.items.length-1 ? "1px solid var(--border)" : "none" }}>
-                  <td style={{ padding:"12px 0", color:"var(--text)", fontSize:13, fontWeight:500 }}>
-                    {[m.name, m.last_name].filter(Boolean).join(" ") || "—"}
-                  </td>
-                  <td style={{ padding:"12px 0", color:"var(--text2)", fontSize:13 }}>{m.phone}</td>
-                  <td style={{ padding:"12px 0", textAlign:"right" }}>
-                    <span style={{
-                      fontSize:11, fontWeight:600, padding:"3px 9px", borderRadius:20,
-                      background: m.is_active ? "rgba(76,175,125,0.12)" : "rgba(90,90,82,0.12)",
-                      color: m.is_active ? "var(--green)" : "var(--text3)",
-                    }}>
-                      {m.is_active ? "Активен" : "Неактивен"}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function KpiCard({ label, value, sub }: { label: string; value: string; sub?: React.ReactNode }) {
-  return (
-    <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:24 }}>
-      <p style={{ color:"var(--text2)", fontSize:11, margin:"0 0 6px", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.05em" }}>{label}</p>
-      <p style={{ color:"var(--text)", fontSize:22, fontWeight:700, margin:"0 0 5px" }}>{value}</p>
-      {sub}
     </div>
   );
 }
