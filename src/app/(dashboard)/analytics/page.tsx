@@ -107,7 +107,7 @@ export default function AnalyticsPage() {
       </div>
 
       <HeatmapSection q={heatmapQ} />
-      <TrendsSection q={trendsQ} />
+      <TrendsSection q={trendsQ} heatmap={heatmapQ.data} />
       <PromoSection salonId={salonId} heatmap={heatmapQ.data} trends={trendsQ.data} />
     </div>
   );
@@ -204,7 +204,7 @@ function HeatmapSection({ q }: { q: { data?: HeatmapResponse; isLoading: boolean
   );
 }
 
-function TrendsSection({ q }: { q: { data?: TrendsResponse; isLoading: boolean } }) {
+function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: boolean }; heatmap?: HeatmapResponse }) {
   const data = q.data;
   const dowData = (data?.revenue_by_day_of_week ?? []).map((d) => ({ ...d, day_ru: DAY_RU[d.day] ?? d.day }));
   const growth = data?.growth_vs_prev_period ?? 0;
@@ -216,18 +216,36 @@ function TrendsSection({ q }: { q: { data?: TrendsResponse; isLoading: boolean }
 
   return (
     <>
-      {/* KPI cards */}
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:20 }}>
+      {/* KPI cards — 4 in a row matching design */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:20 }}>
         <div style={cardStyle}>
-          <p style={{ color:"var(--text2)", fontSize:11, margin:"0 0 6px", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.05em" }}>Средний чек</p>
-          <p style={{ color:"var(--text)", fontSize:22, fontWeight:700, margin:0 }}>{data ? fmt(data.avg_check) : "—"}</p>
+          <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>Средний чек</p>
+          <p style={{ fontFamily:"'Playfair Display',serif", color:"var(--text)", fontSize:26, fontWeight:600, margin:0 }}>{data ? fmt(data.avg_check) : "—"}</p>
+          <p style={{ fontSize:12, color: up ? "var(--green)" : "var(--text3)", fontWeight:600, margin:"8px 0 0" }}>
+            {data ? `${up ? "+" : ""}${growth}%` : ""} <span style={{ color:"var(--text3)", fontWeight:400 }}>к периоду</span>
+          </p>
         </div>
         <div style={cardStyle}>
-          <p style={{ color:"var(--text2)", fontSize:11, margin:"0 0 6px", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.05em" }}>Рост vs прошлый период</p>
-          <p style={{ color: up ? "var(--green)" : "var(--red)", fontSize:22, fontWeight:700, margin:0, display:"flex", alignItems:"center", gap:8 }}>
+          <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>Рост выручки</p>
+          <p style={{ fontFamily:"'Playfair Display',serif", color: up ? "var(--gold)" : "var(--red)", fontSize:26, fontWeight:600, margin:0, display:"flex", alignItems:"center", gap:8 }}>
             {up ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
             {data ? `${up ? "+" : ""}${growth}%` : "—"}
           </p>
+          <p style={{ fontSize:12, color:"var(--text3)", margin:"8px 0 0" }}>месяц к месяцу</p>
+        </div>
+        <div style={cardStyle}>
+          <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>Пик</p>
+          <p style={{ fontFamily:"'Playfair Display',serif", color:"var(--text)", fontSize:20, fontWeight:600, margin:0 }}>
+            {heatmap?.peak_day ? `${DAY_RU[heatmap.peak_day] ?? heatmap.peak_day} ${heatmap.peak_hour != null ? hh(heatmap.peak_hour) : ""}` : "—"}
+          </p>
+          <p style={{ fontSize:12, color:"var(--text3)", margin:"8px 0 0" }}>макс. загрузка</p>
+        </div>
+        <div style={cardStyle}>
+          <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>Спад</p>
+          <p style={{ fontFamily:"'Playfair Display',serif", color:"var(--text)", fontSize:20, fontWeight:600, margin:0 }}>
+            {heatmap?.slowest_day ? `${DAY_RU[heatmap.slowest_day] ?? heatmap.slowest_day} ${heatmap.slowest_hour != null ? hh(heatmap.slowest_hour) : ""}` : "—"}
+          </p>
+          <p style={{ fontSize:12, color:"var(--text3)", margin:"8px 0 0" }}>мин. загрузка</p>
         </div>
       </div>
 
