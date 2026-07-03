@@ -66,38 +66,7 @@ const STATUS_LABEL: Record<string, string> = {
   noshow:     "Не явился",
 };
 
-// ── Stub data ────────────────────────────────────────────────────────────────
-
-const STUB: OverviewData = {
-  today_revenue: 1_850_000,
-  today_revenue_delta_pct: 12,
-  today_appointments: 14,
-  today_appointments_delta_pct: 5,
-  today_load: 78,
-  today_load_delta_pct: -3,
-  avg_check: 132_142,
-  avg_check_delta_pct: 8,
-  week_revenue_by_day: [
-    { date: "2026-06-27", revenue: 980_000,   label: "Пт" },
-    { date: "2026-06-28", revenue: 1_120_000,  label: "Сб" },
-    { date: "2026-06-29", revenue: 560_000,   label: "Вс" },
-    { date: "2026-06-30", revenue: 1_430_000,  label: "Пн" },
-    { date: "2026-07-01", revenue: 1_650_000,  label: "Вт" },
-    { date: "2026-07-02", revenue: 1_200_000,  label: "Ср" },
-    { date: "2026-07-03", revenue: 1_850_000,  label: "Чт" },
-  ],
-  top_barbers: [
-    { id: "1", name: "Алишер Камолов",  appointments: 12, revenue: 1_584_000 },
-    { id: "2", name: "Дониёр Рашидов",  appointments: 9,  revenue: 1_188_000 },
-    { id: "3", name: "Бобур Юсупов",    appointments: 7,  revenue: 924_000 },
-  ],
-  upcoming_appointments: [
-    { id: "a1", time: "14:30", client_name: "Камол Назаров",  service_name: "Стрижка + борода", barber_name: "Алишер К.", status: "confirmed" },
-    { id: "a2", time: "15:00", client_name: "Тимур Эргашев",  service_name: "Классическая стрижка", barber_name: "Дониёр Р.", status: "pending" },
-    { id: "a3", time: "15:30", client_name: "Санжар Холиков", service_name: "Стрижка",         barber_name: "Бобур Ю.", status: "scheduled" },
-    { id: "a4", time: "16:00", client_name: "Акбар Миrzаев",  service_name: "Борода",           barber_name: "Алишер К.", status: "confirmed" },
-  ],
-};
+// No stub data — show real API data only
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -144,47 +113,45 @@ export default function DashboardPage() {
   const { salon } = useSalon();
   const router = useRouter();
 
-  const { data, isLoading } = useQuery<OverviewData>({
+  const { data, isLoading, isError } = useQuery<OverviewData>({
     queryKey: ["dashboard", "overview", salon.id],
     queryFn: () =>
       api.get(`/salons/${salon.id}/analytics/overview`).then((r) => r.data),
-    // On error fall back to stub — treated as "no data" and we show stub below
-    retry: false,
+    retry: 1,
   });
 
-  // Use real data if available, otherwise stub
-  const d: OverviewData = data ?? STUB;
   const showSkeleton = isLoading;
+  const d = data;
 
-  const maxRevenue = Math.max(...d.week_revenue_by_day.map((b) => b.revenue), 1);
-  const weekTotal  = d.week_revenue_by_day.reduce((s, b) => s + b.revenue, 0);
+  const maxRevenue = d ? Math.max(...d.week_revenue_by_day.map((b) => b.revenue), 1) : 1;
+  const weekTotal  = d ? d.week_revenue_by_day.reduce((s, b) => s + b.revenue, 0) : 0;
 
   const kpis = [
     {
       label: "Выручка сегодня",
-      value: showSkeleton ? "" : fmtRevenue(d.today_revenue) + " сум",
-      delta: d.today_revenue_delta_pct,
+      value: d ? fmtRevenue(d.today_revenue) + " сум" : "—",
+      delta: d?.today_revenue_delta_pct ?? null,
       sub:   "к вчерашнему дню",
       icon:  <TrendingUp size={16} style={{ color: "var(--gold)" }} />,
     },
     {
       label: "Записей сегодня",
-      value: showSkeleton ? "" : String(d.today_appointments),
-      delta: d.today_appointments_delta_pct,
+      value: d ? String(d.today_appointments) : "—",
+      delta: d?.today_appointments_delta_pct ?? null,
       sub:   "к вчерашнему дню",
       icon:  <Receipt size={16} style={{ color: "var(--gold)" }} />,
     },
     {
       label: "Загрузка",
-      value: showSkeleton ? "" : `${d.today_load}%`,
-      delta: d.today_load_delta_pct,
+      value: d ? `${d.today_load}%` : "—",
+      delta: d?.today_load_delta_pct ?? null,
       sub:   "к вчерашнему дню",
       icon:  <Gauge size={16} style={{ color: "var(--gold)" }} />,
     },
     {
       label: "Средний чек",
-      value: showSkeleton ? "" : fmtRevenue(d.avg_check) + " сум",
-      delta: d.avg_check_delta_pct,
+      value: d ? fmtRevenue(d.avg_check) + " сум" : "—",
+      delta: d?.avg_check_delta_pct ?? null,
       sub:   "к вчерашнему дню",
       icon:  <CreditCard size={16} style={{ color: "var(--gold)" }} />,
     },
@@ -308,6 +275,10 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
+          ) : !d || d.week_revenue_by_day.length === 0 ? (
+            <div style={{ height: 170, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text3)", fontSize: 13 }}>
+              Нет данных за эту неделю
+            </div>
           ) : (
             <div style={{ display: "flex", alignItems: "flex-end", gap: 14, height: 170, paddingTop: 8 }}>
               {d.week_revenue_by_day.map((bar) => {
@@ -368,6 +339,8 @@ export default function DashboardPage() {
                   <Skeleton w={60} h={14} br={4} />
                 </div>
               ))
+            ) : !d || d.top_barbers.length === 0 ? (
+              <div style={{ color: "var(--text3)", fontSize: 13, textAlign: "center", padding: "24px 0" }}>Нет данных</div>
             ) : (
               d.top_barbers.slice(0, 3).map((b) => (
                 <div key={b.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -453,6 +426,14 @@ export default function DashboardPage() {
                 <Skeleton w={80} h={24} br={20} />
               </div>
             ))
+          ) : isError ? (
+            <div style={{ padding: "20px 10px", color: "var(--text3)", fontSize: 13 }}>
+              Не удалось загрузить данные. Проверьте подключение.
+            </div>
+          ) : !d || d.upcoming_appointments.length === 0 ? (
+            <div style={{ padding: "20px 10px", color: "var(--text3)", fontSize: 13 }}>
+              Записей на сегодня нет
+            </div>
           ) : (
             d.upcoming_appointments.slice(0, 4).map((apt) => {
               const color = STATUS_COLOR[apt.status] ?? "var(--text3)";
