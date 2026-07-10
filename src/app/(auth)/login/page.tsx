@@ -43,8 +43,11 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function saveToken(token: string) {
-    localStorage.setItem("barber_admin_token", token);
+  function saveTokens(tokens: { access_token: string; refresh_token?: string }) {
+    localStorage.setItem("barber_admin_token", tokens.access_token);
+    if (tokens.refresh_token) {
+      localStorage.setItem("barber_admin_refresh_token", tokens.refresh_token);
+    }
     router.push("/appointments");
   }
 
@@ -53,8 +56,8 @@ export default function LoginPage() {
     setError(""); setLoading(true);
     try {
       const res = await api.post("/auth/login", { phone: phone.replace(/\s/g, ""), password });
-      const token = res.data?.tokens?.access_token;
-      if (token) saveToken(token);
+      const tokens = res.data?.tokens;
+      if (tokens?.access_token) saveTokens(tokens);
       else setError("Неверный ответ сервера");
     } catch (err) {
       setError(parseApiError(err, "Неверный телефон или пароль"));
@@ -72,8 +75,8 @@ export default function LoginPage() {
         phone: regPhone.replace(/\s/g, ""), password: regPass,
         name: regName, last_name: regLastName,
       });
-      const token = res.data?.tokens?.access_token;
-      if (token) saveToken(token);
+      const tokens = res.data?.tokens;
+      if (tokens?.access_token) saveTokens(tokens);
       else setError("Неверный ответ сервера");
     } catch (err) {
       setError(parseApiError(err, "Ошибка регистрации"));
