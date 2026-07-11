@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Users, Scissors, Calendar, UserRound, Clock,
-  TrendingUp, Settings, LogOut, Sparkles, Globe,
+  TrendingUp, Settings, LogOut,
   BarChart3, Tag, Sun, Moon, LayoutDashboard,
 } from "lucide-react";
 import { useAuth, logout } from "@/hooks/useAuth";
@@ -35,8 +35,6 @@ const NAV_GROUPS = [
     items: [
       { href: "/analytics",      label: "Аналитика",     icon: BarChart3,  managerOnly: true,  masterOnly: false },
       { href: "/finance",        label: "Финансы",       icon: TrendingUp, managerOnly: true,  masterOnly: false },
-      { href: "/site-generator", label: "Сайт (AI)",     icon: Sparkles,   managerOnly: true,  masterOnly: false },
-      { href: "/site-settings",  label: "Настройки",     icon: Globe,      managerOnly: true,  masterOnly: false },
     ],
   },
 ];

@@ -15,15 +15,47 @@ const lbl: React.CSSProperties = {
   display:"block", fontSize:11.5, color:"var(--text2)", marginBottom:7, letterSpacing:".02em",
 };
 
-function formatPhone(raw: string): string {
+type CountryCode = "998" | "82";
+
+const COUNTRIES: { code: CountryCode; flag: string; placeholder: string; digitLength: number }[] = [
+  { code:"998", flag:"🇺🇿", placeholder:"+998 90 000 00 00", digitLength: 9 },
+  { code:"82",  flag:"🇰🇷", placeholder:"+82 10 0000 0000", digitLength: 10 },
+];
+
+
+function formatPhone(raw: string, cc: CountryCode = "998"): string {
   const digits = raw.replace(/\D/g, "");
-  const local = digits.startsWith("998") ? digits.slice(3) : digits;
-  let out = "+998";
-  if (local.length > 0) out += " " + local.slice(0, 2);
-  if (local.length > 2) out += " " + local.slice(2, 5);
-  if (local.length > 5) out += " " + local.slice(5, 7);
-  if (local.length > 7) out += " " + local.slice(7, 9);
+  const local = digits.startsWith(cc) ? digits.slice(cc.length) : digits;
+  let out = "+" + cc;
+  if (cc === "998") {
+    // XX XXX XX XX (9 digits total)
+    if (local.length > 0) out += " " + local.slice(0, 2);
+    if (local.length > 2) out += " " + local.slice(2, 5);
+    if (local.length > 5) out += " " + local.slice(5, 7);
+    if (local.length > 7) out += " " + local.slice(7, 9);
+  } else {
+    // Korean mobile: always starts with "10", then 8 digits => 10 XXXX XXXX (10 digits total)
+    let normalized = local;
+    // if user starts typing without the leading "10", force it
+    if (normalized.length > 0 && !normalized.startsWith("1")) {
+      normalized = "1" + normalized;
+    }
+    if (normalized.length > 1 && normalized[1] !== "0") {
+      normalized = normalized[0] + "0" + normalized.slice(1);
+    }
+    if (normalized.length > 0) out += " " + normalized.slice(0, 2);
+    if (normalized.length > 2) out += " " + normalized.slice(2, 6);
+    if (normalized.length > 6) out += " " + normalized.slice(6, 10);
+  }
   return out;
+}
+function isValidPhone(phone: string, cc: CountryCode): boolean {
+  const digits = phone.replace(/\D/g, "");
+  const local = digits.startsWith(cc) ? digits.slice(cc.length) : digits;
+  const expected = COUNTRIES.find((c) => c.code === cc)!.digitLength;
+  if (local.length !== expected) return false;
+  if (cc === "82" && !local.startsWith("10")) return false;
+  return true;
 }
 
 type View = "login" | "register";
@@ -32,8 +64,10 @@ export default function LoginPage() {
   const router = useRouter();
   const [view, setView] = useState<View>("login");
   const [phone, setPhone] = useState("+998");
+  const [loginCountry, setLoginCountry] = useState<CountryCode>("998");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
+  const [regCountry, setRegCountry] = useState<CountryCode>("998");
   const [regPhone, setRegPhone] = useState("+998");
   const [regName, setRegName] = useState("");
   const [regLastName, setRegLastName] = useState("");
@@ -49,36 +83,45 @@ export default function LoginPage() {
   }
 
   async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setError(""); setLoading(true);
-    try {
-      const res = await api.post("/auth/login", { phone: phone.replace(/\s/g, ""), password });
-      const token = res.data?.tokens?.access_token;
-      if (token) saveToken(token);
-      else setError("Неверный ответ сервера");
-    } catch (err) {
-      setError(parseApiError(err, "Неверный телефон или пароль"));
-    } finally { setLoading(false); }
+  e.preventDefault();
+  setError("");
+  if (!isValidPhone(phone, loginCountry)) {
+    setError(loginCountry === "82" ? "Номер должен начинаться с 10 и содержать 10 цифр" : "Введите корректный номер (9 цифр)");
+    return;
   }
+  setLoading(true);
+  try {
+    const res = await api.post("/auth/login", { phone: phone.replace(/\s/g, ""), password });
+    const token = res.data?.tokens?.access_token;
+    if (token) saveToken(token);
+    else setError("Неверный ответ сервера");
+  } catch (err) {
+    setError(parseApiError(err, "Неверный телефон или пароль"));
+  } finally { setLoading(false); }
+}
 
   async function handleRegister(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    if (regPass !== regPass2) { setError("Пароли не совпадают"); return; }
-    if (regPass.length < 6) { setError("Пароль минимум 6 символов"); return; }
-    setLoading(true);
-    try {
-      const res = await api.post("/auth/register", {
-        phone: regPhone.replace(/\s/g, ""), password: regPass,
-        name: regName, last_name: regLastName,
-      });
-      const token = res.data?.tokens?.access_token;
-      if (token) saveToken(token);
-      else setError("Неверный ответ сервера");
-    } catch (err) {
-      setError(parseApiError(err, "Ошибка регистрации"));
-    } finally { setLoading(false); }
+  e.preventDefault();
+  setError("");
+  if (!isValidPhone(regPhone, regCountry)) {
+    setError(regCountry === "82" ? "Номер должен начинаться с 10 и содержать 10 цифр" : "Введите корректный номер (9 цифр)");
+    return;
   }
+  if (regPass !== regPass2) { setError("Пароли не совпадают"); return; }
+  if (regPass.length < 6) { setError("Пароль минимум 6 символов"); return; }
+  setLoading(true);
+  try {
+    const res = await api.post("/auth/register", {
+      phone: regPhone.replace(/\s/g, ""), password: regPass,
+      name: regName, last_name: regLastName,
+    });
+    const token = res.data?.tokens?.access_token;
+    if (token) saveToken(token);
+    else setError("Неверный ответ сервера");
+  } catch (err) {
+    setError(parseApiError(err, "Ошибка регистрации"));
+  } finally { setLoading(false); }
+}
 
   return (
     <div style={{
@@ -119,12 +162,30 @@ export default function LoginPage() {
 
               <form onSubmit={handleLogin} style={{ display:"flex", flexDirection:"column", gap:0 }}>
                 <label style={lbl}>Номер телефона</label>
+                <div style={{ display:"flex", gap:8, marginBottom:16 }}>
+                  {COUNTRIES.map((c) => (
+                    <button
+                      key={c.code} type="button"
+                      onClick={() => { setLoginCountry(c.code); setPhone("+" + c.code); }}
+                      style={{
+                        display:"flex", alignItems:"center", gap:6,
+                        padding:"10px 12px", borderRadius:11, cursor:"pointer",
+                        border: loginCountry === c.code ? "1px solid var(--gold)" : "1px solid var(--border)",
+                        background: loginCountry === c.code ? "var(--gold-dim)" : "var(--surface)",
+                        color:"var(--text)", fontSize:13, fontFamily:"inherit",
+                      }}
+                    >
+                      <span>{c.flag}</span>
+                      <span>+{c.code}</span>
+                    </button>
+                  ))}
+                </div>
                 <input
-                  type="tel" value={phone} placeholder="+998 90 000 00 00" required
+                  type="tel" value={phone} placeholder={COUNTRIES.find((c) => c.code === loginCountry)!.placeholder} required
                   onChange={(e) => {
                     const raw = e.target.value;
-                    if (!raw.startsWith("+998")) { setPhone("+998"); return; }
-                    setPhone(formatPhone(raw));
+                    if (!raw.startsWith("+" + loginCountry)) { setPhone("+" + loginCountry); return; }
+                    setPhone(formatPhone(raw, loginCountry));
                   }}
                   style={{ ...inp, marginBottom:16 }}
                 />
@@ -187,12 +248,30 @@ export default function LoginPage() {
                 </div>
 
                 <label style={lbl}>Номер телефона</label>
+                <div style={{ display:"flex", gap:8, marginBottom:16 }}>
+                  {COUNTRIES.map((c) => (
+                    <button
+                      key={c.code} type="button"
+                      onClick={() => { setRegCountry(c.code); setRegPhone("+" + c.code); }}
+                      style={{
+                        display:"flex", alignItems:"center", gap:6,
+                        padding:"10px 12px", borderRadius:11, cursor:"pointer",
+                        border: regCountry === c.code ? "1px solid var(--gold)" : "1px solid var(--border)",
+                        background: regCountry === c.code ? "var(--gold-dim)" : "var(--surface)",
+                        color:"var(--text)", fontSize:13, fontFamily:"inherit",
+                      }}
+                    >
+                      <span>{c.flag}</span>
+                      <span>+{c.code}</span>
+                    </button>
+                  ))}
+                </div>
                 <input
-                  type="tel" value={regPhone} placeholder="+998 90 000 00 00" required
+                  type="tel" value={regPhone} placeholder={COUNTRIES.find((c) => c.code === regCountry)!.placeholder} required
                   onChange={(e) => {
                     const raw = e.target.value;
-                    if (!raw.startsWith("+998")) { setRegPhone("+998"); return; }
-                    setRegPhone(formatPhone(raw));
+                    if (!raw.startsWith("+" + regCountry)) { setRegPhone("+" + regCountry); return; }
+                    setRegPhone(formatPhone(raw, regCountry));
                   }}
                   style={{ ...inp, marginBottom:16 }}
                 />
