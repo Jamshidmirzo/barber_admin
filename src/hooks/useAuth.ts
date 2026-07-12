@@ -16,5 +16,6 @@ export function useAuth() {
 
 export function logout() {
   localStorage.removeItem("barber_admin_token");
+  localStorage.removeItem("barber_admin_refresh_token");
   window.location.href = "/login";
 }

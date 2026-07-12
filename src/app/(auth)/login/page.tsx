@@ -79,8 +79,11 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function saveToken(token: string) {
-    localStorage.setItem("barber_admin_token", token);
+  function saveTokens(tokens: { access_token: string; refresh_token?: string }) {
+    localStorage.setItem("barber_admin_token", tokens.access_token);
+    if (tokens.refresh_token) {
+      localStorage.setItem("barber_admin_refresh_token", tokens.refresh_token);
+    }
     router.push("/appointments");
   }
 
@@ -101,6 +104,17 @@ export default function LoginPage() {
     setError(parseApiError(err, t("errors.loginFailed")));
   } finally { setLoading(false); }
 }
+    e.preventDefault();
+    setError(""); setLoading(true);
+    try {
+      const res = await api.post("/auth/login", { phone: phone.replace(/\s/g, ""), password });
+      const tokens = res.data?.tokens;
+      if (tokens?.access_token) saveTokens(tokens);
+      else setError("Неверный ответ сервера");
+    } catch (err) {
+      setError(parseApiError(err, "Неверный телефон или пароль"));
+    } finally { setLoading(false); }
+  }
 
   async function handleRegister(e: React.FormEvent) {
   e.preventDefault();
@@ -124,6 +138,23 @@ export default function LoginPage() {
     setError(parseApiError(err, t("errors.registerFailed")));
   } finally { setLoading(false); }
 }
+    e.preventDefault();
+    setError("");
+    if (regPass !== regPass2) { setError("Пароли не совпадают"); return; }
+    if (regPass.length < 6) { setError("Пароль минимум 6 символов"); return; }
+    setLoading(true);
+    try {
+      const res = await api.post("/auth/register", {
+        phone: regPhone.replace(/\s/g, ""), password: regPass,
+        name: regName, last_name: regLastName,
+      });
+      const tokens = res.data?.tokens;
+      if (tokens?.access_token) saveTokens(tokens);
+      else setError("Неверный ответ сервера");
+    } catch (err) {
+      setError(parseApiError(err, "Ошибка регистрации"));
+    } finally { setLoading(false); }
+  }
 
   return (
     <div style={{
