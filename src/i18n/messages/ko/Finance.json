@@ -1,0 +1,39 @@
+{
+  "title": "재무",
+  "subtitle": "매출 및 실적",
+  "periods": {
+    "month": "월",
+    "quarter": "분기",
+    "year": "년"
+  },
+  "kpi": {
+    "revenue": {
+      "label": "총 매출",
+      "vsPrevious": "전 기간 대비"
+    },
+    "appointments": {
+      "label": "예약 건수",
+      "completed": "{count}건 완료"
+    },
+    "newClients": {
+      "label": "신규 고객",
+      "caption": "이번 기간 첫 방문"
+    },
+    "returning": {
+      "label": "재방문 고객",
+      "caption": "재방문함"
+    }
+  },
+  "charts": {
+    "byDay": {
+      "title": "일별 예약 현황"
+    },
+    "topServices": {
+      "title": "인기 서비스",
+      "count": "{count, plural, other {예약 #건}}"
+    }
+  },
+  "emptyState": {
+    "message": "해당 기간 데이터가 없습니다"
+  }
+}

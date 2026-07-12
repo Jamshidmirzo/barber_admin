@@ -1,0 +1,45 @@
+{
+  "title": "고객",
+  "currency": "숨",
+  "searchPlaceholder": "이름 또는 전화번호로 검색",
+  "emptyState": {
+    "notFound": "검색 결과가 없습니다",
+    "noClients": "고객이 없습니다"
+  },
+  "visitsCount": "{count, plural, other {#회 방문}}",
+  "crm": {
+    "subtitle": "살롱 고객 데이터베이스에 {count}명의 고객이 있습니다",
+    "exportButton": "CSV 내보내기",
+    "exportingButton": "준비 중...",
+    "tabs": { "list": "전체 고객", "rating": "충성도 랭킹" },
+    "allCities": "전체 도시",
+    "sort": { "visits": "방문순", "revenue": "매출순", "lastVisit": "날짜순" },
+    "table": { "name": "이름", "phone": "전화번호", "city": "도시", "visits": "방문", "revenue": "매출", "lastVisit": "최근 방문" },
+    "loadMore": "더 보기",
+    "rating": {
+      "subtitle": "방문 횟수 기준 상위 20명의 고객",
+      "shareButton": "공유",
+      "copiedButton": "복사됨",
+      "emptyState": "아직 랭킹에 표시할 방문 기록이 없습니다",
+      "shareHeader": "🏆 {salon}의 가장 충성도 높은 고객:",
+      "shareFooter": "저희를 선택해 주셔서 감사합니다! 💈"
+    }
+  },
+  "personal": {
+    "subtitle": "고객 {count}명",
+    "modal": { "createTitle": "신규 고객", "editTitle": "고객 수정" },
+    "form": {
+      "name": "이름",
+      "phone": "전화번호",
+      "notes": "메모",
+      "namePlaceholder": "홍길동",
+      "phonePlaceholder": "+998901234567",
+      "notesPlaceholder": "선택 사항",
+      "createSubmit": "등록",
+      "submitting": "..."
+    },
+    "deleteConfirm": "고객 \"{name}\"님을 삭제하시겠습니까?",
+    "deleteButton": "고객 삭제",
+    "deletingButton": "삭제 중..."
+  }
+}

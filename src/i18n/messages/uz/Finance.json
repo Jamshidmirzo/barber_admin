@@ -1,0 +1,39 @@
+{
+  "title": "Moliya",
+  "subtitle": "Daromad va koʻrsatkichlar",
+  "periods": {
+    "month": "Oy",
+    "quarter": "Chorak",
+    "year": "Yil"
+  },
+  "kpi": {
+    "revenue": {
+      "label": "Umumiy daromad",
+      "vsPrevious": "oldingi davrga nisbatan"
+    },
+    "appointments": {
+      "label": "Yozilishlar",
+      "completed": "{count} tugallangan"
+    },
+    "newClients": {
+      "label": "Yangi mijozlar",
+      "caption": "davr ichida birinchi marta"
+    },
+    "returning": {
+      "label": "Doimiy mijozlar",
+      "caption": "qaytib kelgan"
+    }
+  },
+  "charts": {
+    "byDay": {
+      "title": "Kunlar boʻyicha yozilishlar"
+    },
+    "topServices": {
+      "title": "Top xizmatlar",
+      "count": "{count, plural, other {# ta yozilish}}"
+    }
+  },
+  "emptyState": {
+    "message": "Davr uchun maʼlumot yoʻq"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "backLink": "К клиентам",
+  "currency": "сум",
+  "notFound": "Клиент не найден",
+  "favoriteBarberLabel": "Барбер:",
+  "favoriteServiceLabel": "Услуга:",
+  "idle": {
+    "today": "Был сегодня",
+    "daysAgo": "Не приходил {days} дн."
+  },
+  "kpi": {
+    "visits": "Визиты",
+    "revenue": "Выручка",
+    "firstVisit": "Первый визит",
+    "lastVisit": "Последний визит"
+  },
+  "history": {
+    "title": "История визитов",
+    "empty": "Пока нет завершённых визитов",
+    "table": {
+      "date": "Дата",
+      "barber": "Барбер",
+      "service": "Услуга",
+      "amount": "Сумма"
+    }
+  }
+}

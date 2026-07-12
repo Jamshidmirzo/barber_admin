@@ -1,0 +1,40 @@
+{
+  "title": "Services",
+  "addButton": "Service",
+  "newService": "New Service",
+  "allBarbers": "All Barbers",
+  "noBarberName": "No name",
+  "currency": "sum",
+  "minutesUnit": "min",
+  "categories": {
+    "all": "All",
+    "haircut": "Haircut",
+    "beard": "Beard",
+    "coloring": "Coloring",
+    "treatment": "Treatment",
+    "other": "Other"
+  },
+  "empty": {
+    "noServices": "No services yet. Add your first one!",
+    "noneInCategory": "No services in this category."
+  },
+  "form": {
+    "nameLabel": "Name",
+    "namePlaceholder": "Men's Haircut",
+    "categoryLabel": "Category",
+    "priceLabel": "Price ({currency})",
+    "pricePlaceholder": "50000",
+    "durationLabel": "Duration ({unit})",
+    "durationPlaceholder": "30"
+  },
+  "errors": {
+    "nameRequired": "Enter a service name",
+    "invalidPrice": "Enter a valid price",
+    "invalidDuration": "Enter a valid duration",
+    "createFailed": "Failed to create service"
+  },
+  "saving": "Saving...",
+  "deleteServiceTitle": "Delete service",
+  "durationValue": "{minutes} {unit}",
+  "priceValue": "{price} {currency}"
+}

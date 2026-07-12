@@ -1,0 +1,15 @@
+{
+  "save": "저장",
+  "cancel": "취소",
+  "delete": "삭제",
+  "edit": "수정",
+  "add": "추가",
+  "search": "검색",
+  "loading": "불러오는 중…",
+  "close": "닫기",
+  "confirm": "확인",
+  "yes": "예",
+  "no": "아니오",
+  "back": "뒤로",
+  "noData": "데이터 없음"
+}

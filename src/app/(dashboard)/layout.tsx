@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Users, Scissors, Calendar, UserRound, Clock,
   TrendingUp, Settings, LogOut,
@@ -10,31 +11,32 @@ import {
 } from "lucide-react";
 import { useAuth, logout } from "@/hooks/useAuth";
 import { SalonProvider, isManager, useSalonContextQuery } from "@/hooks/useSalon";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const NAV_GROUPS = [
   {
-    label: "Главное",
+    groupKey: "main",
     items: [
-      { href: "/dashboard",      label: "Обзор",         icon: LayoutDashboard, managerOnly: true,  masterOnly: false },
-      { href: "/appointments",   label: "Записи",        icon: Calendar,   managerOnly: false, masterOnly: false },
-      { href: "/schedule",       label: "Расписание",    icon: Clock,      managerOnly: false, masterOnly: false },
-      { href: "/promotions",     label: "Акции",         icon: Tag,        managerOnly: false, masterOnly: true  },
+      { href: "/dashboard",      itemKey: "overview",     icon: LayoutDashboard, managerOnly: true,  masterOnly: false },
+      { href: "/appointments",   itemKey: "appointments", icon: Calendar,   managerOnly: false, masterOnly: false },
+      { href: "/schedule",       itemKey: "schedule",     icon: Clock,      managerOnly: false, masterOnly: false },
+      { href: "/promotions",     itemKey: "promotions",   icon: Tag,        managerOnly: false, masterOnly: true  },
     ],
   },
   {
-    label: "Клиентура",
+    groupKey: "clientele",
     items: [
-      { href: "/clients",        label: "Клиенты",       icon: UserRound,  managerOnly: false, masterOnly: false },
-      { href: "/services",       label: "Услуги",        icon: Scissors,   managerOnly: false, masterOnly: false },
-      { href: "/barbers",        label: "Мастера",       icon: Users,      managerOnly: true,  masterOnly: false },
+      { href: "/clients",        itemKey: "clients",      icon: UserRound,  managerOnly: false, masterOnly: false },
+      { href: "/services",       itemKey: "services",     icon: Scissors,   managerOnly: false, masterOnly: false },
+      { href: "/barbers",        itemKey: "barbers",      icon: Users,      managerOnly: true,  masterOnly: false },
     ],
   },
   {
-    label: "Бизнес",
+    groupKey: "business",
     managerOnly: true,
     items: [
-      { href: "/analytics",      label: "Аналитика",     icon: BarChart3,  managerOnly: true,  masterOnly: false },
-      { href: "/finance",        label: "Финансы",       icon: TrendingUp, managerOnly: true,  masterOnly: false },
+      { href: "/analytics",      itemKey: "analytics",    icon: BarChart3,  managerOnly: true,  masterOnly: false },
+      { href: "/finance",        itemKey: "finance",      icon: TrendingUp, managerOnly: true,  masterOnly: false },
     ],
   },
 ];
@@ -83,6 +85,7 @@ function NavBtn({ onClick, children, title }: { onClick: () => void; children: R
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("Nav");
   useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -129,8 +132,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <div style={{ display:"flex", height:"100vh", alignItems:"center", justifyContent:"center", background:"var(--bg)", padding:"0 24px" }}>
         <div style={{ textAlign:"center" }}>
-          <p style={{ color:"var(--text)", fontWeight:600, marginBottom:4 }}>Не удалось загрузить салон</p>
-          <p style={{ color:"var(--text2)", fontSize:13 }}>Проверьте подключение и обновите страницу.</p>
+          <p style={{ color:"var(--text)", fontWeight:600, marginBottom:4 }}>{t("loadError.title")}</p>
+          <p style={{ color:"var(--text2)", fontSize:13 }}>{t("loadError.subtitle")}</p>
         </div>
       </div>
     );
@@ -175,13 +178,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               });
               if (groupItems.length === 0) return null;
               return (
-                <div key={group.label} style={{ marginBottom: 4 }}>
+                <div key={group.groupKey} style={{ marginBottom: 4 }}>
                   <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: ".14em", color: "var(--text3)", padding: "12px 10px 5px", fontWeight: 600 }}>
-                    {group.label}
+                    {t(`groups.${group.groupKey}`)}
                   </div>
-                  {groupItems.map(({ href, label, icon: Icon }) => {
+                  {groupItems.map(({ href, itemKey, icon: Icon }) => {
                     const active = pathname === href || pathname.startsWith(href + "/");
-                    return <NavLink key={href} href={href} active={active} icon={Icon} label={label} />;
+                    return <NavLink key={href} href={href} active={active} icon={Icon} label={t(`items.${itemKey}`)} />;
                   })}
                 </div>
               );
@@ -191,9 +194,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Bottom */}
           <div style={S.bottom}>
             <div style={{ display: "flex", gap: 4, marginBottom: 4 }}>
-              <NavBtn onClick={() => setDark((d) => !d)} title={dark ? "Светлая тема" : "Тёмная тема"}>
+              <NavBtn onClick={() => setDark((d) => !d)} title={dark ? t("lightTheme") : t("darkTheme")}>
                 {dark ? <Sun size={14} /> : <Moon size={14} />}
               </NavBtn>
+              <LanguageSwitcher />
               <LogoutBtn />
             </div>
             <Link
@@ -208,7 +212,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   {data.salon.name}
                 </span>
                 <span style={{ display:"block", fontSize:11, color:"var(--text3)" }}>
-                  {canManage ? "Владелец" : "Мастер"}
+                  {canManage ? t("owner") : t("master")}
                 </span>
               </span>
             </Link>
@@ -248,11 +252,12 @@ function NavLink({ href, active, icon: Icon, label }: { href: string; active: bo
 }
 
 function LogoutBtn() {
+  const t = useTranslations("Nav");
   const [hov, setHov] = useState(false);
   return (
     <button
       onClick={logout}
-      title="Выйти"
+      title={t("logout")}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{

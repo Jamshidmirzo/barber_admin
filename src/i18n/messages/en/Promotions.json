@@ -1,0 +1,60 @@
+{
+  "codePlaceholder": "SUMMER20",
+  "master": {
+    "title": "My promo codes",
+    "subtitle": "Clients enter the code at booking to get a discount",
+    "createButton": "Create",
+    "form": {
+      "title": "New promo code",
+      "codeLabel": "Code (A-Z, 0-9)",
+      "discountLabel": "Discount %",
+      "maxUsesLabel": "Max uses",
+      "maxUsesHint": "(empty = no limit)",
+      "expiresLabel": "Valid until",
+      "expiresHint": "(empty = no expiry)",
+      "submitting": "Creating…",
+      "submit": "Create promo code"
+    },
+    "errors": {
+      "codeRequired": "Enter a code",
+      "discountRange": "Discount must be between 1 and 100%"
+    },
+    "empty": "No promo codes yet — create your first one",
+    "disabledBadge": "Disabled",
+    "usesWithMax": "Uses: {current} / {max}",
+    "usesNoMax": "Uses: {current}",
+    "untilDate": "Until {date}",
+    "unlimited": "No expiry",
+    "enableTooltip": "Enable",
+    "disableTooltip": "Disable",
+    "deleteConfirm": "Delete promo code {code}?",
+    "infoBox": "Clients enter the code when booking through the app. The discount applies to the service price. Each promo code is tied to you — the client must provide both the code and your name as the master."
+  },
+  "owner": {
+    "title": "Promotions & promo codes",
+    "subtitle": "Each master manages their own promo codes independently",
+    "teamTitle": "Team",
+    "noMasters": "No masters on the team",
+    "selfManaged": "self-managed",
+    "validate": {
+      "title": "Validate a promo code",
+      "subtitle": "Make sure the promo code is active before applying a discount manually",
+      "masterLabel": "Master",
+      "masterPlaceholder": "Select a master…",
+      "codeLabel": "Promo code",
+      "submitting": "Checking…",
+      "submit": "Check",
+      "resultValid": "Promo code is valid",
+      "resultInvalid": "Promo code is invalid",
+      "discountResult": "Discount: {pct}%"
+    },
+    "errors": {
+      "not_found": "Promo code not found",
+      "inactive": "Promo code is disabled",
+      "expired": "Promo code has expired",
+      "max_uses": "Usage limit reached",
+      "unknown": "Unknown error"
+    },
+    "infoBox": "Masters create promo codes in the \"Promotions\" section of their own account. The client enters the code during online booking — the discount is applied automatically."
+  }
+}

@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { TrendingUp, Receipt, Gauge, CreditCard } from "lucide-react";
 import api from "@/lib/api";
 import { useSalon } from "@/hooks/useSalon";
+import { useIntlLocale } from "@/lib/locale";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,28 +58,32 @@ const STATUS_COLOR: Record<string, string> = {
   noshow:     "#8a6a6a",
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  pending:    "Ожидает",
-  scheduled:  "Запланирована",
-  confirmed:  "Подтверждена",
-  inprogress: "В процессе",
-  completed:  "Завершена",
-  cancelled:  "Отменена",
-  noshow:     "Не явился",
-};
+// Statuses with a known translation key in Dashboard.status.*; anything else
+// falls back to the raw status string from the API.
+const STATUS_KEYS = [
+  "pending",
+  "scheduled",
+  "confirmed",
+  "inprogress",
+  "completed",
+  "cancelled",
+  "noshow",
+] as const;
+type StatusKey = (typeof STATUS_KEYS)[number];
+
+function isStatusKey(status: string): status is StatusKey {
+  return (STATUS_KEYS as readonly string[]).includes(status);
+}
+
 
 // No stub data — show real API data only
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function fmtRevenue(n: number): string {
-  if (n >= 1_000_000) return (n / 1_000_000).toLocaleString("ru", { maximumFractionDigits: 1 }) + " млн";
-  if (n >= 1_000)     return (n / 1_000).toLocaleString("ru", { maximumFractionDigits: 0 }) + " тыс";
-  return n.toLocaleString("ru");
-}
-
-function fmtFull(n: number): string {
-  return n.toLocaleString("ru") + " сум";
+function fmtRevenue(n: number, units: { million: string; thousand: string }, locale: string): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toLocaleString(locale, { maximumFractionDigits: 1 }) + " " + units.million;
+  if (n >= 1_000)     return (n / 1_000).toLocaleString(locale, { maximumFractionDigits: 0 }) + " " + units.thousand;
+  return n.toLocaleString(locale);
 }
 
 function initials(name: string): string {
@@ -110,6 +116,8 @@ function Skeleton({ w, h, br = 8 }: { w?: string | number; h: number; br?: numbe
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const t = useTranslations("Dashboard");
+  const tCommon = useTranslations("Common");
   const { salon } = useSalon();
   const router = useRouter();
 
@@ -122,37 +130,41 @@ export default function DashboardPage() {
 
   const showSkeleton = isLoading;
   const d = data;
+  const locale = useIntlLocale(); 
+  const units = { million: t("units.million"), thousand: t("units.thousand") };
+  const currency = t("currency");
+  const revenueText = (n: number) => `${fmtRevenue(n, units, locale)} ${currency}`;
 
   const maxRevenue = d ? Math.max(...d.week_revenue_by_day.map((b) => b.revenue), 1) : 1;
   const weekTotal  = d ? d.week_revenue_by_day.reduce((s, b) => s + b.revenue, 0) : 0;
 
   const kpis = [
     {
-      label: "Выручка сегодня",
-      value: d ? fmtRevenue(d.today_revenue) + " сум" : "—",
+      label: t("kpis.revenueToday"),
+      value: d ? revenueText(d.today_revenue) : "—",
       delta: d?.today_revenue_delta_pct ?? null,
-      sub:   "к вчерашнему дню",
+      sub:   t("kpis.comparedToYesterday"),
       icon:  <TrendingUp size={16} style={{ color: "var(--gold)" }} />,
     },
     {
-      label: "Записей сегодня",
+      label: t("kpis.appointmentsToday"),
       value: d ? String(d.today_appointments) : "—",
       delta: d?.today_appointments_delta_pct ?? null,
-      sub:   "к вчерашнему дню",
+      sub:   t("kpis.comparedToYesterday"),
       icon:  <Receipt size={16} style={{ color: "var(--gold)" }} />,
     },
     {
-      label: "Загрузка",
+      label: t("kpis.load"),
       value: d ? `${d.today_load}%` : "—",
       delta: d?.today_load_delta_pct ?? null,
-      sub:   "к вчерашнему дню",
+      sub:   t("kpis.comparedToYesterday"),
       icon:  <Gauge size={16} style={{ color: "var(--gold)" }} />,
     },
     {
-      label: "Средний чек",
-      value: d ? fmtRevenue(d.avg_check) + " сум" : "—",
+      label: t("kpis.avgCheck"),
+      value: d ? revenueText(d.avg_check) : "—",
       delta: d?.avg_check_delta_pct ?? null,
-      sub:   "к вчерашнему дню",
+      sub:   t("kpis.comparedToYesterday"),
       icon:  <CreditCard size={16} style={{ color: "var(--gold)" }} />,
     },
   ];
@@ -173,10 +185,10 @@ export default function DashboardPage() {
           fontSize: 24, fontWeight: 600,
           color: "var(--text)", margin: 0,
         }}>
-          Дашборд
+          {t("title")}
         </h1>
         <p style={{ color: "var(--text2)", fontSize: 13, marginTop: 4, margin: "4px 0 0" }}>
-          {salon.name} — сводная статистика
+          {t("subtitle", { salonName: salon.name })}
         </p>
       </div>
 
@@ -254,13 +266,13 @@ export default function DashboardPage() {
               fontFamily: "'Playfair Display', serif",
               fontSize: 17, fontWeight: 600, color: "var(--text)",
             }}>
-              Выручка за неделю
+              {t("weekRevenue.title")}
             </div>
             {!showSkeleton && (
               <div style={{ fontSize: 12, color: "var(--text2)" }}>
-                Итого{" "}
+                {t("weekRevenue.total")}{" "}
                 <span style={{ color: "var(--gold)", fontWeight: 700 }}>
-                  {fmtRevenue(weekTotal)} сум
+                  {revenueText(weekTotal)}
                 </span>
               </div>
             )}
@@ -277,7 +289,7 @@ export default function DashboardPage() {
             </div>
           ) : !d || d.week_revenue_by_day.length === 0 ? (
             <div style={{ height: 170, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text3)", fontSize: 13 }}>
-              Нет данных за эту неделю
+              {t("weekRevenue.empty")}
             </div>
           ) : (
             <div style={{ display: "flex", alignItems: "flex-end", gap: 14, height: 170, paddingTop: 8 }}>
@@ -292,7 +304,7 @@ export default function DashboardPage() {
                     height: "100%", justifyContent: "flex-end",
                   }}>
                     <div style={{ fontSize: 11, color: "var(--text2)", fontWeight: 600 }}>
-                      {fmtRevenue(bar.revenue)}
+                      {fmtRevenue(bar.revenue, units, locale)}
                     </div>
                     <div style={{
                       width: "100%", maxWidth: 34, height: barH,
@@ -322,7 +334,7 @@ export default function DashboardPage() {
             fontSize: 17, fontWeight: 600,
             color: "var(--text)", marginBottom: 16,
           }}>
-            Лучшие мастера
+            {t("topBarbers.title")}
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -340,7 +352,7 @@ export default function DashboardPage() {
                 </div>
               ))
             ) : !d || d.top_barbers.length === 0 ? (
-              <div style={{ color: "var(--text3)", fontSize: 13, textAlign: "center", padding: "24px 0" }}>Нет данных</div>
+              <div style={{ color: "var(--text3)", fontSize: 13, textAlign: "center", padding: "24px 0" }}>{tCommon("noData")}</div>
             ) : (
               d.top_barbers.slice(0, 3).map((b) => (
                 <div key={b.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -365,7 +377,7 @@ export default function DashboardPage() {
                       {b.name}
                     </div>
                     <div style={{ fontSize: 11.5, color: "var(--text3)" }}>
-                      {b.appointments} записей
+                      {t("topBarbers.appointmentsCount", { count: b.appointments })}
                     </div>
                   </div>
                   <div style={{
@@ -374,7 +386,7 @@ export default function DashboardPage() {
                     color: "var(--gold)",
                     whiteSpace: "nowrap",
                   }}>
-                    {fmtRevenue(b.revenue)}
+                    {fmtRevenue(b.revenue, units, locale)}
                   </div>
                 </div>
               ))
@@ -398,7 +410,7 @@ export default function DashboardPage() {
             fontFamily: "'Playfair Display', serif",
             fontSize: 17, fontWeight: 600, color: "var(--text)",
           }}>
-            Ближайшие записи
+            {t("upcoming.title")}
           </div>
           <span
             onClick={() => router.push("/appointments")}
@@ -407,7 +419,7 @@ export default function DashboardPage() {
               cursor: "pointer", fontWeight: 600,
             }}
           >
-            Все записи →
+            {t("upcoming.viewAll")}
           </span>
         </div>
 
@@ -428,16 +440,16 @@ export default function DashboardPage() {
             ))
           ) : isError ? (
             <div style={{ padding: "20px 10px", color: "var(--text3)", fontSize: 13 }}>
-              Не удалось загрузить данные. Проверьте подключение.
+              {t("upcoming.loadError")}
             </div>
           ) : !d || d.upcoming_appointments.length === 0 ? (
             <div style={{ padding: "20px 10px", color: "var(--text3)", fontSize: 13 }}>
-              Записей на сегодня нет
+              {t("upcoming.empty")}
             </div>
           ) : (
             d.upcoming_appointments.slice(0, 4).map((apt) => {
               const color = STATUS_COLOR[apt.status] ?? "var(--text3)";
-              const label = STATUS_LABEL[apt.status] ?? apt.status;
+              const label = isStatusKey(apt.status) ? t(`status.${apt.status}`) : apt.status;
               return (
                 <div
                   key={apt.id}

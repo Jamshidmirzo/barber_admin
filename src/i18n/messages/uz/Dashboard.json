@@ -1,0 +1,40 @@
+{
+  "title": "Boshqaruv paneli",
+  "subtitle": "{salonName} — umumiy statistika",
+  "kpis": {
+    "revenueToday": "Bugungi tushum",
+    "appointmentsToday": "Bugungi yozilishlar",
+    "load": "Band bo'lish darajasi",
+    "avgCheck": "O'rtacha chek",
+    "comparedToYesterday": "kechagi kunga nisbatan"
+  },
+  "weekRevenue": {
+    "title": "Haftalik tushum",
+    "total": "Jami",
+    "empty": "Bu hafta uchun ma'lumot yo'q"
+  },
+  "topBarbers": {
+    "title": "Eng yaxshi sartaroshlar",
+    "appointmentsCount": "{count, plural, other {# ta uchrashuv}}"
+  },
+  "upcoming": {
+    "title": "Yaqin uchrashuvlar",
+    "viewAll": "Barchasini ko'rish →",
+    "loadError": "Ma'lumotlarni yuklab bo'lmadi. Ulanishni tekshiring.",
+    "empty": "Bugun uchrashuvlar yo'q"
+  },
+  "status": {
+    "pending": "Kutilmoqda",
+    "scheduled": "Rejalashtirilgan",
+    "confirmed": "Tasdiqlangan",
+    "inprogress": "Jarayonda",
+    "completed": "Yakunlangan",
+    "cancelled": "Bekor qilingan",
+    "noshow": "Kelmadi"
+  },
+  "units": {
+    "million": "mln",
+    "thousand": "ming"
+  },
+  "currency": "so'm"
+}

@@ -3,8 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { Plus, UserX, Eye, EyeOff, Copy, Check, Search, UserCheck, X } from "lucide-react";
 import api from "@/lib/api";
+import { useIntlLocale } from "@/lib/locale";
 
 interface Barber {
   id: string;
@@ -45,8 +47,8 @@ function fullName(b: Barber | SearchResult) {
   return [b.name, b.last_name].filter(Boolean).join(" ") || "—";
 }
 
-function fmtMoney(n: number) {
-  return n.toLocaleString("ru") + " сум";
+function fmtMoney(n: number, currency: string, locale: string) {
+  return n.toLocaleString(locale) + " " + currency;
 }
 
 const inputStyle: React.CSSProperties = {
@@ -59,6 +61,9 @@ const inputStyle: React.CSSProperties = {
 type ModalTab = "create" | "search";
 
 export default function BarbersPage() {
+  const t = useTranslations("Barbers");
+  const tc = useTranslations("Common");
+  const locale = useIntlLocale();
   const qc = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [tab, setTab] = useState<ModalTab>("create");
@@ -72,6 +77,7 @@ export default function BarbersPage() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
 
   const { data, isLoading } = useQuery<{ items: Barber[]; total: number }>({
     queryKey: ["team-members"],
@@ -105,7 +111,7 @@ export default function BarbersPage() {
       setShowModal(false);
     },
     onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Ошибка создания";
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || t("modal.createError");
       setFormErr(msg);
     },
   });
@@ -139,7 +145,7 @@ export default function BarbersPage() {
 
   function copyCreated() {
     if (!created) return;
-    navigator.clipboard.writeText(`Телефон: ${created.phone}\nПароль: ${created.password}`);
+    navigator.clipboard.writeText(t("banner.clipboardText", { phone: created.phone, password: created.password }));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -150,7 +156,7 @@ export default function BarbersPage() {
       {/* Header */}
       <div style={{ marginBottom:28 }}>
         <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:"0 0 20px" }}>
-          Мастера
+          {t("title")}
         </h1>
         <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
           <div style={{ position:"relative", flex:1, minWidth:220, maxWidth:360 }}>
@@ -158,7 +164,7 @@ export default function BarbersPage() {
             <input
               value={filterQ}
               onChange={(e) => setFilterQ(e.target.value)}
-              placeholder="Найти по телефону"
+              placeholder={t("searchPlaceholder")}
               style={{
                 width:"100%", padding:"10px 14px 10px 38px",
                 background:"var(--card)", border:"1px solid var(--border)",
@@ -174,7 +180,7 @@ export default function BarbersPage() {
               borderRadius:11, cursor:"pointer", fontSize:12.5, fontWeight:600,
             }}
           >
-            Пригласить
+            {t("invite")}
           </button>
           <div style={{ flex:1 }} />
           <button
@@ -185,7 +191,7 @@ export default function BarbersPage() {
               fontSize:13, fontWeight:700, cursor:"pointer",
             }}
           >
-            <Plus size={16} /> Добавить мастера
+            <Plus size={16} /> {t("addBarber")}
           </button>
         </div>
       </div>
@@ -199,7 +205,7 @@ export default function BarbersPage() {
         }}>
           <div>
             <p style={{ color:"var(--green)", fontWeight:600, fontSize:13, margin:"0 0 8px" }}>
-              Барбер создан — передайте данные для входа:
+              {t("banner.created")}
             </p>
             <p style={{ color:"var(--text)", fontFamily:"monospace", fontSize:13, margin:"0 0 4px" }}>📱 {created.phone}</p>
             <p style={{ color:"var(--text)", fontFamily:"monospace", fontSize:13, margin:0 }}>🔑 {created.password}</p>
@@ -214,7 +220,7 @@ export default function BarbersPage() {
               }}
             >
               {copied ? <Check size={13} /> : <Copy size={13} />}
-              {copied ? "Скопировано" : "Копировать"}
+              {copied ? t("banner.copied") : t("banner.copy")}
             </button>
             <button
               onClick={() => setCreated(null)}
@@ -257,7 +263,7 @@ export default function BarbersPage() {
           }}>
             <Plus size={28} style={{ color:"var(--text3)" }} />
           </div>
-          <p style={{ color:"var(--text2)", fontSize:14 }}>Нет барберов. Добавьте первого!</p>
+          <p style={{ color:"var(--text2)", fontSize:14 }}>{t("empty")}</p>
         </div>
       )}
 
@@ -308,7 +314,7 @@ export default function BarbersPage() {
                     color: b.is_active ? "var(--green)" : "var(--text3)",
                     border: `1px solid ${b.is_active ? "rgba(76,175,125,0.18)" : "rgba(90,90,82,0.18)"}`,
                   }}>
-                    {b.is_active ? "Активен" : "Неактивен"}
+                    {b.is_active ? t("status.active") : t("status.inactive")}
                   </span>
                 </div>
 
@@ -316,21 +322,21 @@ export default function BarbersPage() {
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, paddingTop:16, borderTop:"1px solid var(--border)" }}>
                   <div>
                     <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, color:"var(--gold)" }}>
-                      {st ? (st.total_revenue >= 1_000_000 ? (st.total_revenue / 1_000_000).toFixed(1) + "M" : fmtMoney(st.total_revenue)) : "—"}
+                      {st ? (st.total_revenue >= 1_000_000 ? (st.total_revenue / 1_000_000).toFixed(1) + "M" : fmtMoney(st.total_revenue, t("currency"), locale)) : "—"}
                     </div>
-                    <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>выручка</div>
+                    <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>{t("stats.revenue")}</div>
                   </div>
                   <div>
                     <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600 }}>
                       {st?.total_appointments ?? "—"}
                     </div>
-                    <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>записей</div>
+                    <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>{t("stats.appointments")}</div>
                   </div>
                   <div>
                     <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600 }}>
-                      {st ? Math.round(st.worked_hours) : "—"}ч
+                      {st ? Math.round(st.worked_hours) : "—"}{t("stats.hoursShort")}
                     </div>
-                    <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>отработано</div>
+                    <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>{t("stats.workedHours")}</div>
                   </div>
                 </div>
               </Link>
@@ -350,7 +356,7 @@ export default function BarbersPage() {
             borderRadius:"var(--radius-lg)", width:"100%", maxWidth:440, padding:28,
           }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
-              <h2 style={{ color:"var(--text)", fontSize:17, fontWeight:600, margin:0 }}>Добавить барбера</h2>
+              <h2 style={{ color:"var(--text)", fontSize:17, fontWeight:600, margin:0 }}>{t("modal.title")}</h2>
               <button onClick={() => setShowModal(false)} style={{ background:"none", border:"none", cursor:"pointer", color:"var(--text2)" }}>
                 <X size={18} />
               </button>
@@ -361,19 +367,19 @@ export default function BarbersPage() {
               display:"flex", background:"var(--bg)", border:"1px solid var(--border)",
               borderRadius:"var(--radius)", padding:4, marginBottom:20,
             }}>
-              {(["create","search"] as ModalTab[]).map((t) => (
+              {(["create","search"] as ModalTab[]).map((mt) => (
                 <button
-                  key={t}
-                  onClick={() => setTab(t)}
+                  key={mt}
+                  onClick={() => setTab(mt)}
                   style={{
                     flex:1, padding:"7px 0", fontSize:13, fontWeight:600,
                     borderRadius:9, border:"none", cursor:"pointer",
-                    background: tab === t ? "var(--gold)" : "transparent",
-                    color: tab === t ? "#0a0a0b" : "var(--text2)",
+                    background: tab === mt ? "var(--gold)" : "transparent",
+                    color: tab === mt ? "#0a0a0b" : "var(--text2)",
                     transition:"background 0.15s, color 0.15s",
                   }}
                 >
-                  {t === "create" ? "Создать нового" : "Найти в системе"}
+                  {mt === "create" ? t("modal.tabCreate") : t("modal.tabSearch")}
                 </button>
               ))}
             </div>
@@ -385,19 +391,19 @@ export default function BarbersPage() {
                   {(["name","last_name"] as const).map((f) => (
                     <div key={f}>
                       <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>
-                        {f === "name" ? "Имя" : "Фамилия"}
+                        {f === "name" ? t("modal.nameLabel") : t("modal.lastNameLabel")}
                       </label>
                       <input
                         value={form[f]}
                         onChange={(e) => setForm((p) => ({ ...p, [f]: e.target.value }))}
-                        placeholder={f === "name" ? "Алишер" : "Каримов"}
+                        placeholder={f === "name" ? t("modal.namePlaceholder") : t("modal.lastNamePlaceholder")}
                         style={inputStyle}
                       />
                     </div>
                   ))}
                 </div>
                 <div>
-                  <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>Телефон</label>
+                  <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>{t("modal.phoneLabel")}</label>
                   <input
                     value={form.phone}
                     onChange={(e) => {
@@ -405,17 +411,17 @@ export default function BarbersPage() {
                       if (!raw.startsWith("+998")) { setForm((p) => ({ ...p, phone: "+998" })); return; }
                       setForm((p) => ({ ...p, phone: formatPhone(raw) }));
                     }}
-                    placeholder="+998 90 123 45 67" type="tel" style={inputStyle}
+                    placeholder={t("modal.phonePlaceholder")} type="tel" style={inputStyle}
                   />
                 </div>
                 <div>
-                  <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>Пароль</label>
+                  <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>{t("modal.passwordLabel")}</label>
                   <div style={{ position:"relative" }}>
                     <input
                       value={form.password}
                       onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
                       type={showPass ? "text" : "password"}
-                      placeholder="Минимум 6 символов"
+                      placeholder={t("modal.passwordPlaceholder")}
                       style={{ ...inputStyle, paddingRight:40 }}
                     />
                     <button
@@ -436,7 +442,7 @@ export default function BarbersPage() {
                     onClick={() => setShowModal(false)}
                     style={{ flex:1, background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"10px", fontSize:13, fontWeight:500, color:"var(--text2)", cursor:"pointer" }}
                   >
-                    Отмена
+                    {tc("cancel")}
                   </button>
                   <button
                     onClick={() => { setFormErr(""); createMutation.mutate(form); }}
@@ -448,7 +454,7 @@ export default function BarbersPage() {
                       opacity: (createMutation.isPending || !form.phone || !form.password) ? 0.5 : 1,
                     }}
                   >
-                    {createMutation.isPending ? "Создаём..." : "Создать"}
+                    {createMutation.isPending ? t("modal.creating") : t("modal.create")}
                   </button>
                 </div>
               </div>
@@ -462,14 +468,14 @@ export default function BarbersPage() {
                   <input
                     value={searchQ}
                     onChange={(e) => setSearchQ(e.target.value)}
-                    placeholder="Имя или телефон..."
+                    placeholder={t("modal.searchPlaceholder")}
                     style={{ ...inputStyle, paddingLeft:36 }}
                     autoFocus
                   />
                 </div>
-                {searching && <p style={{ color:"var(--text2)", fontSize:13, textAlign:"center", padding:"12px 0" }}>Ищем...</p>}
+                {searching && <p style={{ color:"var(--text2)", fontSize:13, textAlign:"center", padding:"12px 0" }}>{t("modal.searching")}</p>}
                 {!searching && searchQ.length >= 2 && searchResults.length === 0 && (
-                  <p style={{ color:"var(--text2)", fontSize:13, textAlign:"center", padding:"12px 0" }}>Никого не нашли</p>
+                  <p style={{ color:"var(--text2)", fontSize:13, textAlign:"center", padding:"12px 0" }}>{t("modal.noResults")}</p>
                 )}
                 {searchResults.length > 0 && (
                   <div style={{ display:"flex", flexDirection:"column", gap:6, maxHeight:240, overflowY:"auto" }}>
@@ -493,7 +499,7 @@ export default function BarbersPage() {
                         </div>
                         {r.is_already_in_team ? (
                           <span style={{ display:"flex", alignItems:"center", gap:4, fontSize:11, color:"var(--green)", background:"rgba(76,175,125,0.1)", padding:"3px 8px", borderRadius:20, flexShrink:0 }}>
-                            <UserCheck size={11} /> В команде
+                            <UserCheck size={11} /> {t("modal.inTeam")}
                           </span>
                         ) : (
                           <button
@@ -506,7 +512,7 @@ export default function BarbersPage() {
                               opacity: transferMutation.isPending ? 0.5 : 1,
                             }}
                           >
-                            Добавить
+                            {tc("add")}
                           </button>
                         )}
                       </div>
@@ -514,7 +520,7 @@ export default function BarbersPage() {
                   </div>
                 )}
                 {searchQ.length < 2 && (
-                  <p style={{ color:"var(--text3)", fontSize:12, textAlign:"center", padding:"16px 0" }}>Введите минимум 2 символа</p>
+                  <p style={{ color:"var(--text3)", fontSize:12, textAlign:"center", padding:"16px 0" }}>{t("modal.minChars")}</p>
                 )}
                 <button
                   onClick={() => setShowModal(false)}
@@ -523,7 +529,7 @@ export default function BarbersPage() {
                     padding:"10px", fontSize:13, fontWeight:500, color:"var(--text2)", cursor:"pointer", marginTop:4,
                   }}
                 >
-                  Закрыть
+                  {tc("close")}
                 </button>
               </div>
             )}

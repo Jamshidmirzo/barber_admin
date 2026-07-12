@@ -1,0 +1,36 @@
+{
+  "title": "Записи",
+  "today": "Сегодня",
+  "newAppointment": "Новая запись",
+  "emptyState": "Нет записей на этот день",
+  "unknownClient": "Клиент",
+  "unknownService": "Услуга",
+  "currency": "сум",
+  "status": {
+    "pending": "Ожидает",
+    "scheduled": "Запланирован",
+    "confirmed": "Подтверждён",
+    "inProgress": "В процессе",
+    "completed": "Завершён",
+    "cancelled": "Отменён",
+    "noShow": "Не пришёл"
+  },
+  "modal": {
+    "newTitle": "Новая запись",
+    "editTitle": "Редактировать запись",
+    "clientLabel": "Клиент",
+    "clientPlaceholder": "Имя или телефон",
+    "serviceLabel": "Услуга",
+    "selectServicePlaceholder": "— выберите услугу —",
+    "timeLabel": "Время",
+    "masterLabel": "Мастер",
+    "noMasterOption": "— не выбран —",
+    "statusLabel": "Статус",
+    "saving": "...",
+    "deleteButton": "Удалить запись",
+    "deleting": "Удаляем...",
+    "deleteConfirm": "Удалить запись?",
+    "createError": "Ошибка при создании записи",
+    "saveError": "Ошибка при сохранении"
+  }
+}

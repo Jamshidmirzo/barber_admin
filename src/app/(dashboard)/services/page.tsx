@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Clock, Scissors, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import api from "@/lib/api";
 import { useSalon } from "@/hooks/useSalon";
 
@@ -26,25 +27,15 @@ interface Barber {
   photo_url: string | null;
 }
 
-const CATEGORIES = [
-  { value: "all",      label: "Все" },
-  { value: "haircut",  label: "Стрижка" },
-  { value: "beard",    label: "Борода" },
-  { value: "coloring", label: "Окрашивание" },
-  { value: "treatment",label: "Уход" },
-  { value: "other",    label: "Прочее" },
-];
+const CATEGORY_VALUES = ["haircut", "beard", "coloring", "treatment", "other"] as const;
+type CategoryValue = (typeof CATEGORY_VALUES)[number];
 
-const CAT_LABELS: Record<string, string> = {
-  haircut:   "Стрижка",
-  beard:     "Борода",
-  coloring:  "Окрашивание",
-  treatment: "Уход",
-  other:     "Прочее",
-};
+function isKnownCategory(value: string): value is CategoryValue {
+  return (CATEGORY_VALUES as readonly string[]).includes(value);
+}
 
-function barberLabel(b: Pick<Barber, "name" | "last_name">): string {
-  return [b.name, b.last_name].filter(Boolean).join(" ") || "Без имени";
+function barberLabel(b: Pick<Barber, "name" | "last_name">, noNameFallback: string): string {
+  return [b.name, b.last_name].filter(Boolean).join(" ") || noNameFallback;
 }
 
 const inputStyle: React.CSSProperties = {
@@ -61,8 +52,15 @@ const inputStyle: React.CSSProperties = {
 };
 
 export default function ServicesPage() {
+  const t = useTranslations("Services");
+  const tCommon = useTranslations("Common");
   const { salon } = useSalon();
   const qc = useQueryClient();
+
+  const CATEGORIES = [
+    { value: "all", label: t("categories.all") },
+    ...CATEGORY_VALUES.map((value) => ({ value, label: t(`categories.${value}`) })),
+  ];
 
   const [catFilter, setCatFilter] = useState<string>("all");
   const [barberFilter, setBarberFilter] = useState<string>("all");
@@ -97,7 +95,7 @@ export default function ServicesPage() {
     onError: (err: unknown) => {
       const msg =
         (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        "Ошибка при создании услуги";
+        t("errors.createFailed");
       setFormErr(msg);
     },
   });
@@ -123,9 +121,9 @@ export default function ServicesPage() {
     setFormErr("");
     const price = parseFloat(form.price);
     const duration = parseInt(form.duration_minutes, 10);
-    if (!form.name.trim()) { setFormErr("Введите название услуги"); return; }
-    if (isNaN(price) || price <= 0) { setFormErr("Введите корректную цену"); return; }
-    if (isNaN(duration) || duration <= 0) { setFormErr("Введите корректную длительность"); return; }
+    if (!form.name.trim()) { setFormErr(t("errors.nameRequired")); return; }
+    if (isNaN(price) || price <= 0) { setFormErr(t("errors.invalidPrice")); return; }
+    if (isNaN(duration) || duration <= 0) { setFormErr(t("errors.invalidDuration")); return; }
     createMutation.mutate({ name: form.name.trim(), category: form.category, price, duration_minutes: duration });
   }
 
@@ -158,16 +156,16 @@ export default function ServicesPage() {
         {/* Top bar: barber filter + new service button */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
           <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: "var(--text)", margin: 0, marginRight: 4 }}>
-            Услуги
+            {t("title")}
           </h1>
           <select
             value={barberFilter}
             onChange={(e) => setBarberFilter(e.target.value)}
             style={selectStyle}
           >
-            <option value="all">Все мастера</option>
+            <option value="all">{t("allBarbers")}</option>
             {barbers.map((b) => (
-              <option key={b.id} value={b.id}>{barberLabel(b)}</option>
+              <option key={b.id} value={b.id}>{barberLabel(b, t("noBarberName"))}</option>
             ))}
           </select>
           <div style={{ flex: 1 }} />
@@ -185,7 +183,7 @@ export default function ServicesPage() {
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = ""; }}
           >
             <Plus size={15} />
-            Услуга
+            {t("addButton")}
           </button>
         </div>
 
@@ -253,8 +251,8 @@ export default function ServicesPage() {
             </div>
             <p style={{ color: "var(--text2)", fontSize: 14, marginBottom: 16 }}>
               {allServices.length === 0
-                ? "Нет услуг. Добавьте первую!"
-                : "Нет услуг в этой категории."}
+                ? t("empty.noServices")
+                : t("empty.noneInCategory")}
             </p>
             {allServices.length === 0 && (
               <button
@@ -269,7 +267,7 @@ export default function ServicesPage() {
                 }}
               >
                 <Plus size={15} />
-                Новая услуга
+                {t("newService")}
               </button>
             )}
           </div>
@@ -314,7 +312,7 @@ export default function ServicesPage() {
             {/* Modal header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22 }}>
               <h2 style={{ color: "var(--text)", fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 600, margin: 0 }}>
-                Новая услуга
+                {t("newService")}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
@@ -329,12 +327,12 @@ export default function ServicesPage() {
               {/* Name */}
               <div>
                 <label style={{ display: "block", fontSize: 12, color: "var(--text2)", marginBottom: 5, fontWeight: 500 }}>
-                  Название
+                  {t("form.nameLabel")}
                 </label>
                 <input
                   value={form.name}
                   onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                  placeholder="Мужская стрижка"
+                  placeholder={t("form.namePlaceholder")}
                   style={inputStyle}
                 />
               </div>
@@ -342,7 +340,7 @@ export default function ServicesPage() {
               {/* Category */}
               <div>
                 <label style={{ display: "block", fontSize: 12, color: "var(--text2)", marginBottom: 5, fontWeight: 500 }}>
-                  Категория
+                  {t("form.categoryLabel")}
                 </label>
                 <select
                   value={form.category}
@@ -359,12 +357,12 @@ export default function ServicesPage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 12, color: "var(--text2)", marginBottom: 5, fontWeight: 500 }}>
-                    Цена (сум)
+                    {t("form.priceLabel", { currency: t("currency") })}
                   </label>
                   <input
                     value={form.price}
                     onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
-                    placeholder="50000"
+                    placeholder={t("form.pricePlaceholder")}
                     type="number"
                     min="0"
                     style={inputStyle}
@@ -372,12 +370,12 @@ export default function ServicesPage() {
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: 12, color: "var(--text2)", marginBottom: 5, fontWeight: 500 }}>
-                    Длительность (мин)
+                    {t("form.durationLabel", { unit: t("minutesUnit") })}
                   </label>
                   <input
                     value={form.duration_minutes}
                     onChange={(e) => setForm((p) => ({ ...p, duration_minutes: e.target.value }))}
-                    placeholder="30"
+                    placeholder={t("form.durationPlaceholder")}
                     type="number"
                     min="1"
                     style={inputStyle}
@@ -415,7 +413,7 @@ export default function ServicesPage() {
                     fontFamily: "'Manrope',sans-serif",
                   }}
                 >
-                  Отмена
+                  {tCommon("cancel")}
                 </button>
                 <button
                   onClick={handleSave}
@@ -433,7 +431,7 @@ export default function ServicesPage() {
                     fontFamily: "'Manrope',sans-serif",
                   }}
                 >
-                  {createMutation.isPending ? "Сохраняем..." : "Сохранить"}
+                  {createMutation.isPending ? t("saving") : tCommon("save")}
                 </button>
               </div>
             </div>
@@ -453,10 +451,12 @@ interface ServiceCardProps {
 }
 
 function ServiceCard({ service, onDelete, deleting }: ServiceCardProps) {
+  const t = useTranslations("Services");
+  const tCommon = useTranslations("Common");
   const [hovered, setHovered] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const catLabel = CAT_LABELS[service.category] ?? service.category;
+  const catLabel = isKnownCategory(service.category) ? t(`categories.${service.category}`) : service.category;
 
   return (
     <div
@@ -513,7 +513,7 @@ function ServiceCard({ service, onDelete, deleting }: ServiceCardProps) {
                 fontFamily: "'Manrope',sans-serif",
               }}
             >
-              Да
+              {tCommon("yes")}
             </button>
             <button
               onClick={() => setConfirmDelete(false)}
@@ -524,13 +524,13 @@ function ServiceCard({ service, onDelete, deleting }: ServiceCardProps) {
                 fontFamily: "'Manrope',sans-serif",
               }}
             >
-              Нет
+              {tCommon("no")}
             </button>
           </div>
         ) : (
           <button
             onClick={() => setConfirmDelete(true)}
-            title="Удалить услугу"
+            title={t("deleteServiceTitle")}
             style={{
               width: 32, height: 32, flexShrink: 0,
               borderRadius: 9,
@@ -564,7 +564,7 @@ function ServiceCard({ service, onDelete, deleting }: ServiceCardProps) {
         {/* Duration */}
         <div style={{ fontSize: 12, color: "var(--text3)", display: "flex", alignItems: "center", gap: 5 }}>
           <Clock size={14} style={{ color: "var(--text3)" }} />
-          {service.duration_minutes} мин
+          {t("durationValue", { minutes: service.duration_minutes, unit: t("minutesUnit") })}
         </div>
         {/* Price */}
         <div style={{
@@ -573,7 +573,7 @@ function ServiceCard({ service, onDelete, deleting }: ServiceCardProps) {
           fontWeight: 600,
           color: "var(--gold)",
         }}>
-          {service.price.toLocaleString("ru")} сум
+          {t("priceValue", { price: service.price.toLocaleString("ru"), currency: t("currency") })}
         </div>
       </div>
     </div>

@@ -1,0 +1,24 @@
+{
+  "title": "Profil",
+  "fields": {
+    "firstName": "Ism",
+    "lastName": "Familiya",
+    "phone": "Telefon",
+    "city": "Shahar",
+    "specializations": "Mutaxassisliklar (vergul bilan)",
+    "bio": "O'zingiz haqingizda"
+  },
+  "placeholders": {
+    "firstName": "Ism",
+    "lastName": "Familiya",
+    "city": "Toshkent",
+    "specializations": "Klassik soch olish, soqol olish",
+    "bio": "O'zingiz haqingizda yozing…"
+  },
+  "save": {
+    "idle": "O'zgarishlarni saqlash",
+    "saving": "Saqlanmoqda…",
+    "saved": "Saqlandi!"
+  },
+  "saveError": "Saqlab bo'lmadi. Qaytadan urinib ko'ring."
+}

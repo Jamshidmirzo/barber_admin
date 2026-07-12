@@ -1,0 +1,40 @@
+{
+  "title": "Xizmatlar",
+  "addButton": "Xizmat",
+  "newService": "Yangi xizmat",
+  "allBarbers": "Barcha ustalar",
+  "noBarberName": "Ismsiz",
+  "currency": "so'm",
+  "minutesUnit": "daq",
+  "categories": {
+    "all": "Barchasi",
+    "haircut": "Soch olish",
+    "beard": "Soqol",
+    "coloring": "Bo'yash",
+    "treatment": "Parvarish",
+    "other": "Boshqa"
+  },
+  "empty": {
+    "noServices": "Xizmatlar yo'q. Birinchisini qo'shing!",
+    "noneInCategory": "Bu kategoriyada xizmatlar yo'q."
+  },
+  "form": {
+    "nameLabel": "Nomi",
+    "namePlaceholder": "Erkaklar soch turmagi",
+    "categoryLabel": "Kategoriya",
+    "priceLabel": "Narx ({currency})",
+    "pricePlaceholder": "50000",
+    "durationLabel": "Davomiyligi ({unit})",
+    "durationPlaceholder": "30"
+  },
+  "errors": {
+    "nameRequired": "Xizmat nomini kiriting",
+    "invalidPrice": "To'g'ri narxni kiriting",
+    "invalidDuration": "To'g'ri davomiylikni kiriting",
+    "createFailed": "Xizmat yaratishda xatolik yuz berdi"
+  },
+  "saving": "Saqlanmoqda...",
+  "deleteServiceTitle": "Xizmatni o'chirish",
+  "durationValue": "{minutes} {unit}",
+  "priceValue": "{price} {currency}"
+}

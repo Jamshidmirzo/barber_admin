@@ -1,0 +1,45 @@
+{
+  "backToTeam": "Jamoaga qaytish",
+  "defaultName": "Usta",
+  "call": "Qo'ng'iroq qilish",
+  "currency": "so'm",
+  "summary": {
+    "appointments": "Yozuvlar",
+    "clients": "Mijozlar",
+    "revenue": "Daromad"
+  },
+  "periods": {
+    "d7": "7 kun",
+    "d30": "30 kun",
+    "d90": "90 kun",
+    "custom": "Davr"
+  },
+  "content": {
+    "title": "Kontent",
+    "posts": "Postlar",
+    "reels": "Reels",
+    "likes": "Layklar",
+    "stories24h": "Stories 24s"
+  },
+  "timeUsage": {
+    "title": "Vaqtdan foydalanish",
+    "idlePct": "{pct}% bo'sh vaqt",
+    "worked": "Ishladi {hours} soat",
+    "idle": "Bo'sh {hours} soat"
+  },
+  "revenueChart": {
+    "title": "Kunlik daromad",
+    "tooltipLabel": "Daromad",
+    "empty": "Ushbu davr uchun daromad yo'q"
+  },
+  "topServices": {
+    "title": "Top xizmatlar"
+  },
+  "recentClients": {
+    "title": "So'nggi mijozlar",
+    "columnName": "Ism",
+    "columnService": "Xizmat",
+    "columnAmount": "Summa",
+    "empty": "Yakunlangan yozuvlar yo'q"
+  }
+}

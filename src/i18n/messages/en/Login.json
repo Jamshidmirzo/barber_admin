@@ -1,0 +1,38 @@
+{
+  "tagline": "Barbershop management dashboard",
+  "login": {
+    "title": "Welcome back",
+    "subtitle": "Sign in to continue",
+    "phoneLabel": "Phone number",
+    "passwordLabel": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "noAccount": "Don't have an account?",
+    "createSalonLink": "Create a salon"
+  },
+  "register": {
+    "title": "Create a salon",
+    "subtitle": "Sign up and get started",
+    "firstNameLabel": "First name",
+    "firstNamePlaceholder": "John",
+    "lastNameLabel": "Last name",
+    "lastNamePlaceholder": "Smith",
+    "phoneLabel": "Phone number",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "At least 6 characters",
+    "confirmPasswordLabel": "Confirm password",
+    "submit": "Create account",
+    "submitting": "Creating account…",
+    "haveAccount": "Already have an account?",
+    "loginLink": "Sign in"
+  },
+  "errors": {
+    "phoneInvalidKr": "The number must start with 10 and contain 10 digits",
+    "phoneInvalidUz": "Enter a valid number (9 digits)",
+    "passwordMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 6 characters",
+    "serverResponseInvalid": "Invalid server response",
+    "loginFailed": "Incorrect phone number or password",
+    "registerFailed": "Registration failed"
+  }
+}

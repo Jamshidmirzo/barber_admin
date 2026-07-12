@@ -1,0 +1,71 @@
+{
+  "title": "Аналитика",
+  "subtitle": "Загрузка, тренды выручки и подсказки по акциям",
+  "currency": "сум",
+  "periods": {
+    "d30": "30д",
+    "d90": "90д",
+    "m6": "6м",
+    "year": "год"
+  },
+  "days": {
+    "short": {
+      "mon": "Пн",
+      "tue": "Вт",
+      "wed": "Ср",
+      "thu": "Чт",
+      "fri": "Пт",
+      "sat": "Сб",
+      "sun": "Вс"
+    },
+    "full": {
+      "mon": "Понедельник",
+      "tue": "Вторник",
+      "wed": "Среда",
+      "thu": "Четверг",
+      "fri": "Пятница",
+      "sat": "Суббота",
+      "sun": "Воскресенье"
+    }
+  },
+  "heatmap": {
+    "title": "Тепловая карта загрузки",
+    "peakLabel": "Пик:",
+    "quietLabel": "Тихо:",
+    "empty": "Нет записей за период",
+    "cellTooltip": "{day} {hour} — {count, plural, one {# запись} other {# записей}}, {revenue}"
+  },
+  "kpi": {
+    "avgCheck": "Средний чек",
+    "avgCheckCaption": "к периоду",
+    "revenueGrowth": "Рост выручки",
+    "revenueGrowthCaption": "месяц к месяцу",
+    "peak": "Пик",
+    "peakCaption": "макс. загрузка",
+    "quiet": "Спад",
+    "quietCaption": "мин. загрузка"
+  },
+  "charts": {
+    "revenueByWeekTitle": "Выручка по неделям",
+    "revenueLabel": "Выручка",
+    "revenueByDowTitle": "Средняя выручка по дням недели",
+    "avgRevenueLabel": "Ср. выручка",
+    "empty": "Нет данных за период"
+  },
+  "promo": {
+    "title": "ИИ-подсказки по акциям",
+    "generateButton": "Получить подсказки от ИИ",
+    "generating": "ИИ анализирует…",
+    "loadingTitle": "ИИ анализирует ваши данные…",
+    "loadingSubtitle": "обычно 2–5 секунд",
+    "errorFallback": "Не удалось получить подсказки",
+    "emptySuggestions": "Подсказок нет — загрузка ровная.",
+    "idleHint": "Нажмите кнопку — ИИ найдёт провальные часы и предложит акции, чтобы их заполнить.",
+    "aiBadge": "AI",
+    "discountTag": "Скидка {discount}",
+    "copy": "Скопировать для поста",
+    "copied": "Скопировано",
+    "clipboardDiscountLabel": "Скидка",
+    "clipboardFooter": "Записывайтесь — количество мест ограничено!"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "myLocation": "Моё местоположение",
+  "helperText": "Кликните на карте, чтобы уточнить точку салона",
+  "selectedPointFallback": "Выбранная точка",
+  "errors": {
+    "mapLoadFailed": "Не удалось загрузить Kakao Map — проверьте настройки домена в консоли Kakao",
+    "sdkLoadFailed": "Не удалось загрузить Kakao Map SDK",
+    "geolocationUnavailable": "Геолокация недоступна в этом браузере",
+    "locateFailed": "Не удалось определить местоположение",
+    "missingKey": "Карта недоступна: не задан NEXT_PUBLIC_KAKAO_JS_KEY"
+  }
+}

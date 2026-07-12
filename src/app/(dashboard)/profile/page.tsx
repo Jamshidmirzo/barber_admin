@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Save, Camera } from "lucide-react";
+import { useTranslations } from "next-intl";
 import api from "@/lib/api";
 
 interface Profile {
@@ -30,6 +31,7 @@ const label: React.CSSProperties = {
 };
 
 export default function ProfilePage() {
+  const t = useTranslations("Profile");
   const qc = useQueryClient();
   const [form, setForm] = useState({ name: "", last_name: "", city: "", bio: "", specializations: "" });
   const [saved, setSaved] = useState(false);
@@ -90,7 +92,7 @@ export default function ProfilePage() {
   return (
     <div style={{ padding: "32px 36px" }}>
       <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: "var(--text)", margin: "0 0 28px" }}>
-        Профиль
+        {t("title")}
       </h1>
 
       <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: 26, maxWidth: 620 }}>
@@ -132,38 +134,38 @@ export default function ProfilePage() {
         {/* Form */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
           <div>
-            <label style={label}>Имя</label>
-            <input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Имя" style={inp} />
+            <label style={label}>{t("fields.firstName")}</label>
+            <input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder={t("placeholders.firstName")} style={inp} />
           </div>
           <div>
-            <label style={label}>Фамилия</label>
-            <input value={form.last_name} onChange={(e) => set("last_name", e.target.value)} placeholder="Фамилия" style={inp} />
+            <label style={label}>{t("fields.lastName")}</label>
+            <input value={form.last_name} onChange={(e) => set("last_name", e.target.value)} placeholder={t("placeholders.lastName")} style={inp} />
           </div>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
           <div>
-            <label style={label}>Телефон</label>
+            <label style={label}>{t("fields.phone")}</label>
             <input value={data.phone} disabled style={{ ...inp, opacity: 0.5, cursor: "not-allowed" }} />
           </div>
           <div>
-            <label style={label}>Город</label>
-            <input value={form.city} onChange={(e) => set("city", e.target.value)} placeholder="Ташкент" style={inp} />
+            <label style={label}>{t("fields.city")}</label>
+            <input value={form.city} onChange={(e) => set("city", e.target.value)} placeholder={t("placeholders.city")} style={inp} />
           </div>
         </div>
 
         <div style={{ marginBottom: 14 }}>
-          <label style={label}>Специализации (через запятую)</label>
-          <input value={form.specializations} onChange={(e) => set("specializations", e.target.value)} placeholder="Классические стрижки, бритьё" style={inp} />
+          <label style={label}>{t("fields.specializations")}</label>
+          <input value={form.specializations} onChange={(e) => set("specializations", e.target.value)} placeholder={t("placeholders.specializations")} style={inp} />
         </div>
 
         <div style={{ marginBottom: 20 }}>
-          <label style={label}>О себе</label>
+          <label style={label}>{t("fields.bio")}</label>
           <textarea
             value={form.bio}
             onChange={(e) => set("bio", e.target.value)}
             rows={3}
-            placeholder="Расскажите о себе…"
+            placeholder={t("placeholders.bio")}
             style={{ ...inp, resize: "vertical", fontFamily: "inherit" }}
           />
         </div>
@@ -180,12 +182,12 @@ export default function ProfilePage() {
           }}
         >
           <Save size={14} />
-          {saved ? "Сохранено!" : saveMutation.isPending ? "Сохраняем…" : "Сохранить изменения"}
+          {saved ? t("save.saved") : saveMutation.isPending ? t("save.saving") : t("save.idle")}
         </button>
 
         {saveMutation.isError && (
           <p style={{ color: "var(--red)", fontSize: 12, marginTop: 10 }}>
-            Не удалось сохранить. Попробуйте ещё раз.
+            {t("saveError")}
           </p>
         )}
       </div>

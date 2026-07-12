@@ -1,0 +1,24 @@
+{
+  "title": "Profile",
+  "fields": {
+    "firstName": "First name",
+    "lastName": "Last name",
+    "phone": "Phone",
+    "city": "City",
+    "specializations": "Specializations (comma-separated)",
+    "bio": "About"
+  },
+  "placeholders": {
+    "firstName": "First name",
+    "lastName": "Last name",
+    "city": "Tashkent",
+    "specializations": "Classic haircuts, shaving",
+    "bio": "Tell us about yourself…"
+  },
+  "save": {
+    "idle": "Save changes",
+    "saving": "Saving…",
+    "saved": "Saved!"
+  },
+  "saveError": "Failed to save. Please try again."
+}

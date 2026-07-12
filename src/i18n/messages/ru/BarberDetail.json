@@ -1,0 +1,45 @@
+{
+  "backToTeam": "Назад к команде",
+  "defaultName": "Барбер",
+  "call": "Позвонить",
+  "currency": "сум",
+  "summary": {
+    "appointments": "Записи",
+    "clients": "Клиенты",
+    "revenue": "Выручка"
+  },
+  "periods": {
+    "d7": "7д",
+    "d30": "30д",
+    "d90": "90д",
+    "custom": "Период"
+  },
+  "content": {
+    "title": "Контент",
+    "posts": "Посты",
+    "reels": "Реелсы",
+    "likes": "Лайки",
+    "stories24h": "Сторис 24ч"
+  },
+  "timeUsage": {
+    "title": "Загрузка времени",
+    "idlePct": "{pct}% пустые слоты",
+    "worked": "Работал {hours} ч",
+    "idle": "Пустые {hours} ч"
+  },
+  "revenueChart": {
+    "title": "Выручка по дням",
+    "tooltipLabel": "Выручка",
+    "empty": "Нет выручки за период"
+  },
+  "topServices": {
+    "title": "Топ услуг"
+  },
+  "recentClients": {
+    "title": "Последние клиенты",
+    "columnName": "Имя",
+    "columnService": "Услуга",
+    "columnAmount": "Сумма",
+    "empty": "Нет завершённых записей"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "title": "Finance",
+  "subtitle": "Revenue and performance",
+  "periods": {
+    "month": "Month",
+    "quarter": "Quarter",
+    "year": "Year"
+  },
+  "kpi": {
+    "revenue": {
+      "label": "Total Revenue",
+      "vsPrevious": "vs. previous"
+    },
+    "appointments": {
+      "label": "Appointments",
+      "completed": "{count} completed"
+    },
+    "newClients": {
+      "label": "New Clients",
+      "caption": "first time this period"
+    },
+    "returning": {
+      "label": "Returning",
+      "caption": "came back"
+    }
+  },
+  "charts": {
+    "byDay": {
+      "title": "Appointments by Day"
+    },
+    "topServices": {
+      "title": "Top Services",
+      "count": "{count, plural, one {# appointment} other {# appointments}}"
+    }
+  },
+  "emptyState": {
+    "message": "No data for this period"
+  }
+}

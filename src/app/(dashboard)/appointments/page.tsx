@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { Calendar, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import api from "@/lib/api";
 import { useSalon, isManager } from "@/hooks/useSalon";
+import { useIntlLocale } from "@/lib/locale";
 
 interface Appointment {
   id: string;
@@ -22,18 +24,23 @@ interface Client { id: string; name: string; phone: string; }
 interface Service { id: string; name: string; }
 interface Master { id: string; name: string; }
 
-const STATUS_LABEL: Record<string, string> = {
-  pending: "Ожидает",
-  scheduled: "Запланирован",
-  confirmed: "Подтверждён",
-  in_progress: "В процессе",
-  inprogress: "В процессе",
-  completed: "Завершён",
-  cancelled: "Отменён",
-  cancelled_by_client: "Отменён",
-  no_show: "Не пришёл",
-  noshow: "Не пришёл",
-};
+
+// Maps raw backend status codes (including variant spellings) to the
+// translation keys under the "status" namespace (Appointments.status.*)
+function statusKey(raw: string): string {
+  switch (raw) {
+    case "in_progress":
+    case "inprogress":
+      return "inProgress";
+    case "no_show":
+    case "noshow":
+      return "noShow";
+    case "cancelled_by_client":
+      return "cancelled";
+    default:
+      return raw;
+  }
+}
 
 // Colors from design spec
 const STATUS_COLOR: Record<string, string> = {
@@ -63,17 +70,16 @@ const BADGE_BG: Record<string, string> = {
 };
 
 const STATUS_LEGEND = [
-  { key: "pending",     label: "Ожидает",     color: "#c2933a" },
-  { key: "scheduled",   label: "Запланирован", color: "#7d97b8" },
-  { key: "confirmed",   label: "Подтверждён",  color: "#5f9d6f" },
-  { key: "in_progress", label: "В процессе",   color: "#c9a45c" },
-  { key: "completed",   label: "Завершён",     color: "#8a8f86" },
-  { key: "cancelled",   label: "Отменён",      color: "#b56a54" },
-  { key: "no_show",     label: "Не пришёл",    color: "#8a6a6a" },
+  { key: "pending",     color: "#c2933a" },
+  { key: "scheduled",   color: "#7d97b8" },
+  { key: "confirmed",   color: "#5f9d6f" },
+  { key: "in_progress", color: "#c9a45c" },
+  { key: "completed",   color: "#8a8f86" },
+  { key: "cancelled",   color: "#b56a54" },
+  { key: "no_show",     color: "#8a6a6a" },
 ];
-
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" });
+function formatTime(iso: string, locale: string) {
+  return new Date(iso).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 }
 
 function initials(name: string) {
@@ -128,6 +134,9 @@ function ApptModal({
   masters: Master[];
   onClose: () => void;
 }) {
+  const t = useTranslations("Appointments");
+  const tc = useTranslations("Common");
+  const locale = useIntlLocale();
   const qc = useQueryClient();
   const isEdit = appt !== null;
 
@@ -136,7 +145,7 @@ function ApptModal({
       return {
         client_name: "",
         service_id: appt.service_id,
-        starts_at: formatTime(appt.starts_at),
+        starts_at: formatTime(appt.starts_at, locale),
         master_id: appt.master_id ?? "",
         status: appt.status,
       };
@@ -154,13 +163,13 @@ function ApptModal({
   const createM = useMutation({
     mutationFn: (body: object) => api.post(`/salons/${salonId}/appointments`, body),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["appointments"] }); onClose(); },
-    onError: () => setErr("Ошибка при создании записи"),
+    onError: () => setErr(t("modal.createError")),
   });
 
   const updateM = useMutation({
     mutationFn: (body: object) => api.put(`/salons/${salonId}/appointments/${appt?.id}`, body),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["appointments"] }); onClose(); },
-    onError: () => setErr("Ошибка при сохранении"),
+    onError: () => setErr(t("modal.saveError")),
   });
 
   const deleteM = useMutation({
@@ -213,7 +222,7 @@ function ApptModal({
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22 }}>
           <h2 style={{ color: "var(--text)", fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 600, margin: 0 }}>
-            {isEdit ? "Редактировать запись" : "Новая запись"}
+            {isEdit ? t("modal.editTitle") : t("modal.newTitle")}
           </h2>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", display: "flex", padding: 4 }}>
             <X size={16} />
@@ -226,13 +235,13 @@ function ApptModal({
           {!isEdit && (
             <div>
               <label style={{ display: "block", fontSize: 11, color: "var(--text2)", marginBottom: 6, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-                Клиент
+                {t("modal.clientLabel")}
               </label>
               <input
                 list="appt-clients-list"
                 value={clientSearch}
                 onChange={(e) => setClientSearch(e.target.value)}
-                placeholder="Имя или телефон"
+                placeholder={t("modal.clientPlaceholder")}
                 style={fldInp}
               />
               <datalist id="appt-clients-list">
@@ -246,14 +255,14 @@ function ApptModal({
           {/* Service */}
           <div>
             <label style={{ display: "block", fontSize: 11, color: "var(--text2)", marginBottom: 6, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-              Услуга
+              {t("modal.serviceLabel")}
             </label>
             <select
               value={form.service_id}
               onChange={(e) => setForm((f) => ({ ...f, service_id: e.target.value }))}
               style={{ ...fldInp }}
             >
-              <option value="">— выберите услугу —</option>
+              <option value="">{t("modal.selectServicePlaceholder")}</option>
               {services.map((s) => (
                 <option key={s.id} value={s.id}>{s.name}</option>
               ))}
@@ -263,7 +272,7 @@ function ApptModal({
           {/* Time */}
           <div>
             <label style={{ display: "block", fontSize: 11, color: "var(--text2)", marginBottom: 6, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-              Время
+              {t("modal.timeLabel")}
             </label>
             <input
               type="time"
@@ -277,14 +286,14 @@ function ApptModal({
           {masters.length > 0 && (
             <div>
               <label style={{ display: "block", fontSize: 11, color: "var(--text2)", marginBottom: 6, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-                Мастер
+                {t("modal.masterLabel")}
               </label>
               <select
                 value={form.master_id}
                 onChange={(e) => setForm((f) => ({ ...f, master_id: e.target.value }))}
                 style={{ ...fldInp }}
               >
-                <option value="">— не выбран —</option>
+                <option value="">{t("modal.noMasterOption")}</option>
                 {masters.map((m) => (
                   <option key={m.id} value={m.id}>{m.name}</option>
                 ))}
@@ -295,7 +304,7 @@ function ApptModal({
           {/* Status */}
           <div>
             <label style={{ display: "block", fontSize: 11, color: "var(--text2)", marginBottom: 6, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-              Статус
+              {t("modal.statusLabel")}
             </label>
             <select
               value={form.status}
@@ -303,7 +312,7 @@ function ApptModal({
               style={{ ...fldInp }}
             >
               {STATUS_LEGEND.map((s) => (
-                <option key={s.key} value={s.key}>{s.label}</option>
+                <option key={s.key} value={s.key}>{t(`status.${statusKey(s.key)}`)}</option>
               ))}
             </select>
           </div>
@@ -320,14 +329,14 @@ function ApptModal({
               onClick={onClose}
               style={{ flex: 1, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--text2)", fontSize: 13, padding: "9px", cursor: "pointer" }}
             >
-              Отмена
+              {tc("cancel")}
             </button>
             <button
               onClick={handleSave}
               disabled={loading}
               style={{ flex: 1, background: "var(--gold)", color: "#0a0a0b", border: "none", borderRadius: "var(--radius)", fontSize: 13, fontWeight: 700, padding: "9px", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}
             >
-              {loading ? "..." : "Сохранить"}
+              {loading ? t("modal.saving") : tc("save")}
             </button>
           </div>
 
@@ -335,11 +344,11 @@ function ApptModal({
           {isEdit && (
             <div style={{ paddingTop: 10, borderTop: "1px solid var(--border)" }}>
               <button
-                onClick={() => { if (confirm("Удалить запись?")) deleteM.mutate(); }}
+                onClick={() => { if (confirm(t("modal.deleteConfirm"))) deleteM.mutate(); }}
                 disabled={deleteM.isPending}
                 style={{ width: "100%", background: "none", border: "none", cursor: "pointer", color: "var(--red)", fontSize: 13, padding: "6px 0", opacity: deleteM.isPending ? 0.5 : 1 }}
               >
-                {deleteM.isPending ? "Удаляем..." : "Удалить запись"}
+                {deleteM.isPending ? t("modal.deleting") : t("modal.deleteButton")}
               </button>
             </div>
           )}
@@ -352,7 +361,9 @@ function ApptModal({
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function AppointmentsPage() {
+  const t = useTranslations("Appointments");
   const { salon } = useSalon();
+  const locale = useIntlLocale();
   const salonId = salon?.id ?? "";
 
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -449,10 +460,10 @@ export default function AppointmentsPage() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
         <div>
           <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: "var(--text)", margin: 0 }}>
-            Записи
+            {t("title")}
           </h1>
           {isToday && (
-            <p style={{ color: "var(--text2)", fontSize: 13, marginTop: 4 }}>Сегодня</p>
+            <p style={{ color: "var(--text2)", fontSize: 13, marginTop: 4 }}>{t("today")}</p>
           )}
         </div>
 
@@ -506,7 +517,7 @@ export default function AppointmentsPage() {
             }}
           >
             <Plus size={16} />
-            Новая запись
+            {t("newAppointment")}
           </button>
         </div>
       </div>
@@ -520,7 +531,7 @@ export default function AppointmentsPage() {
             return (
               <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text2)" }}>
                 <span style={{ width: 9, height: 9, borderRadius: "50%", background: s.color, flexShrink: 0 }} />
-                {s.label}
+                {t(`status.${statusKey(s.key)}`)}
                 <span style={{ color: "var(--text3)" }}>{count}</span>
               </div>
             );
@@ -559,7 +570,7 @@ export default function AppointmentsPage() {
           }}>
             <Calendar size={28} style={{ color: "var(--text3)" }} />
           </div>
-          <p style={{ color: "var(--text2)", fontSize: 14 }}>Нет записей на этот день</p>
+          <p style={{ color: "var(--text2)", fontSize: 14 }}>{t("emptyState")}</p>
         </div>
       )}
 
@@ -574,7 +585,7 @@ export default function AppointmentsPage() {
           {appointments.map((a, idx) => {
             const color = STATUS_COLOR[a.status] ?? "var(--text3)";
             const badgeBg = BADGE_BG[a.status] ?? "rgba(255,255,255,0.06)";
-            const clientName = clientMap[a.client_id] ?? "Клиент";
+            const clientName = clientMap[a.client_id] ?? t("unknownClient");
             const masterName = a.master_id ? (masterMap[a.master_id] ?? "") : "";
             const isLast = idx === appointments.length - 1;
             return (
@@ -594,10 +605,10 @@ export default function AppointmentsPage() {
                 {/* Time column */}
                 <div style={{ width: 64, flexShrink: 0, textAlign: "right" }}>
                   <div style={{ fontFamily: "'Playfair Display',serif", fontWeight: 600, fontSize: 16, lineHeight: 1.1, color: "var(--text)" }}>
-                    {formatTime(a.starts_at)}
+                    {formatTime(a.starts_at, locale)}
                   </div>
                   <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 2 }}>
-                    {formatTime(a.ends_at)}
+                    {formatTime(a.ends_at, locale )}
                   </div>
                 </div>
 
@@ -623,7 +634,7 @@ export default function AppointmentsPage() {
                     {clientName}
                   </div>
                   <div style={{ fontSize: 12.5, color: "var(--text3)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {serviceMap[a.service_id] ?? "Услуга"}
+                    {serviceMap[a.service_id] ?? t("unknownService")}
                   </div>
                 </div>
 
@@ -636,7 +647,7 @@ export default function AppointmentsPage() {
                   )}
                   {a.price != null && (
                     <div style={{ fontSize: 12, color: "var(--gold)", fontWeight: 600, fontFamily: "'Playfair Display',serif", marginTop: masterName ? 2 : 0 }}>
-                      {a.price.toLocaleString("ru")} сум
+                      {a.price.toLocaleString("ru")} {t("currency")}
                     </div>
                   )}
                 </div>
@@ -655,7 +666,7 @@ export default function AppointmentsPage() {
                   textAlign: "center",
                   flexShrink: 0,
                 }}>
-                  {STATUS_LABEL[a.status] ?? a.status}
+                  {t(`status.${statusKey(a.status)}`)}
                 </span>
               </div>
             );

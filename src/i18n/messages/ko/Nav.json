@@ -1,0 +1,24 @@
+{
+  "groups": { "main": "메인", "clientele": "고객 관리", "business": "비즈니스" },
+  "items": {
+    "overview": "개요",
+    "appointments": "예약",
+    "schedule": "일정",
+    "promotions": "프로모션",
+    "clients": "고객",
+    "services": "서비스",
+    "barbers": "디자이너",
+    "analytics": "분석",
+    "finance": "재무"
+  },
+  "lightTheme": "라이트 테마",
+  "darkTheme": "다크 테마",
+  "logout": "로그아웃",
+  "language": "언어",
+  "owner": "사장님",
+  "master": "디자이너",
+  "loadError": {
+    "title": "매장 정보를 불러오지 못했습니다",
+    "subtitle": "연결 상태를 확인하고 페이지를 새로고침하세요."
+  }
+}

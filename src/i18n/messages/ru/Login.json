@@ -1,0 +1,38 @@
+{
+  "tagline": "Панель управления барбершопом",
+  "login": {
+    "title": "С возвращением",
+    "subtitle": "Войдите, чтобы продолжить работу",
+    "phoneLabel": "Номер телефона",
+    "passwordLabel": "Пароль",
+    "submit": "Войти",
+    "submitting": "Входим…",
+    "noAccount": "Нет аккаунта?",
+    "createSalonLink": "Создать салон"
+  },
+  "register": {
+    "title": "Создать салон",
+    "subtitle": "Зарегистрируйтесь и начните работу",
+    "firstNameLabel": "Имя",
+    "firstNamePlaceholder": "Алишер",
+    "lastNameLabel": "Фамилия",
+    "lastNamePlaceholder": "Каримов",
+    "phoneLabel": "Номер телефона",
+    "passwordLabel": "Пароль",
+    "passwordPlaceholder": "Минимум 6 символов",
+    "confirmPasswordLabel": "Повторите пароль",
+    "submit": "Создать аккаунт",
+    "submitting": "Регистрируем…",
+    "haveAccount": "Уже есть аккаунт?",
+    "loginLink": "Войти"
+  },
+  "errors": {
+    "phoneInvalidKr": "Номер должен начинаться с 10 и содержать 10 цифр",
+    "phoneInvalidUz": "Введите корректный номер (9 цифр)",
+    "passwordMismatch": "Пароли не совпадают",
+    "passwordTooShort": "Пароль минимум 6 символов",
+    "serverResponseInvalid": "Неверный ответ сервера",
+    "loginFailed": "Неверный телефон или пароль",
+    "registerFailed": "Ошибка регистрации"
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { TrendingUp } from "lucide-react";
 import api from "@/lib/api";
 import { useSalon } from "@/hooks/useSalon";
@@ -26,10 +27,10 @@ function fmt(n: number) {
   return n.toLocaleString("ru") + " сум";
 }
 
-const PERIODS: { key: Period; label: string }[] = [
-  { key:"month",   label:"Месяц"   },
-  { key:"quarter", label:"Квартал" },
-  { key:"year",    label:"Год"     },
+const PERIODS: { key: Period }[] = [
+  { key:"month"   },
+  { key:"quarter" },
+  { key:"year"    },
 ];
 
 const card: React.CSSProperties = {
@@ -37,6 +38,8 @@ const card: React.CSSProperties = {
 };
 
 export default function FinancePage() {
+  const t = useTranslations("Finance");
+  const tCommon = useTranslations("Common");
   const { salon } = useSalon();
   const [period, setPeriod] = useState<Period>("month");
 
@@ -62,9 +65,9 @@ export default function FinancePage() {
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28 }}>
         <div>
           <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>
-            Финансы
+            {t("title")}
           </h1>
-          <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>Выручка и показатели</p>
+          <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>{t("subtitle")}</p>
         </div>
         <div style={{ display:"flex", background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:4, gap:4 }}>
           {PERIODS.map((p) => (
@@ -73,7 +76,7 @@ export default function FinancePage() {
               background: period === p.key ? "var(--gold)" : "transparent",
               color: period === p.key ? "#0a0a0b" : "var(--text2)",
               fontSize:12, fontWeight:600, transition:"background 0.15s, color 0.15s",
-            }}>{p.label}</button>
+            }}>{t(`periods.${p.key}`)}</button>
           ))}
         </div>
       </div>
@@ -92,40 +95,40 @@ export default function FinancePage() {
               background:"linear-gradient(150deg,rgba(201,164,92,0.12),transparent 60%),var(--card)",
               border:"1px solid rgba(201,164,92,0.20)", borderRadius:16, padding:20,
             }}>
-              <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>Общая выручка</div>
+              <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>{t("kpi.revenue.label")}</div>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:600, color:"var(--gold)" }}>
                 {fmt(stats.revenue_total_uzs)}
               </div>
               <div style={{ fontSize:12, color: revDelta != null && revDelta >= 0 ? "var(--green)" : "var(--red)", fontWeight:600, marginTop:8 }}>
                 {revDelta != null ? `${revDelta >= 0 ? "+" : ""}${revDelta.toFixed(0)}%` : "—"}{" "}
-                <span style={{ color:"var(--text3)", fontWeight:400 }}>к прошлому</span>
+                <span style={{ color:"var(--text3)", fontWeight:400 }}>{t("kpi.revenue.vsPrevious")}</span>
               </div>
             </div>
 
             <div style={card}>
-              <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>Записей</div>
+              <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>{t("kpi.appointments.label")}</div>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:600 }}>
                 {stats.appointments_total}
               </div>
               <div style={{ fontSize:12, color:"var(--text3)", marginTop:8 }}>
-                {stats.appointments_completed} завершено
+                {t("kpi.appointments.completed", { count: stats.appointments_completed })}
               </div>
             </div>
 
             <div style={card}>
-              <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>Новые клиенты</div>
+              <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>{t("kpi.newClients.label")}</div>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:600 }}>
                 {stats.new_clients}
               </div>
-              <div style={{ fontSize:12, color:"var(--text3)", marginTop:8 }}>впервые за период</div>
+              <div style={{ fontSize:12, color:"var(--text3)", marginTop:8 }}>{t("kpi.newClients.caption")}</div>
             </div>
 
             <div style={card}>
-              <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>Постоянные</div>
+              <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>{t("kpi.returning.label")}</div>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:600 }}>
                 {stats.returning_clients}
               </div>
-              <div style={{ fontSize:12, color:"var(--text3)", marginTop:8 }}>вернулись</div>
+              <div style={{ fontSize:12, color:"var(--text3)", marginTop:8 }}>{t("kpi.returning.caption")}</div>
             </div>
           </div>
 
@@ -134,7 +137,7 @@ export default function FinancePage() {
             {/* Bar chart */}
             <div style={{ ...card, padding:22 }}>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, marginBottom:18 }}>
-                Записи по дням
+                {t("charts.byDay.title")}
               </div>
               {stats.appointments_by_day.length > 0 ? (
                 <div style={{ display:"flex", alignItems:"flex-end", gap:6, height:170 }}>
@@ -157,7 +160,7 @@ export default function FinancePage() {
                 </div>
               ) : (
                 <div style={{ height:170, display:"flex", alignItems:"center", justifyContent:"center", color:"var(--text3)", fontSize:13 }}>
-                  Нет данных
+                  {tCommon("noData")}
                 </div>
               )}
             </div>
@@ -165,7 +168,7 @@ export default function FinancePage() {
             {/* Top services */}
             <div style={{ ...card, padding:22 }}>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, marginBottom:16 }}>
-                Топ услуг
+                {t("charts.topServices.title")}
               </div>
               {stats.top_services.length > 0 ? (
                 <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
@@ -180,13 +183,13 @@ export default function FinancePage() {
                       <div style={{ height:6, background:"var(--surface)", borderRadius:6, overflow:"hidden" }}>
                         <div style={{ height:"100%", width:`${(s.revenue / maxRevSvc) * 100}%`, background:"var(--gold)", borderRadius:6 }} />
                       </div>
-                      <div style={{ fontSize:11, color:"var(--text3)", marginTop:5 }}>{s.count} записей</div>
+                      <div style={{ fontSize:11, color:"var(--text3)", marginTop:5 }}>{t("charts.topServices.count", { count: s.count })}</div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:170, color:"var(--text3)", fontSize:13 }}>
-                  Нет данных
+                  {tCommon("noData")}
                 </div>
               )}
             </div>
@@ -195,7 +198,7 @@ export default function FinancePage() {
       ) : (
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"80px 0" }}>
           <TrendingUp size={32} style={{ color:"var(--text3)", marginBottom:12 }} />
-          <p style={{ color:"var(--text2)", fontSize:14 }}>Нет данных за период</p>
+          <p style={{ color:"var(--text2)", fontSize:14 }}>{t("emptyState.message")}</p>
         </div>
       )}
     </div>

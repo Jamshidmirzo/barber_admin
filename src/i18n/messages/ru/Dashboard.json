@@ -1,0 +1,40 @@
+{
+  "title": "Дашборд",
+  "subtitle": "{salonName} — сводная статистика",
+  "kpis": {
+    "revenueToday": "Выручка сегодня",
+    "appointmentsToday": "Записей сегодня",
+    "load": "Загрузка",
+    "avgCheck": "Средний чек",
+    "comparedToYesterday": "к вчерашнему дню"
+  },
+  "weekRevenue": {
+    "title": "Выручка за неделю",
+    "total": "Итого",
+    "empty": "Нет данных за эту неделю"
+  },
+  "topBarbers": {
+    "title": "Лучшие мастера",
+    "appointmentsCount": "{count, plural, one {# запись} other {# записей}}"
+  },
+  "upcoming": {
+    "title": "Ближайшие записи",
+    "viewAll": "Все записи →",
+    "loadError": "Не удалось загрузить данные. Проверьте подключение.",
+    "empty": "Записей на сегодня нет"
+  },
+  "status": {
+    "pending": "Ожидает",
+    "scheduled": "Запланирована",
+    "confirmed": "Подтверждена",
+    "inprogress": "В процессе",
+    "completed": "Завершена",
+    "cancelled": "Отменена",
+    "noshow": "Не явился"
+  },
+  "units": {
+    "million": "млн",
+    "thousand": "тыс"
+  },
+  "currency": "сум"
+}

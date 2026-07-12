@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar,
   XAxis, YAxis, Tooltip, CartesianGrid,
@@ -31,20 +32,23 @@ interface PromoSuggestion {
 interface PromoResponse { suggestions: PromoSuggestion[]; summary: string; }
 
 const DAYS = ["mon","tue","wed","thu","fri","sat","sun"] as const;
-const DAY_RU: Record<string, string> = { mon:"Пн", tue:"Вт", wed:"Ср", thu:"Чт", fri:"Пт", sat:"Сб", sun:"Вс" };
-const DAY_RU_FULL: Record<string, string> = {
-  mon:"Понедельник", tue:"Вторник", wed:"Среда", thu:"Четверг",
-  fri:"Пятница", sat:"Суббота", sun:"Воскресенье",
-};
 const HOURS = Array.from({ length:12 }, (_, i) => i + 9);
 
 type PeriodKey = "30" | "90" | "180" | "365";
-const PERIODS: { key: PeriodKey; label: string }[] = [
-  { key:"30", label:"30д" }, { key:"90", label:"90д" },
-  { key:"180", label:"6м" }, { key:"365", label:"год" },
+const PERIODS: { key: PeriodKey; tKey: string }[] = [
+  { key:"30", tKey:"d30" }, { key:"90", tKey:"d90" },
+  { key:"180", tKey:"m6" }, { key:"365", tKey:"year" },
 ];
 
-function fmt(n: number) { return n.toLocaleString("ru") + " сум"; }
+type Translator = ReturnType<typeof useTranslations>;
+
+function dayLabel(t: Translator, day: string | null | undefined, full: boolean) {
+  if (!day) return "";
+  const known = (DAYS as readonly string[]).includes(day);
+  return known ? t(`days.${full ? "full" : "short"}.${day}`) : day;
+}
+
+function fmt(n: number, currency: string) { return n.toLocaleString("ru") + " " + currency; }
 function hh(h: number) { return `${String(h).padStart(2,"0")}:00`; }
 
 const cardStyle: React.CSSProperties = {
@@ -52,6 +56,7 @@ const cardStyle: React.CSSProperties = {
 };
 
 export default function AnalyticsPage() {
+  const t = useTranslations("Analytics");
   const { salon } = useSalon();
   const salonId = salon.id;
   const [period, setPeriod] = useState<PeriodKey>("30");
@@ -81,9 +86,9 @@ export default function AnalyticsPage() {
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28, flexWrap:"wrap", gap:16 }}>
         <div>
           <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>
-            Аналитика
+            {t("title")}
           </h1>
-          <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>Загрузка, тренды выручки и подсказки по акциям</p>
+          <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>{t("subtitle")}</p>
         </div>
         <div style={{
           display:"flex", background:"var(--surface)", border:"1px solid var(--border)",
@@ -100,7 +105,7 @@ export default function AnalyticsPage() {
                 fontSize:12, fontWeight:600, transition:"background 0.15s, color 0.15s",
               }}
             >
-              {p.label}
+              {t(`periods.${p.tKey}`)}
             </button>
           ))}
         </div>
@@ -114,6 +119,8 @@ export default function AnalyticsPage() {
 }
 
 function HeatmapSection({ q }: { q: { data?: HeatmapResponse; isLoading: boolean } }) {
+  const t = useTranslations("Analytics");
+  const currency = t("currency");
   const cells = q.data?.heatmap ?? [];
   const map = useMemo(() => {
     const m = new Map<string, HeatCell>();
@@ -131,13 +138,13 @@ function HeatmapSection({ q }: { q: { data?: HeatmapResponse; isLoading: boolean
   return (
     <div style={{ ...cardStyle, marginBottom:20 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18, flexWrap:"wrap", gap:8 }}>
-        <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>Тепловая карта загрузки</p>
+        <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>{t("heatmap.title")}</p>
         {q.data?.peak_day && (
           <p style={{ fontSize:12, color:"var(--text2)", margin:0 }}>
-            Пик: <span style={{ color:"var(--gold)" }}>{DAY_RU_FULL[q.data.peak_day]}</span>{" "}
+            {t("heatmap.peakLabel")} <span style={{ color:"var(--gold)" }}>{dayLabel(t, q.data.peak_day, true)}</span>{" "}
             {q.data.peak_hour != null && hh(q.data.peak_hour)}
             {q.data.slowest_day && (
-              <> · Тихо: <span style={{ color:"var(--text)" }}>{DAY_RU_FULL[q.data.slowest_day]}</span>{" "}
+              <> · {t("heatmap.quietLabel")} <span style={{ color:"var(--text)" }}>{dayLabel(t, q.data.slowest_day, true)}</span>{" "}
               {q.data.slowest_hour != null && hh(q.data.slowest_hour)}</>
             )}
           </p>
@@ -151,7 +158,7 @@ function HeatmapSection({ q }: { q: { data?: HeatmapResponse; isLoading: boolean
       ) : cells.length === 0 ? (
         <div style={{ height:160, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", color:"var(--text3)" }}>
           <TrendingUp size={28} style={{ marginBottom:8 }} />
-          <p style={{ fontSize:13, color:"var(--text2)" }}>Нет записей за период</p>
+          <p style={{ fontSize:13, color:"var(--text2)" }}>{t("heatmap.empty")}</p>
         </div>
       ) : (
         <div style={{ overflowX:"auto" }}>
@@ -169,14 +176,14 @@ function HeatmapSection({ q }: { q: { data?: HeatmapResponse; isLoading: boolean
             <tbody>
               {DAYS.map((d) => (
                 <tr key={d}>
-                  <td style={{ fontSize:11, color:"var(--text2)", paddingRight:6, textAlign:"right" }}>{DAY_RU[d]}</td>
+                  <td style={{ fontSize:11, color:"var(--text2)", paddingRight:6, textAlign:"right" }}>{dayLabel(t, d, false)}</td>
                   {HOURS.map((h) => {
                     const c = map.get(`${d}-${h}`);
                     const app = c?.appointments ?? 0;
                     return (
                       <td key={h}>
                         <div
-                          title={`${DAY_RU[d]} ${hh(h)} — ${app} записей, ${fmt(c?.revenue ?? 0)}`}
+                          title={t("heatmap.cellTooltip", { day: dayLabel(t, d, false), hour: hh(h), count: app, revenue: fmt(c?.revenue ?? 0, currency) })}
                           style={{
                             width:34, height:34, borderRadius:7,
                             background: bg(app),
@@ -205,8 +212,10 @@ function HeatmapSection({ q }: { q: { data?: HeatmapResponse; isLoading: boolean
 }
 
 function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: boolean }; heatmap?: HeatmapResponse }) {
+  const t = useTranslations("Analytics");
+  const currency = t("currency");
   const data = q.data;
-  const dowData = (data?.revenue_by_day_of_week ?? []).map((d) => ({ ...d, day_ru: DAY_RU[d.day] ?? d.day }));
+  const dowData = (data?.revenue_by_day_of_week ?? []).map((d) => ({ ...d, day_label: dayLabel(t, d.day, false) }));
   const growth = data?.growth_vs_prev_period ?? 0;
   const up = growth >= 0;
 
@@ -219,40 +228,40 @@ function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: 
       {/* KPI cards — 4 in a row matching design */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:20 }}>
         <div style={cardStyle}>
-          <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>Средний чек</p>
-          <p style={{ fontFamily:"'Playfair Display',serif", color:"var(--text)", fontSize:26, fontWeight:600, margin:0 }}>{data ? fmt(data.avg_check) : "—"}</p>
+          <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>{t("kpi.avgCheck")}</p>
+          <p style={{ fontFamily:"'Playfair Display',serif", color:"var(--text)", fontSize:26, fontWeight:600, margin:0 }}>{data ? fmt(data.avg_check, currency) : "—"}</p>
           <p style={{ fontSize:12, color: up ? "var(--green)" : "var(--text3)", fontWeight:600, margin:"8px 0 0" }}>
-            {data ? `${up ? "+" : ""}${growth}%` : ""} <span style={{ color:"var(--text3)", fontWeight:400 }}>к периоду</span>
+            {data ? `${up ? "+" : ""}${growth}%` : ""} <span style={{ color:"var(--text3)", fontWeight:400 }}>{t("kpi.avgCheckCaption")}</span>
           </p>
         </div>
         <div style={cardStyle}>
-          <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>Рост выручки</p>
+          <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>{t("kpi.revenueGrowth")}</p>
           <p style={{ fontFamily:"'Playfair Display',serif", color: up ? "var(--gold)" : "var(--red)", fontSize:26, fontWeight:600, margin:0, display:"flex", alignItems:"center", gap:8 }}>
             {up ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
             {data ? `${up ? "+" : ""}${growth}%` : "—"}
           </p>
-          <p style={{ fontSize:12, color:"var(--text3)", margin:"8px 0 0" }}>месяц к месяцу</p>
+          <p style={{ fontSize:12, color:"var(--text3)", margin:"8px 0 0" }}>{t("kpi.revenueGrowthCaption")}</p>
         </div>
         <div style={cardStyle}>
-          <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>Пик</p>
+          <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>{t("kpi.peak")}</p>
           <p style={{ fontFamily:"'Playfair Display',serif", color:"var(--text)", fontSize:20, fontWeight:600, margin:0 }}>
-            {heatmap?.peak_day ? `${DAY_RU[heatmap.peak_day] ?? heatmap.peak_day} ${heatmap.peak_hour != null ? hh(heatmap.peak_hour) : ""}` : "—"}
+            {heatmap?.peak_day ? `${dayLabel(t, heatmap.peak_day, false)} ${heatmap.peak_hour != null ? hh(heatmap.peak_hour) : ""}` : "—"}
           </p>
-          <p style={{ fontSize:12, color:"var(--text3)", margin:"8px 0 0" }}>макс. загрузка</p>
+          <p style={{ fontSize:12, color:"var(--text3)", margin:"8px 0 0" }}>{t("kpi.peakCaption")}</p>
         </div>
         <div style={cardStyle}>
-          <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>Спад</p>
+          <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>{t("kpi.quiet")}</p>
           <p style={{ fontFamily:"'Playfair Display',serif", color:"var(--text)", fontSize:20, fontWeight:600, margin:0 }}>
-            {heatmap?.slowest_day ? `${DAY_RU[heatmap.slowest_day] ?? heatmap.slowest_day} ${heatmap.slowest_hour != null ? hh(heatmap.slowest_hour) : ""}` : "—"}
+            {heatmap?.slowest_day ? `${dayLabel(t, heatmap.slowest_day, false)} ${heatmap.slowest_hour != null ? hh(heatmap.slowest_hour) : ""}` : "—"}
           </p>
-          <p style={{ fontSize:12, color:"var(--text3)", margin:"8px 0 0" }}>мин. загрузка</p>
+          <p style={{ fontSize:12, color:"var(--text3)", margin:"8px 0 0" }}>{t("kpi.quietCaption")}</p>
         </div>
       </div>
 
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:20, marginBottom:20 }}>
         {/* Line chart */}
         <div style={cardStyle}>
-          <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 18px" }}>Выручка по неделям</p>
+          <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 18px" }}>{t("charts.revenueByWeekTitle")}</p>
           {q.isLoading ? (
             <div style={{ height:240, background:"var(--bg2)", borderRadius:"var(--radius)", animation:"pulse 1.5s infinite" }} />
           ) : (data?.revenue_by_week.length ?? 0) > 0 ? (
@@ -262,7 +271,7 @@ function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: 
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                   <XAxis dataKey="week" tick={{ fill:"var(--text3)", fontSize:11 }} stroke="var(--border)" minTickGap={20} />
                   <YAxis tickFormatter={(v) => v >= 1000 ? `${Math.round(v/1000)}k` : String(v)} tick={{ fill:"var(--text3)", fontSize:11 }} stroke="var(--border)" width={40} />
-                  <Tooltip {...chartTooltip} formatter={(v) => [fmt(Number(v)), "Выручка"] as [string, string]} />
+                  <Tooltip {...chartTooltip} formatter={(v) => [fmt(Number(v), currency), t("charts.revenueLabel")] as [string, string]} />
                   <Line type="monotone" dataKey="revenue" stroke="var(--gold)" strokeWidth={2} dot={false} activeDot={{ r:4, fill:"var(--gold)" }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -272,7 +281,7 @@ function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: 
 
         {/* Bar chart */}
         <div style={cardStyle}>
-          <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 18px" }}>Средняя выручка по дням недели</p>
+          <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 18px" }}>{t("charts.revenueByDowTitle")}</p>
           {q.isLoading ? (
             <div style={{ height:240, background:"var(--bg2)", borderRadius:"var(--radius)", animation:"pulse 1.5s infinite" }} />
           ) : dowData.length > 0 ? (
@@ -280,9 +289,9 @@ function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: 
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dowData} margin={{ top:5, right:10, left:0, bottom:0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                  <XAxis dataKey="day_ru" tick={{ fill:"var(--text3)", fontSize:11 }} stroke="var(--border)" />
+                  <XAxis dataKey="day_label" tick={{ fill:"var(--text3)", fontSize:11 }} stroke="var(--border)" />
                   <YAxis tickFormatter={(v) => v >= 1000 ? `${Math.round(v/1000)}k` : String(v)} tick={{ fill:"var(--text3)", fontSize:11 }} stroke="var(--border)" width={40} />
-                  <Tooltip {...chartTooltip} cursor={{ fill:"rgba(255,255,255,0.04)" }} formatter={(v) => [fmt(Number(v)), "Ср. выручка"] as [string, string]} />
+                  <Tooltip {...chartTooltip} cursor={{ fill:"rgba(255,255,255,0.04)" }} formatter={(v) => [fmt(Number(v), currency), t("charts.avgRevenueLabel")] as [string, string]} />
                   <Bar dataKey="avg_revenue" fill="var(--gold)" radius={[6,6,0,0]} fillOpacity={0.9} />
                 </BarChart>
               </ResponsiveContainer>
@@ -295,15 +304,17 @@ function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: 
 }
 
 function EmptyChart() {
+  const t = useTranslations("Analytics");
   return (
     <div style={{ height:240, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", color:"var(--text3)" }}>
       <TrendingUp size={28} style={{ marginBottom:8 }} />
-      <p style={{ fontSize:13, color:"var(--text2)" }}>Нет данных за период</p>
+      <p style={{ fontSize:13, color:"var(--text2)" }}>{t("charts.empty")}</p>
     </div>
   );
 }
 
 function PromoSection({ salonId, heatmap, trends }: { salonId: string; heatmap?: HeatmapResponse; trends?: TrendsResponse }) {
+  const t = useTranslations("Analytics");
   const dayLoads = useMemo(() => {
     if (!heatmap) return [];
     const totals = new Map<string, number>();
@@ -329,7 +340,7 @@ function PromoSection({ salonId, heatmap, trends }: { salonId: string; heatmap?:
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, flexWrap:"wrap", gap:12 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <Sparkles size={16} style={{ color:"var(--gold)" }} />
-          <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>ИИ-подсказки по акциям</p>
+          <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>{t("promo.title")}</p>
         </div>
         <button
           onClick={() => mutation.mutate()}
@@ -342,22 +353,22 @@ function PromoSection({ salonId, heatmap, trends }: { salonId: string; heatmap?:
           }}
         >
           <Sparkles size={14} />
-          {mutation.isPending ? "ИИ анализирует…" : "Получить подсказки от ИИ"}
+          {mutation.isPending ? t("promo.generating") : t("promo.generateButton")}
         </button>
       </div>
 
       {mutation.isPending && (
         <div style={{ padding:"40px 0", display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center" }}>
           <div style={{ width:32, height:32, borderRadius:"50%", border:"2px solid var(--border)", borderTopColor:"var(--gold)", animation:"spin 0.8s linear infinite", marginBottom:12 }} />
-          <p style={{ color:"var(--text2)", fontSize:13 }}>ИИ анализирует ваши данные…</p>
-          <p style={{ color:"var(--text3)", fontSize:12, marginTop:4 }}>обычно 2–5 секунд</p>
+          <p style={{ color:"var(--text2)", fontSize:13 }}>{t("promo.loadingTitle")}</p>
+          <p style={{ color:"var(--text3)", fontSize:12, marginTop:4 }}>{t("promo.loadingSubtitle")}</p>
           <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       )}
 
       {mutation.isError && !mutation.isPending && (
         <p style={{ color:"var(--red)", fontSize:13, padding:"12px 0" }}>
-          {parseApiError(mutation.error, "Не удалось получить подсказки")}
+          {parseApiError(mutation.error, t("promo.errorFallback"))}
         </p>
       )}
 
@@ -374,7 +385,7 @@ function PromoSection({ salonId, heatmap, trends }: { salonId: string; heatmap?:
           )}
           {mutation.data.suggestions.length === 0 ? (
             <p style={{ color:"var(--text2)", fontSize:13, textAlign:"center", padding:"12px 0" }}>
-              Подсказок нет — загрузка ровная.
+              {t("promo.emptySuggestions")}
             </p>
           ) : (
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:14 }}>
@@ -386,7 +397,7 @@ function PromoSection({ salonId, heatmap, trends }: { salonId: string; heatmap?:
 
       {!mutation.data && !mutation.isPending && !mutation.isError && (
         <p style={{ color:"var(--text3)", fontSize:13 }}>
-          Нажмите кнопку — ИИ найдёт провальные часы и предложит акции, чтобы их заполнить.
+          {t("promo.idleHint")}
         </p>
       )}
     </div>
@@ -394,10 +405,11 @@ function PromoSection({ salonId, heatmap, trends }: { salonId: string; heatmap?:
 }
 
 function PromoCard({ s }: { s: PromoSuggestion }) {
+  const t = useTranslations("Analytics");
   const [copied, setCopied] = useState(false);
 
   function copyForPost() {
-    const text = `🔥 ${s.title}\n\n${s.description}\n\n📅 ${DAY_RU_FULL[s.day] ?? s.day}, ${s.hours}\n🎁 Скидка ${s.discount_suggestion}\n\nЗаписывайтесь — количество мест ограничено!`;
+    const text = `🔥 ${s.title}\n\n${s.description}\n\n📅 ${dayLabel(t, s.day, true)}, ${s.hours}\n🎁 ${t("promo.clipboardDiscountLabel")} ${s.discount_suggestion}\n\n${t("promo.clipboardFooter")}`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -411,16 +423,16 @@ function PromoCard({ s }: { s: PromoSuggestion }) {
       <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:8, marginBottom:8 }}>
         <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>{s.title}</p>
         <span style={{ flexShrink:0, fontSize:10, fontWeight:700, background:"var(--gold-dim)", color:"var(--gold)", padding:"2px 8px", borderRadius:20 }}>
-          🤖 AI
+          🤖 {t("promo.aiBadge")}
         </span>
       </div>
       <p style={{ color:"var(--text2)", fontSize:13, marginBottom:12, lineHeight:1.55, marginTop:0 }}>{s.description}</p>
       <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:10 }}>
         <span style={{ fontSize:11, background:"var(--surface)", color:"var(--text2)", padding:"3px 9px", borderRadius:20, border:"1px solid var(--border)" }}>
-          {DAY_RU_FULL[s.day] ?? s.day} · {s.hours}
+          {dayLabel(t, s.day, true)} · {s.hours}
         </span>
         <span style={{ fontSize:11, background:"rgba(76,175,125,0.12)", color:"var(--green)", padding:"3px 9px", borderRadius:20 }}>
-          Скидка {s.discount_suggestion}
+          {t("promo.discountTag", { discount: s.discount_suggestion })}
         </span>
       </div>
       {s.expected_impact && (
@@ -436,7 +448,7 @@ function PromoCard({ s }: { s: PromoSuggestion }) {
         }}
       >
         {copied ? <Check size={12} /> : <Copy size={12} />}
-        {copied ? "Скопировано" : "Скопировать для поста"}
+        {copied ? t("promo.copied") : t("promo.copy")}
       </button>
     </div>
   );

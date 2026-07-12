@@ -1,0 +1,40 @@
+{
+  "title": "대시보드",
+  "subtitle": "{salonName} — 요약 통계",
+  "kpis": {
+    "revenueToday": "오늘 매출",
+    "appointmentsToday": "오늘 예약 수",
+    "load": "가동률",
+    "avgCheck": "평균 결제 금액",
+    "comparedToYesterday": "전일 대비"
+  },
+  "weekRevenue": {
+    "title": "주간 매출",
+    "total": "합계",
+    "empty": "이번 주 데이터가 없습니다"
+  },
+  "topBarbers": {
+    "title": "인기 바버",
+    "appointmentsCount": "{count, plural, other {예약 #건}}"
+  },
+  "upcoming": {
+    "title": "다가오는 예약",
+    "viewAll": "전체 보기 →",
+    "loadError": "데이터를 불러오지 못했습니다. 연결 상태를 확인하세요.",
+    "empty": "오늘 예약이 없습니다"
+  },
+  "status": {
+    "pending": "대기 중",
+    "scheduled": "예약됨",
+    "confirmed": "확정됨",
+    "inprogress": "진행 중",
+    "completed": "완료",
+    "cancelled": "취소됨",
+    "noshow": "노쇼"
+  },
+  "units": {
+    "million": "백만",
+    "thousand": "천"
+  },
+  "currency": "UZS"
+}

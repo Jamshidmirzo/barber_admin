@@ -1,0 +1,38 @@
+{
+  "tagline": "바버샵 관리 대시보드",
+  "login": {
+    "title": "다시 오신 것을 환영합니다",
+    "subtitle": "계속하시려면 로그인해 주세요",
+    "phoneLabel": "전화번호",
+    "passwordLabel": "비밀번호",
+    "submit": "로그인",
+    "submitting": "로그인 중…",
+    "noAccount": "계정이 없으신가요?",
+    "createSalonLink": "살롱 만들기"
+  },
+  "register": {
+    "title": "살롱 만들기",
+    "subtitle": "가입하고 시작해 보세요",
+    "firstNameLabel": "이름",
+    "firstNamePlaceholder": "지민",
+    "lastNameLabel": "성",
+    "lastNamePlaceholder": "김",
+    "phoneLabel": "전화번호",
+    "passwordLabel": "비밀번호",
+    "passwordPlaceholder": "6자 이상 입력해 주세요",
+    "confirmPasswordLabel": "비밀번호 확인",
+    "submit": "계정 만들기",
+    "submitting": "계정 생성 중…",
+    "haveAccount": "이미 계정이 있으신가요?",
+    "loginLink": "로그인"
+  },
+  "errors": {
+    "phoneInvalidKr": "번호는 10으로 시작하며 10자리여야 합니다",
+    "phoneInvalidUz": "올바른 번호를 입력해 주세요 (9자리)",
+    "passwordMismatch": "비밀번호가 일치하지 않습니다",
+    "passwordTooShort": "비밀번호는 최소 6자 이상이어야 합니다",
+    "serverResponseInvalid": "서버 응답이 올바르지 않습니다",
+    "loginFailed": "전화번호 또는 비밀번호가 올바르지 않습니다",
+    "registerFailed": "회원가입에 실패했습니다"
+  }
+}

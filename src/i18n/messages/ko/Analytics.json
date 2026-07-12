@@ -1,0 +1,71 @@
+{
+  "title": "분석",
+  "subtitle": "예약 현황, 매출 트렌드 및 프로모션 제안",
+  "currency": "숨",
+  "periods": {
+    "d30": "30일",
+    "d90": "90일",
+    "m6": "6개월",
+    "year": "1년"
+  },
+  "days": {
+    "short": {
+      "mon": "월",
+      "tue": "화",
+      "wed": "수",
+      "thu": "목",
+      "fri": "금",
+      "sat": "토",
+      "sun": "일"
+    },
+    "full": {
+      "mon": "월요일",
+      "tue": "화요일",
+      "wed": "수요일",
+      "thu": "목요일",
+      "fri": "금요일",
+      "sat": "토요일",
+      "sun": "일요일"
+    }
+  },
+  "heatmap": {
+    "title": "예약 히트맵",
+    "peakLabel": "피크:",
+    "quietLabel": "한산:",
+    "empty": "해당 기간에 예약이 없습니다",
+    "cellTooltip": "{day} {hour} — {count, plural, other {예약 #건}}, {revenue}"
+  },
+  "kpi": {
+    "avgCheck": "평균 결제 금액",
+    "avgCheckCaption": "기간 대비",
+    "revenueGrowth": "매출 성장률",
+    "revenueGrowthCaption": "전월 대비",
+    "peak": "피크",
+    "peakCaption": "최대 예약률",
+    "quiet": "한산",
+    "quietCaption": "최소 예약률"
+  },
+  "charts": {
+    "revenueByWeekTitle": "주간 매출",
+    "revenueLabel": "매출",
+    "revenueByDowTitle": "요일별 평균 매출",
+    "avgRevenueLabel": "평균 매출",
+    "empty": "해당 기간의 데이터가 없습니다"
+  },
+  "promo": {
+    "title": "AI 프로모션 제안",
+    "generateButton": "AI 제안 받기",
+    "generating": "AI 분석 중…",
+    "loadingTitle": "AI가 데이터를 분석하고 있습니다…",
+    "loadingSubtitle": "보통 2~5초 소요",
+    "errorFallback": "제안을 가져오지 못했습니다",
+    "emptySuggestions": "제안이 없습니다 — 예약률이 고르게 분산되어 있습니다.",
+    "idleHint": "버튼을 클릭하면 AI가 한산한 시간대를 찾아 이를 채울 프로모션을 제안합니다.",
+    "aiBadge": "AI",
+    "discountTag": "할인 {discount}",
+    "copy": "게시물용으로 복사",
+    "copied": "복사됨",
+    "clipboardDiscountLabel": "할인",
+    "clipboardFooter": "지금 예약하세요 — 좌석이 한정되어 있습니다!"
+  }
+}

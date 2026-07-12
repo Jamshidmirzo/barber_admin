@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { ArrowLeft, Phone, MapPin, Scissors, UserRound, Calendar, Wallet, Clock } from "lucide-react";
 import api from "@/lib/api";
 import { useSalon } from "@/hooks/useSalon";
@@ -19,13 +20,14 @@ interface ClientDetail {
   visits_history: VisitHistoryItem[];
 }
 
-function fmtMoney(n: number) { return n.toLocaleString("ru") + " сум"; }
+function fmtMoney(n: number, currency: string) { return n.toLocaleString("ru") + " " + currency; }
 function fmtDate(iso: string | null) { if (!iso) return "—"; return new Date(iso).toLocaleDateString("ru", { day:"numeric", month:"short", year:"numeric" }); }
 function fmtDateTime(iso: string) { return new Date(iso).toLocaleString("ru", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }); }
 function initials(name: string) { return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2); }
 function daysSince(iso: string | null): number | null { if (!iso) return null; return Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000); }
 
 export default function ClientDetailPage() {
+  const t = useTranslations("ClientDetail");
   const { salon } = useSalon();
   const params = useParams<{ id: string }>();
   const clientId = params.id;
@@ -53,7 +55,7 @@ export default function ClientDetailPage() {
         <BackLink />
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"80px 0" }}>
           <UserRound size={36} style={{ color:"var(--text3)", marginBottom:12 }} />
-          <p style={{ color:"var(--text2)", fontSize:14 }}>Клиент не найден</p>
+          <p style={{ color:"var(--text2)", fontSize:14 }}>{t("notFound")}</p>
         </div>
       </div>
     );
@@ -82,19 +84,19 @@ export default function ClientDetailPage() {
             <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginTop:10 }}>
               {data.favorite_barber && (
                 <span style={{ display:"flex", alignItems:"center", gap:5, background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"4px 10px", fontSize:12, color:"var(--text2)" }}>
-                  <UserRound size={12} style={{ color:"var(--gold)" }} /> Барбер: <b style={{ color:"var(--text)" }}>{data.favorite_barber.name}</b>
+                  <UserRound size={12} style={{ color:"var(--gold)" }} /> {t("favoriteBarberLabel")} <b style={{ color:"var(--text)" }}>{data.favorite_barber.name}</b>
                 </span>
               )}
               {data.favorite_service && (
                 <span style={{ display:"flex", alignItems:"center", gap:5, background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"4px 10px", fontSize:12, color:"var(--text2)" }}>
-                  <Scissors size={12} style={{ color:"var(--gold)" }} /> Услуга: <b style={{ color:"var(--text)" }}>{data.favorite_service.name}</b>
+                  <Scissors size={12} style={{ color:"var(--gold)" }} /> {t("favoriteServiceLabel")} <b style={{ color:"var(--text)" }}>{data.favorite_service.name}</b>
                 </span>
               )}
             </div>
           </div>
           {idle !== null && (
             <span style={{ flexShrink:0, fontSize:12, fontWeight:600, padding:"5px 12px", borderRadius:"var(--radius)", background:idleBg, color:idleColor }}>
-              {idle === 0 ? "Был сегодня" : `Не приходил ${idle} дн.`}
+              {idle === 0 ? t("idle.today") : t("idle.daysAgo", { days:idle })}
             </span>
           )}
         </div>
@@ -102,24 +104,24 @@ export default function ClientDetailPage() {
 
       {/* KPI */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:16 }}>
-        <KpiCard icon={<Calendar size={14} />} label="Визиты" value={String(data.total_visits)} />
-        <KpiCard icon={<Wallet size={14} />} label="Выручка" value={fmtMoney(data.total_spent)} />
-        <KpiCard icon={<Clock size={14} />} label="Первый визит" value={fmtDate(data.first_visit)} />
-        <KpiCard icon={<Clock size={14} />} label="Последний визит" value={fmtDate(data.last_visit)} />
+        <KpiCard icon={<Calendar size={14} />} label={t("kpi.visits")} value={String(data.total_visits)} />
+        <KpiCard icon={<Wallet size={14} />} label={t("kpi.revenue")} value={fmtMoney(data.total_spent, t("currency"))} />
+        <KpiCard icon={<Clock size={14} />} label={t("kpi.firstVisit")} value={fmtDate(data.first_visit)} />
+        <KpiCard icon={<Clock size={14} />} label={t("kpi.lastVisit")} value={fmtDate(data.last_visit)} />
       </div>
 
       {/* History */}
       <div style={cardS}>
         <div style={{ padding:"16px 20px", borderBottom:"1px solid var(--border)" }}>
-          <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>История визитов</p>
+          <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>{t("history.title")}</p>
         </div>
         {data.visits_history.length === 0 ? (
-          <p style={{ color:"var(--text3)", fontSize:13, padding:"32px 20px", textAlign:"center" }}>Пока нет завершённых визитов</p>
+          <p style={{ color:"var(--text3)", fontSize:13, padding:"32px 20px", textAlign:"center" }}>{t("history.empty")}</p>
         ) : (
           <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
             <thead>
               <tr style={{ borderBottom:"1px solid var(--border)" }}>
-                {["Дата","Барбер","Услуга","Сумма"].map((h, i) => (
+                {[t("history.table.date"), t("history.table.barber"), t("history.table.service"), t("history.table.amount")].map((h, i) => (
                   <th key={h} style={{ textAlign: i === 3 ? "right" : "left", color:"var(--text3)", fontWeight:600, fontSize:11, padding:"10px 20px", textTransform:"uppercase", letterSpacing:"0.05em" }}>{h}</th>
                 ))}
               </tr>
@@ -130,7 +132,7 @@ export default function ClientDetailPage() {
                   <td style={{ padding:"12px 20px", color:"var(--text2)" }}>{fmtDateTime(v.date)}</td>
                   <td style={{ padding:"12px 20px", color:"var(--text2)" }}>{v.barber_name}</td>
                   <td style={{ padding:"12px 20px", color:"var(--text3)" }}>{v.service_name ?? "—"}</td>
-                  <td style={{ padding:"12px 20px", textAlign:"right", color:"var(--gold)", fontWeight:600 }}>{fmtMoney(v.amount)}</td>
+                  <td style={{ padding:"12px 20px", textAlign:"right", color:"var(--gold)", fontWeight:600 }}>{fmtMoney(v.amount, t("currency"))}</td>
                 </tr>
               ))}
             </tbody>
@@ -142,9 +144,10 @@ export default function ClientDetailPage() {
 }
 
 function BackLink() {
+  const t = useTranslations("ClientDetail");
   return (
     <Link href="/clients" style={{ display:"inline-flex", alignItems:"center", gap:6, color:"var(--text2)", fontSize:13, textDecoration:"none", marginBottom:20 }}>
-      <ArrowLeft size={14} /> К клиентам
+      <ArrowLeft size={14} /> {t("backLink")}
     </Link>
   );
 }

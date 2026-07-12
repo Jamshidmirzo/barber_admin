@@ -1,0 +1,45 @@
+{
+  "title": "Mijozlar",
+  "currency": "so'm",
+  "searchPlaceholder": "Ism yoki telefon raqami bo'yicha qidirish",
+  "emptyState": {
+    "notFound": "Hech narsa topilmadi",
+    "noClients": "Mijozlar yo'q"
+  },
+  "visitsCount": "{count, plural, other {# marta tashrif}}",
+  "crm": {
+    "subtitle": "Salon mijozlar bazasida {count} ta mijoz bor",
+    "exportButton": "CSV eksport",
+    "exportingButton": "Tayyorlanmoqda...",
+    "tabs": { "list": "Barcha mijozlar", "rating": "Sodiqlik reytingi" },
+    "allCities": "Barcha shaharlar",
+    "sort": { "visits": "Tashriflar bo'yicha", "revenue": "Daromad bo'yicha", "lastVisit": "Sana bo'yicha" },
+    "table": { "name": "Ism", "phone": "Telefon", "city": "Shahar", "visits": "Tashriflar", "revenue": "Daromad", "lastVisit": "Oxirgi" },
+    "loadMore": "Ko'proq ko'rsatish",
+    "rating": {
+      "subtitle": "Tashriflar soni bo'yicha eng yaxshi 20 ta mijoz",
+      "shareButton": "Ulashish",
+      "copiedButton": "Nusxalandi",
+      "emptyState": "Reyting uchun hali tashriflar yo'q",
+      "shareHeader": "🏆 {salon} ning eng sodiq mijozlari:",
+      "shareFooter": "Bizni tanlaganingiz uchun rahmat! 💈"
+    }
+  },
+  "personal": {
+    "subtitle": "{count} ta mijoz",
+    "modal": { "createTitle": "Yangi mijoz", "editTitle": "Mijozni tahrirlash" },
+    "form": {
+      "name": "Ism",
+      "phone": "Telefon",
+      "notes": "Izohlar",
+      "namePlaceholder": "Ivan Ivanov",
+      "phonePlaceholder": "+998901234567",
+      "notesPlaceholder": "Ixtiyoriy",
+      "createSubmit": "Yaratish",
+      "submitting": "..."
+    },
+    "deleteConfirm": "\"{name}\" mijozini o'chirish?",
+    "deleteButton": "Mijozni o'chirish",
+    "deletingButton": "O'chirilmoqda..."
+  }
+}

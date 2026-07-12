@@ -1,0 +1,58 @@
+{
+  "team": {
+    "title": "Team schedule",
+    "subtitle": "Barber workload by day of week",
+    "today": "Today",
+    "filterAll": "All",
+    "masterColumn": "Barber",
+    "emptyMasters": "There are no barbers in this salon yet.",
+    "cellBooked": "{count} bkd",
+    "kpiBookings": "Bookings this week",
+    "kpiRevenue": "Revenue this week",
+    "kpiAvgLoad": "Average load",
+    "million": "M",
+    "legendBooked": "Booked",
+    "legendFree": "Free",
+    "legendDayOff": "Day off"
+  },
+  "editor": {
+    "title": "Schedule",
+    "subtitle": "Set up hours for each day of the week",
+    "saving": "Saving…",
+    "saved": "Saved!",
+    "break": "Break:",
+    "dayOff": "Day off"
+  },
+  "days": {
+    "mon": "Monday",
+    "tue": "Tuesday",
+    "wed": "Wednesday",
+    "thu": "Thursday",
+    "fri": "Friday",
+    "sat": "Saturday",
+    "sun": "Sunday"
+  },
+  "daysShort": {
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
+  },
+  "months": {
+    "jan": "Jan",
+    "feb": "Feb",
+    "mar": "Mar",
+    "apr": "Apr",
+    "may": "May",
+    "jun": "Jun",
+    "jul": "Jul",
+    "aug": "Aug",
+    "sep": "Sep",
+    "oct": "Oct",
+    "nov": "Nov",
+    "dec": "Dec"
+  }
+}

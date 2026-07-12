@@ -1,0 +1,58 @@
+{
+  "team": {
+    "title": "팀 일정",
+    "subtitle": "요일별 디자이너 예약 현황",
+    "today": "오늘",
+    "filterAll": "전체",
+    "masterColumn": "디자이너",
+    "emptyMasters": "아직 등록된 디자이너가 없습니다.",
+    "cellBooked": "{count}건",
+    "kpiBookings": "이번 주 예약 수",
+    "kpiRevenue": "이번 주 매출",
+    "kpiAvgLoad": "평균 예약률",
+    "million": "백만",
+    "legendBooked": "예약됨",
+    "legendFree": "여유",
+    "legendDayOff": "휴무"
+  },
+  "editor": {
+    "title": "일정",
+    "subtitle": "요일별 근무 시간을 설정하세요",
+    "saving": "저장 중…",
+    "saved": "저장됨!",
+    "break": "휴게 시간:",
+    "dayOff": "휴무"
+  },
+  "days": {
+    "mon": "월요일",
+    "tue": "화요일",
+    "wed": "수요일",
+    "thu": "목요일",
+    "fri": "금요일",
+    "sat": "토요일",
+    "sun": "일요일"
+  },
+  "daysShort": {
+    "mon": "월",
+    "tue": "화",
+    "wed": "수",
+    "thu": "목",
+    "fri": "금",
+    "sat": "토",
+    "sun": "일"
+  },
+  "months": {
+    "jan": "1월",
+    "feb": "2월",
+    "mar": "3월",
+    "apr": "4월",
+    "may": "5월",
+    "jun": "6월",
+    "jul": "7월",
+    "aug": "8월",
+    "sep": "9월",
+    "oct": "10월",
+    "nov": "11월",
+    "dec": "12월"
+  }
+}

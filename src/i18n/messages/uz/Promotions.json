@@ -1,0 +1,60 @@
+{
+  "codePlaceholder": "SUMMER20",
+  "master": {
+    "title": "Mening promokodlarim",
+    "subtitle": "Mijozlar band qilishda kodni kiritib chegirma oladi",
+    "createButton": "Yaratish",
+    "form": {
+      "title": "Yangi promokod",
+      "codeLabel": "Kod (A-Z, 0-9)",
+      "discountLabel": "Chegirma %",
+      "maxUsesLabel": "Maks. foydalanish soni",
+      "maxUsesHint": "(bo'sh = cheklovsiz)",
+      "expiresLabel": "Amal qilish muddati",
+      "expiresHint": "(bo'sh = muddatsiz)",
+      "submitting": "Yaratilmoqda…",
+      "submit": "Promokod yaratish"
+    },
+    "errors": {
+      "codeRequired": "Kodni kiriting",
+      "discountRange": "Chegirma 1 dan 100% gacha bo'lishi kerak"
+    },
+    "empty": "Promokodlar yo'q — birinchisini yarating",
+    "disabledBadge": "O'chirilgan",
+    "usesWithMax": "Foydalanilgan: {current} / {max}",
+    "usesNoMax": "Foydalanilgan: {current}",
+    "untilDate": "{date} gacha",
+    "unlimited": "Muddatsiz",
+    "enableTooltip": "Yoqish",
+    "disableTooltip": "O'chirish",
+    "deleteConfirm": "{code} promokodini o'chirasizmi?",
+    "infoBox": "Mijoz ilova orqali band qilishda kodni kiritadi. Chegirma xizmat narxiga qo'llaniladi. Har bir promokod sizga bog'langan — mijoz kod bilan birga ustangizning ismini ham ko'rsatishi kerak."
+  },
+  "owner": {
+    "title": "Aksiyalar va promokodlar",
+    "subtitle": "Har bir usta o'z promokodlarini mustaqil boshqaradi",
+    "teamTitle": "Jamoa",
+    "noMasters": "Jamoada ustalar yo'q",
+    "selfManaged": "o'zi boshqaradi",
+    "validate": {
+      "title": "Promokodni tekshirish",
+      "subtitle": "Chegirmani qo'lda qo'llashdan oldin promokod faolligiga ishonch hosil qiling",
+      "masterLabel": "Usta",
+      "masterPlaceholder": "Ustani tanlang…",
+      "codeLabel": "Promokod",
+      "submitting": "Tekshirilmoqda…",
+      "submit": "Tekshirish",
+      "resultValid": "Promokod amal qiladi",
+      "resultInvalid": "Promokod yaroqsiz",
+      "discountResult": "Chegirma: {pct}%"
+    },
+    "errors": {
+      "not_found": "Promokod topilmadi",
+      "inactive": "Promokod o'chirilgan",
+      "expired": "Amal qilish muddati tugagan",
+      "max_uses": "Foydalanish limiti tugagan",
+      "unknown": "Noma'lum xatolik"
+    },
+    "infoBox": "Ustalar o'z hisoblarining \"Aksiyalar\" bo'limida promokodlar yaratadi. Mijoz onlayn band qilishda kodni kiritadi — chegirma avtomatik qo'llaniladi."
+  }
+}

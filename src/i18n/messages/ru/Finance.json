@@ -1,0 +1,39 @@
+{
+  "title": "Финансы",
+  "subtitle": "Выручка и показатели",
+  "periods": {
+    "month": "Месяц",
+    "quarter": "Квартал",
+    "year": "Год"
+  },
+  "kpi": {
+    "revenue": {
+      "label": "Общая выручка",
+      "vsPrevious": "к прошлому"
+    },
+    "appointments": {
+      "label": "Записей",
+      "completed": "{count} завершено"
+    },
+    "newClients": {
+      "label": "Новые клиенты",
+      "caption": "впервые за период"
+    },
+    "returning": {
+      "label": "Постоянные",
+      "caption": "вернулись"
+    }
+  },
+  "charts": {
+    "byDay": {
+      "title": "Записи по дням"
+    },
+    "topServices": {
+      "title": "Топ услуг",
+      "count": "{count, plural, one {# запись} other {# записей}}"
+    }
+  },
+  "emptyState": {
+    "message": "Нет данных за период"
+  }
+}

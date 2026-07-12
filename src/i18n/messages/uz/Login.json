@@ -1,0 +1,38 @@
+{
+  "tagline": "Sartaroshxona boshqaruv paneli",
+  "login": {
+    "title": "Qaytganingizdan xursandmiz",
+    "subtitle": "Davom etish uchun tizimga kiring",
+    "phoneLabel": "Telefon raqami",
+    "passwordLabel": "Parol",
+    "submit": "Kirish",
+    "submitting": "Kirilmoqda…",
+    "noAccount": "Hisobingiz yo'qmi?",
+    "createSalonLink": "Salon yaratish"
+  },
+  "register": {
+    "title": "Salon yaratish",
+    "subtitle": "Ro'yxatdan o'ting va ishni boshlang",
+    "firstNameLabel": "Ism",
+    "firstNamePlaceholder": "Alisher",
+    "lastNameLabel": "Familiya",
+    "lastNamePlaceholder": "Karimov",
+    "phoneLabel": "Telefon raqami",
+    "passwordLabel": "Parol",
+    "passwordPlaceholder": "Kamida 6 ta belgi",
+    "confirmPasswordLabel": "Parolni takrorlang",
+    "submit": "Hisob yaratish",
+    "submitting": "Ro'yxatdan o'tkazilmoqda…",
+    "haveAccount": "Hisobingiz bormi?",
+    "loginLink": "Kirish"
+  },
+  "errors": {
+    "phoneInvalidKr": "Raqam 10 bilan boshlanishi va 10 ta raqamdan iborat bo'lishi kerak",
+    "phoneInvalidUz": "To'g'ri raqam kiriting (9 ta raqam)",
+    "passwordMismatch": "Parollar mos kelmadi",
+    "passwordTooShort": "Parol kamida 6 ta belgidan iborat bo'lishi kerak",
+    "serverResponseInvalid": "Serverdan noto'g'ri javob",
+    "loginFailed": "Telefon raqami yoki parol noto'g'ri",
+    "registerFailed": "Ro'yxatdan o'tishda xatolik"
+  }
+}

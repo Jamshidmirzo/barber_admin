@@ -1,0 +1,45 @@
+{
+  "title": "Barbers",
+  "searchPlaceholder": "Search by phone",
+  "invite": "Invite",
+  "addBarber": "Add barber",
+  "currency": "sum",
+  "banner": {
+    "created": "Barber created — share the login details:",
+    "copy": "Copy",
+    "copied": "Copied",
+    "clipboardText": "Phone: {phone}\nPassword: {password}"
+  },
+  "empty": "No barbers yet. Add your first one!",
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "stats": {
+    "revenue": "revenue",
+    "appointments": "bookings",
+    "workedHours": "worked",
+    "hoursShort": "h"
+  },
+  "modal": {
+    "title": "Add barber",
+    "tabCreate": "Create new",
+    "tabSearch": "Find in system",
+    "nameLabel": "First name",
+    "namePlaceholder": "Alisher",
+    "lastNameLabel": "Last name",
+    "lastNamePlaceholder": "Karimov",
+    "phoneLabel": "Phone",
+    "phonePlaceholder": "+998 90 123 45 67",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "At least 6 characters",
+    "createError": "Failed to create",
+    "creating": "Creating...",
+    "create": "Create",
+    "searchPlaceholder": "Name or phone...",
+    "searching": "Searching...",
+    "noResults": "No one found",
+    "inTeam": "In team",
+    "minChars": "Enter at least 2 characters"
+  }
+}

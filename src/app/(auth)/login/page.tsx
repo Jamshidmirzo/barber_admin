@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Eye, EyeOff } from "lucide-react";
 import api, { parseApiError } from "@/lib/api";
 
@@ -61,6 +62,7 @@ function isValidPhone(phone: string, cc: CountryCode): boolean {
 type View = "login" | "register";
 
 export default function LoginPage() {
+  const t = useTranslations("Login");
   const router = useRouter();
   const [view, setView] = useState<View>("login");
   const [phone, setPhone] = useState("+998");
@@ -86,7 +88,7 @@ export default function LoginPage() {
   e.preventDefault();
   setError("");
   if (!isValidPhone(phone, loginCountry)) {
-    setError(loginCountry === "82" ? "Номер должен начинаться с 10 и содержать 10 цифр" : "Введите корректный номер (9 цифр)");
+    setError(loginCountry === "82" ? t("errors.phoneInvalidKr") : t("errors.phoneInvalidUz"));
     return;
   }
   setLoading(true);
@@ -94,9 +96,9 @@ export default function LoginPage() {
     const res = await api.post("/auth/login", { phone: phone.replace(/\s/g, ""), password });
     const token = res.data?.tokens?.access_token;
     if (token) saveToken(token);
-    else setError("Неверный ответ сервера");
+    else setError(t("errors.serverResponseInvalid"));
   } catch (err) {
-    setError(parseApiError(err, "Неверный телефон или пароль"));
+    setError(parseApiError(err, t("errors.loginFailed")));
   } finally { setLoading(false); }
 }
 
@@ -104,11 +106,11 @@ export default function LoginPage() {
   e.preventDefault();
   setError("");
   if (!isValidPhone(regPhone, regCountry)) {
-    setError(regCountry === "82" ? "Номер должен начинаться с 10 и содержать 10 цифр" : "Введите корректный номер (9 цифр)");
+    setError(regCountry === "82" ? t("errors.phoneInvalidKr") : t("errors.phoneInvalidUz"));
     return;
   }
-  if (regPass !== regPass2) { setError("Пароли не совпадают"); return; }
-  if (regPass.length < 6) { setError("Пароль минимум 6 символов"); return; }
+  if (regPass !== regPass2) { setError(t("errors.passwordMismatch")); return; }
+  if (regPass.length < 6) { setError(t("errors.passwordTooShort")); return; }
   setLoading(true);
   try {
     const res = await api.post("/auth/register", {
@@ -117,9 +119,9 @@ export default function LoginPage() {
     });
     const token = res.data?.tokens?.access_token;
     if (token) saveToken(token);
-    else setError("Неверный ответ сервера");
+    else setError(t("errors.serverResponseInvalid"));
   } catch (err) {
-    setError(parseApiError(err, "Ошибка регистрации"));
+    setError(parseApiError(err, t("errors.registerFailed")));
   } finally { setLoading(false); }
 }
 
@@ -145,7 +147,7 @@ export default function LoginPage() {
             HÁYRLI
           </div>
           <div style={{ color:"var(--text2)", fontSize:13, marginTop:6, letterSpacing:".02em" }}>
-            Панель управления барбершопом
+            {t("tagline")}
           </div>
         </div>
 
@@ -157,11 +159,11 @@ export default function LoginPage() {
         }}>
           {view === "login" ? (
             <>
-              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:19, fontWeight:600, marginBottom:2 }}>С возвращением</div>
-              <div style={{ color:"var(--text2)", fontSize:12.5, marginBottom:22 }}>Войдите, чтобы продолжить работу</div>
+              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:19, fontWeight:600, marginBottom:2 }}>{t("login.title")}</div>
+              <div style={{ color:"var(--text2)", fontSize:12.5, marginBottom:22 }}>{t("login.subtitle")}</div>
 
               <form onSubmit={handleLogin} style={{ display:"flex", flexDirection:"column", gap:0 }}>
-                <label style={lbl}>Номер телефона</label>
+                <label style={lbl}>{t("login.phoneLabel")}</label>
                 <div style={{ display:"flex", gap:8, marginBottom:16 }}>
                   {COUNTRIES.map((c) => (
                     <button
@@ -189,7 +191,7 @@ export default function LoginPage() {
                   }}
                   style={{ ...inp, marginBottom:16 }}
                 />
-                <label style={lbl}>Пароль</label>
+                <label style={lbl}>{t("login.passwordLabel")}</label>
                 <div style={{ position:"relative", marginBottom:22 }}>
                   <input
                     type={showPass ? "text" : "password"} value={password} placeholder="••••••••" required
@@ -216,38 +218,38 @@ export default function LoginPage() {
                   cursor: loading ? "not-allowed" : "pointer", letterSpacing:".01em",
                   opacity: loading ? 0.6 : 1, fontFamily:"inherit",
                 }}>
-                  {loading ? "Входим…" : "Войти"}
+                  {loading ? t("login.submitting") : t("login.submit")}
                 </button>
 
                 <div style={{ textAlign:"center", marginTop:16, fontSize:12, color:"var(--text3)" }}>
-                  Нет аккаунта?{" "}
+                  {t("login.noAccount")}{" "}
                   <span
                     onClick={() => { setView("register"); setError(""); }}
                     style={{ color:"var(--gold)", cursor:"pointer", fontWeight:600 }}
                   >
-                    Создать салон
+                    {t("login.createSalonLink")}
                   </span>
                 </div>
               </form>
             </>
           ) : (
             <>
-              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:19, fontWeight:600, marginBottom:2 }}>Создать салон</div>
-              <div style={{ color:"var(--text2)", fontSize:12.5, marginBottom:22 }}>Зарегистрируйтесь и начните работу</div>
+              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:19, fontWeight:600, marginBottom:2 }}>{t("register.title")}</div>
+              <div style={{ color:"var(--text2)", fontSize:12.5, marginBottom:22 }}>{t("register.subtitle")}</div>
 
               <form onSubmit={handleRegister} style={{ display:"flex", flexDirection:"column", gap:0 }}>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
                   <div>
-                    <label style={lbl}>Имя</label>
-                    <input value={regName} onChange={(e) => setRegName(e.target.value)} placeholder="Алишер" required style={inp} />
+                    <label style={lbl}>{t("register.firstNameLabel")}</label>
+                    <input value={regName} onChange={(e) => setRegName(e.target.value)} placeholder={t("register.firstNamePlaceholder")} required style={inp} />
                   </div>
                   <div>
-                    <label style={lbl}>Фамилия</label>
-                    <input value={regLastName} onChange={(e) => setRegLastName(e.target.value)} placeholder="Каримов" style={inp} />
+                    <label style={lbl}>{t("register.lastNameLabel")}</label>
+                    <input value={regLastName} onChange={(e) => setRegLastName(e.target.value)} placeholder={t("register.lastNamePlaceholder")} style={inp} />
                   </div>
                 </div>
 
-                <label style={lbl}>Номер телефона</label>
+                <label style={lbl}>{t("register.phoneLabel")}</label>
                 <div style={{ display:"flex", gap:8, marginBottom:16 }}>
                   {COUNTRIES.map((c) => (
                     <button
@@ -276,10 +278,10 @@ export default function LoginPage() {
                   style={{ ...inp, marginBottom:16 }}
                 />
 
-                <label style={lbl}>Пароль</label>
+                <label style={lbl}>{t("register.passwordLabel")}</label>
                 <div style={{ position:"relative", marginBottom:16 }}>
                   <input
-                    type={showRegPass ? "text" : "password"} value={regPass} placeholder="Минимум 6 символов" required
+                    type={showRegPass ? "text" : "password"} value={regPass} placeholder={t("register.passwordPlaceholder")} required
                     onChange={(e) => setRegPass(e.target.value)}
                     style={{ ...inp, paddingRight:42 }}
                   />
@@ -291,7 +293,7 @@ export default function LoginPage() {
                   </button>
                 </div>
 
-                <label style={lbl}>Повторите пароль</label>
+                <label style={lbl}>{t("register.confirmPasswordLabel")}</label>
                 <input
                   type="password" value={regPass2} placeholder="••••••" required
                   onChange={(e) => setRegPass2(e.target.value)}
@@ -310,16 +312,16 @@ export default function LoginPage() {
                   cursor: loading ? "not-allowed" : "pointer", letterSpacing:".01em",
                   opacity: loading ? 0.6 : 1, fontFamily:"inherit",
                 }}>
-                  {loading ? "Регистрируем…" : "Создать аккаунт"}
+                  {loading ? t("register.submitting") : t("register.submit")}
                 </button>
 
                 <div style={{ textAlign:"center", marginTop:16, fontSize:12, color:"var(--text3)" }}>
-                  Уже есть аккаунт?{" "}
+                  {t("register.haveAccount")}{" "}
                   <span
                     onClick={() => { setView("login"); setError(""); }}
                     style={{ color:"var(--gold)", cursor:"pointer", fontWeight:600 }}
                   >
-                    Войти
+                    {t("register.loginLink")}
                   </span>
                 </div>
               </form>

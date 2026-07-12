@@ -1,0 +1,45 @@
+{
+  "title": "Клиенты",
+  "currency": "сум",
+  "searchPlaceholder": "Поиск по имени или телефону",
+  "emptyState": {
+    "notFound": "Ничего не найдено",
+    "noClients": "Нет клиентов"
+  },
+  "visitsCount": "{count, plural, one {# визит} few {# визита} many {# визитов} other {# визитов}}",
+  "crm": {
+    "subtitle": "{count} клиентов в базе салона",
+    "exportButton": "Экспорт CSV",
+    "exportingButton": "Готовим...",
+    "tabs": { "list": "Все клиенты", "rating": "Рейтинг лояльности" },
+    "allCities": "Все города",
+    "sort": { "visits": "По визитам", "revenue": "По выручке", "lastVisit": "По дате" },
+    "table": { "name": "Имя", "phone": "Телефон", "city": "Город", "visits": "Визиты", "revenue": "Выручка", "lastVisit": "Последний" },
+    "loadMore": "Показать ещё",
+    "rating": {
+      "subtitle": "Топ-20 клиентов по количеству визитов",
+      "shareButton": "Поделиться",
+      "copiedButton": "Скопировано",
+      "emptyState": "Пока нет визитов для рейтинга",
+      "shareHeader": "🏆 Самые лояльные клиенты {salon}:",
+      "shareFooter": "Спасибо, что выбираете нас! 💈"
+    }
+  },
+  "personal": {
+    "subtitle": "{count} клиентов",
+    "modal": { "createTitle": "Новый клиент", "editTitle": "Редактировать клиента" },
+    "form": {
+      "name": "Имя",
+      "phone": "Телефон",
+      "notes": "Заметки",
+      "namePlaceholder": "Иван Иванов",
+      "phonePlaceholder": "+998901234567",
+      "notesPlaceholder": "Необязательно",
+      "createSubmit": "Создать",
+      "submitting": "..."
+    },
+    "deleteConfirm": "Удалить клиента \"{name}\"?",
+    "deleteButton": "Удалить клиента",
+    "deletingButton": "Удаляем..."
+  }
+}

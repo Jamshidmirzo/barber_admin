@@ -1,0 +1,40 @@
+{
+  "title": "Dashboard",
+  "subtitle": "{salonName} — summary statistics",
+  "kpis": {
+    "revenueToday": "Revenue Today",
+    "appointmentsToday": "Appointments Today",
+    "load": "Utilization",
+    "avgCheck": "Average Check",
+    "comparedToYesterday": "vs. yesterday"
+  },
+  "weekRevenue": {
+    "title": "Weekly Revenue",
+    "total": "Total",
+    "empty": "No data for this week"
+  },
+  "topBarbers": {
+    "title": "Top Barbers",
+    "appointmentsCount": "{count, plural, one {# appointment} other {# appointments}}"
+  },
+  "upcoming": {
+    "title": "Upcoming Appointments",
+    "viewAll": "View All →",
+    "loadError": "Failed to load data. Check your connection.",
+    "empty": "No appointments today"
+  },
+  "status": {
+    "pending": "Pending",
+    "scheduled": "Scheduled",
+    "confirmed": "Confirmed",
+    "inprogress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "noshow": "No-show"
+  },
+  "units": {
+    "million": "M",
+    "thousand": "K"
+  },
+  "currency": "UZS"
+}

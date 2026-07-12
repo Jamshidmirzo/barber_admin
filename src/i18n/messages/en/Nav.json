@@ -1,0 +1,24 @@
+{
+  "groups": { "main": "Main", "clientele": "Clientele", "business": "Business" },
+  "items": {
+    "overview": "Overview",
+    "appointments": "Appointments",
+    "schedule": "Schedule",
+    "promotions": "Promotions",
+    "clients": "Clients",
+    "services": "Services",
+    "barbers": "Barbers",
+    "analytics": "Analytics",
+    "finance": "Finance"
+  },
+  "lightTheme": "Light theme",
+  "darkTheme": "Dark theme",
+  "logout": "Log out",
+  "language": "Language",
+  "owner": "Owner",
+  "master": "Barber",
+  "loadError": {
+    "title": "Failed to load salon",
+    "subtitle": "Check your connection and refresh the page."
+  }
+}

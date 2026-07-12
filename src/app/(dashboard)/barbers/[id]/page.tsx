@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { ArrowLeft, Phone, TrendingUp, FileText, Film, Heart, Eye } from "lucide-react";
 import api from "@/lib/api";
+import { useIntlLocale } from "@/lib/locale";
 
 interface TopService { service_id: string; name: string; count: number; }
 interface RecentClient { client_id: string | null; name: string; date: string; service_name: string | null; amount_uzs: number; }
@@ -24,16 +26,19 @@ interface MasterContentStats {
 
 type PeriodKey = "7" | "30" | "90" | "custom";
 
-function fmt(n: number) { return n.toLocaleString("ru") + " сум"; }
+function fmt(n: number, currency: string, locale: string) { return n.toLocaleString(locale) + " " + currency; }
+function shortDay(iso: string, locale: string) { return new Date(iso).toLocaleDateString(locale, { day:"2-digit", month:"2-digit" }); }
 function isoDate(d: Date) { return d.toISOString().slice(0, 10); }
 function initials(name: string, phone: string) { const n = name.trim(); return n && n !== "—" ? n.slice(0, 2).toUpperCase() : phone.slice(-2); }
-function shortDay(iso: string) { return new Date(iso).toLocaleDateString("ru", { day:"2-digit", month:"2-digit" }); }
 
 const cardS: React.CSSProperties = { background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)" };
 
 export default function BarberDetailPage() {
+  const t = useTranslations("BarberDetail");
+  const tc = useTranslations("Common");
   const params = useParams<{ id: string }>();
   const id = params.id;
+  const currency = t("currency");
   const [period, setPeriod] = useState<PeriodKey>("30");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
@@ -56,20 +61,26 @@ export default function BarberDetailPage() {
     queryFn: () => api.get(`/team/members/${id}/content-stats`).then((r) => r.data),
   });
 
+  const locale = useIntlLocale();
   const totalHours = data ? data.worked_hours + data.idle_hours : 0;
   const efficiency = totalHours > 0 ? Math.round((data!.worked_hours / totalHours) * 100) : 0;
   const idlePct = totalHours > 0 ? Math.round((data!.idle_hours / totalHours) * 100) : 0;
   const maxServiceCount = Math.max(...(data?.top_services.map((s) => s.count) ?? [1]), 1);
   const hasContent = contentData && (contentData.posts_count > 0 || contentData.reels_count > 0 || contentData.likes_count > 0 || contentData.total_reels_views > 0 || contentData.story_views_24h > 0);
 
-  const periods: { key: PeriodKey; label: string }[] = [{ key:"7", label:"7д" }, { key:"30", label:"30д" }, { key:"90", label:"90д" }, { key:"custom", label:"Период" }];
+  const periods: { key: PeriodKey; label: string }[] = [
+    { key:"7", label: t("periods.d7") },
+    { key:"30", label: t("periods.d30") },
+    { key:"90", label: t("periods.d90") },
+    { key:"custom", label: t("periods.custom") },
+  ];
 
   const inp: React.CSSProperties = { background:"var(--bg)", color:"var(--text)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"7px 12px", fontSize:13, outline:"none" };
 
   return (
     <div style={{ padding:"32px 36px", maxWidth:900 }}>
       <Link href="/barbers" style={{ display:"inline-flex", alignItems:"center", gap:6, color:"var(--text2)", fontSize:13, textDecoration:"none", marginBottom:20 }}>
-        <ArrowLeft size={14} /> Назад к команде
+        <ArrowLeft size={14} /> {t("backToTeam")}
       </Link>
 
       {/* Header */}
@@ -82,7 +93,7 @@ export default function BarberDetailPage() {
             ) : initials(data?.name ?? "", data?.phone ?? "")}
           </div>
           <div style={{ minWidth:0 }}>
-            <h1 style={{ color:"var(--text)", fontSize:20, fontWeight:700, margin:0 }}>{data?.name ?? "Барбер"}</h1>
+            <h1 style={{ color:"var(--text)", fontSize:20, fontWeight:700, margin:0 }}>{data?.name ?? t("defaultName")}</h1>
             <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:4 }}>
               {data?.specializations?.length ? data.specializations.map((s) => (
                 <span key={s} style={{ fontSize:11, background:"var(--bg)", border:"1px solid var(--border)", color:"var(--text2)", padding:"2px 8px", borderRadius:20 }}>{s}</span>
@@ -92,7 +103,7 @@ export default function BarberDetailPage() {
         </div>
         {data?.phone && (
           <a href={`tel:${data.phone}`} style={{ display:"flex", alignItems:"center", gap:6, background:"var(--gold)", color:"#0a0a0b", textDecoration:"none", borderRadius:"var(--radius)", padding:"9px 16px", fontSize:13, fontWeight:700 }}>
-            <Phone size={14} /> Позвонить
+            <Phone size={14} /> {t("call")}
           </a>
         )}
       </div>
@@ -104,9 +115,9 @@ export default function BarberDetailPage() {
         </div>
       ) : (
         <div style={{ ...cardS, marginBottom:24, display:"grid", gridTemplateColumns:"1fr 1fr 1fr" }}>
-          <SummaryCell label="Записи" value={String(data.total_appointments)} />
-          <SummaryCell label="Клиенты" value={String(data.unique_clients)} border />
-          <SummaryCell label="Выручка" value={fmt(data.total_revenue)} border small />
+          <SummaryCell label={t("summary.appointments")} value={String(data.total_appointments)} />
+          <SummaryCell label={t("summary.clients")} value={String(data.unique_clients)} border />
+          <SummaryCell label={t("summary.revenue")} value={fmt(data.total_revenue, currency, locale)} border small />
         </div>
       )}
 
@@ -137,12 +148,12 @@ export default function BarberDetailPage() {
           {/* Content stats */}
           {hasContent && (
             <div style={{ ...cardS, padding:20, marginBottom:16 }}>
-              <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 14px" }}>Контент</p>
+              <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 14px" }}>{t("content.title")}</p>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
-                <ContentCard icon={<FileText size={14} />} label="Посты" value={contentData!.posts_count} />
-                <ContentCard icon={<Film size={14} />} label="Реелсы" value={contentData!.reels_count} />
-                <ContentCard icon={<Heart size={14} />} label="Лайки" value={contentData!.likes_count} />
-                <ContentCard icon={<Eye size={14} />} label="Сторис 24ч" value={contentData!.story_views_24h} />
+                <ContentCard icon={<FileText size={14} />} label={t("content.posts")} value={contentData!.posts_count} />
+                <ContentCard icon={<Film size={14} />} label={t("content.reels")} value={contentData!.reels_count} />
+                <ContentCard icon={<Heart size={14} />} label={t("content.likes")} value={contentData!.likes_count} />
+                <ContentCard icon={<Eye size={14} />} label={t("content.stories24h")} value={contentData!.story_views_24h} />
               </div>
             </div>
           )}
@@ -150,30 +161,30 @@ export default function BarberDetailPage() {
           {/* Time utilisation */}
           <div style={{ ...cardS, padding:20, marginBottom:16 }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-              <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>Загрузка времени</p>
-              <span style={{ fontSize:12, color: idlePct > 30 ? "var(--red)" : "var(--text3)" }}>{idlePct}% пустые слоты</span>
+              <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>{t("timeUsage.title")}</p>
+              <span style={{ fontSize:12, color: idlePct > 30 ? "var(--red)" : "var(--text3)" }}>{t("timeUsage.idlePct", { pct: idlePct })}</span>
             </div>
             <div style={{ height:10, width:"100%", borderRadius:5, background:"var(--bg)", overflow:"hidden", display:"flex" }}>
               <div style={{ background:"var(--gold)", height:"100%", borderRadius:"5px 0 0 5px", width:`${efficiency}%` }} />
               <div style={{ background:"rgba(224,90,90,0.4)", height:"100%", borderRadius:"0 5px 5px 0", width:`${idlePct}%` }} />
             </div>
             <div style={{ display:"flex", gap:16, marginTop:8, fontSize:12, color:"var(--text3)" }}>
-              <span style={{ display:"flex", alignItems:"center", gap:5 }}><span style={{ width:10, height:10, borderRadius:"50%", background:"var(--gold)", display:"inline-block" }} /> Работал {data.worked_hours} ч</span>
-              <span style={{ display:"flex", alignItems:"center", gap:5 }}><span style={{ width:10, height:10, borderRadius:"50%", background:"rgba(224,90,90,0.4)", display:"inline-block" }} /> Пустые {data.idle_hours} ч</span>
+              <span style={{ display:"flex", alignItems:"center", gap:5 }}><span style={{ width:10, height:10, borderRadius:"50%", background:"var(--gold)", display:"inline-block" }} /> {t("timeUsage.worked", { hours: data.worked_hours })}</span>
+              <span style={{ display:"flex", alignItems:"center", gap:5 }}><span style={{ width:10, height:10, borderRadius:"50%", background:"rgba(224,90,90,0.4)", display:"inline-block" }} /> {t("timeUsage.idle", { hours: data.idle_hours })}</span>
             </div>
           </div>
 
           {/* Revenue chart */}
           <div style={{ ...cardS, padding:20, marginBottom:16 }}>
-            <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 16px" }}>Выручка по дням</p>
+            <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 16px" }}>{t("revenueChart.title")}</p>
             {data.revenue_by_day.some((d) => d.revenue > 0) ? (
               <div style={{ height:240 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={data.revenue_by_day} margin={{ top:5, right:10, left:0, bottom:0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                    <XAxis dataKey="date" tickFormatter={shortDay} tick={{ fill:"var(--text3)", fontSize:11 }} stroke="var(--border)" minTickGap={24} />
+                    <XAxis dataKey="date" tickFormatter={(value) => shortDay(value, locale)} tick={{ fill:"var(--text3)", fontSize:11 }} stroke="var(--border)" minTickGap={24} />
                     <YAxis tickFormatter={(v) => v >= 1000 ? `${Math.round(v/1000)}k` : String(v)} tick={{ fill:"var(--text3)", fontSize:11 }} stroke="var(--border)" width={40} />
-                    <Tooltip contentStyle={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:12, color:"var(--text)", fontSize:13 }} labelFormatter={(l) => new Date(l as string).toLocaleDateString("ru")} formatter={(v) => [fmt(Number(v)), "Выручка"] as [string, string]} />
+                    <Tooltip contentStyle={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:12, color:"var(--text)", fontSize:13 }} labelFormatter={(l) => new Date(l as string).toLocaleDateString(locale)} formatter={(v) => [fmt(Number(v), currency, locale), t("revenueChart.tooltipLabel")] as [string, string]} />
                     <Line type="monotone" dataKey="revenue" stroke="var(--gold)" strokeWidth={2} dot={false} activeDot={{ r:4, fill:"var(--gold)" }} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -181,7 +192,7 @@ export default function BarberDetailPage() {
             ) : (
               <div style={{ height:120, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
                 <TrendingUp size={24} style={{ color:"var(--text3)", marginBottom:8 }} />
-                <p style={{ color:"var(--text2)", fontSize:13 }}>Нет выручки за период</p>
+                <p style={{ color:"var(--text2)", fontSize:13 }}>{t("revenueChart.empty")}</p>
               </div>
             )}
           </div>
@@ -190,7 +201,7 @@ export default function BarberDetailPage() {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
             {/* Top services */}
             <div style={{ ...cardS, padding:20 }}>
-              <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 14px" }}>Топ услуг</p>
+              <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 14px" }}>{t("topServices.title")}</p>
               {data.top_services.length > 0 ? (
                 <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
                   {data.top_services.map((s) => (
@@ -206,18 +217,18 @@ export default function BarberDetailPage() {
                   ))}
                 </div>
               ) : (
-                <p style={{ color:"var(--text3)", fontSize:13, textAlign:"center", padding:"24px 0" }}>Нет данных</p>
+                <p style={{ color:"var(--text3)", fontSize:13, textAlign:"center", padding:"24px 0" }}>{tc("noData")}</p>
               )}
             </div>
 
             {/* Recent clients */}
             <div style={{ ...cardS, padding:20 }}>
-              <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 14px" }}>Последние клиенты</p>
+              <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 14px" }}>{t("recentClients.title")}</p>
               {data.recent_clients.length > 0 ? (
                 <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
                   <thead>
                     <tr style={{ borderBottom:"1px solid var(--border)" }}>
-                      {["Имя","Услуга","Сумма"].map((h, i) => (
+                      {[t("recentClients.columnName"), t("recentClients.columnService"), t("recentClients.columnAmount")].map((h, i) => (
                         <th key={h} style={{ textAlign: i===2 ? "right" : "left", color:"var(--text3)", fontWeight:600, fontSize:11, paddingBottom:8, textTransform:"uppercase" }}>{h}</th>
                       ))}
                     </tr>
@@ -227,16 +238,16 @@ export default function BarberDetailPage() {
                       <tr key={`${c.client_id ?? "x"}-${i}`} style={{ borderBottom:"1px solid var(--border)" }}>
                         <td style={{ paddingTop:10, paddingBottom:10, paddingRight:8 }}>
                           <p style={{ color:"var(--text)", margin:0 }}>{c.name}</p>
-                          <p style={{ color:"var(--text3)", fontSize:11, margin:0 }}>{new Date(c.date).toLocaleDateString("ru")}</p>
+                          <p style={{ color:"var(--text3)", fontSize:11, margin:0 }}>{new Date(c.date).toLocaleDateString(locale)}</p>
                         </td>
                         <td style={{ color:"var(--text2)", paddingRight:8 }}>{c.service_name ?? "—"}</td>
-                        <td style={{ textAlign:"right", color:"var(--gold)", fontWeight:600, whiteSpace:"nowrap" }}>{fmt(c.amount_uzs)}</td>
+                        <td style={{ textAlign:"right", color:"var(--gold)", fontWeight:600, whiteSpace:"nowrap" }}>{fmt(c.amount_uzs, currency, locale)}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               ) : (
-                <p style={{ color:"var(--text3)", fontSize:13, textAlign:"center", padding:"24px 0" }}>Нет завершённых записей</p>
+                <p style={{ color:"var(--text3)", fontSize:13, textAlign:"center", padding:"24px 0" }}>{t("recentClients.empty")}</p>
               )}
             </div>
           </div>

@@ -1,0 +1,45 @@
+{
+  "title": "Мастера",
+  "searchPlaceholder": "Найти по телефону",
+  "invite": "Пригласить",
+  "addBarber": "Добавить мастера",
+  "currency": "сум",
+  "banner": {
+    "created": "Барбер создан — передайте данные для входа:",
+    "copy": "Копировать",
+    "copied": "Скопировано",
+    "clipboardText": "Телефон: {phone}\nПароль: {password}"
+  },
+  "empty": "Нет барберов. Добавьте первого!",
+  "status": {
+    "active": "Активен",
+    "inactive": "Неактивен"
+  },
+  "stats": {
+    "revenue": "выручка",
+    "appointments": "записей",
+    "workedHours": "отработано",
+    "hoursShort": "ч"
+  },
+  "modal": {
+    "title": "Добавить барбера",
+    "tabCreate": "Создать нового",
+    "tabSearch": "Найти в системе",
+    "nameLabel": "Имя",
+    "namePlaceholder": "Алишер",
+    "lastNameLabel": "Фамилия",
+    "lastNamePlaceholder": "Каримов",
+    "phoneLabel": "Телефон",
+    "phonePlaceholder": "+998 90 123 45 67",
+    "passwordLabel": "Пароль",
+    "passwordPlaceholder": "Минимум 6 символов",
+    "createError": "Ошибка создания",
+    "creating": "Создаём...",
+    "create": "Создать",
+    "searchPlaceholder": "Имя или телефон...",
+    "searching": "Ищем...",
+    "noResults": "Никого не нашли",
+    "inTeam": "В команде",
+    "minChars": "Введите минимум 2 символа"
+  }
+}

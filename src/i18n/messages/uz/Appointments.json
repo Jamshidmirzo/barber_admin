@@ -1,0 +1,36 @@
+{
+  "title": "Yozilishlar",
+  "today": "Bugun",
+  "newAppointment": "Yangi yozilish",
+  "emptyState": "Bu kunga yozilishlar yo'q",
+  "unknownClient": "Mijoz",
+  "unknownService": "Xizmat",
+  "currency": "so'm",
+  "status": {
+    "pending": "Kutilmoqda",
+    "scheduled": "Rejalashtirilgan",
+    "confirmed": "Tasdiqlangan",
+    "inProgress": "Jarayonda",
+    "completed": "Yakunlangan",
+    "cancelled": "Bekor qilingan",
+    "noShow": "Kelmadi"
+  },
+  "modal": {
+    "newTitle": "Yangi yozilish",
+    "editTitle": "Yozilishni tahrirlash",
+    "clientLabel": "Mijoz",
+    "clientPlaceholder": "Ism yoki telefon raqami",
+    "serviceLabel": "Xizmat",
+    "selectServicePlaceholder": "— xizmatni tanlang —",
+    "timeLabel": "Vaqt",
+    "masterLabel": "Usta",
+    "noMasterOption": "— tanlanmagan —",
+    "statusLabel": "Holat",
+    "saving": "...",
+    "deleteButton": "Yozilishni o'chirish",
+    "deleting": "O'chirilmoqda...",
+    "deleteConfirm": "Yozilishni o'chirasizmi?",
+    "createError": "Yozilishni yaratishda xatolik yuz berdi",
+    "saveError": "Saqlashda xatolik yuz berdi"
+  }
+}

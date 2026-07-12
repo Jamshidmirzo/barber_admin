@@ -1,0 +1,45 @@
+{
+  "title": "Clients",
+  "currency": "sum",
+  "searchPlaceholder": "Search by name or phone",
+  "emptyState": {
+    "notFound": "Nothing found",
+    "noClients": "No clients"
+  },
+  "visitsCount": "{count, plural, one {# visit} other {# visits}}",
+  "crm": {
+    "subtitle": "{count, plural, one {# client in the salon database} other {# clients in the salon database}}",
+    "exportButton": "Export CSV",
+    "exportingButton": "Preparing...",
+    "tabs": { "list": "All clients", "rating": "Loyalty rating" },
+    "allCities": "All cities",
+    "sort": { "visits": "By visits", "revenue": "By revenue", "lastVisit": "By date" },
+    "table": { "name": "Name", "phone": "Phone", "city": "City", "visits": "Visits", "revenue": "Revenue", "lastVisit": "Last visit" },
+    "loadMore": "Load more",
+    "rating": {
+      "subtitle": "Top 20 clients by number of visits",
+      "shareButton": "Share",
+      "copiedButton": "Copied",
+      "emptyState": "No visits yet for the rating",
+      "shareHeader": "🏆 Most loyal clients of {salon}:",
+      "shareFooter": "Thank you for choosing us! 💈"
+    }
+  },
+  "personal": {
+    "subtitle": "{count, plural, one {# client} other {# clients}}",
+    "modal": { "createTitle": "New client", "editTitle": "Edit client" },
+    "form": {
+      "name": "Name",
+      "phone": "Phone",
+      "notes": "Notes",
+      "namePlaceholder": "John Smith",
+      "phonePlaceholder": "+998901234567",
+      "notesPlaceholder": "Optional",
+      "createSubmit": "Create",
+      "submitting": "..."
+    },
+    "deleteConfirm": "Delete client \"{name}\"?",
+    "deleteButton": "Delete client",
+    "deletingButton": "Deleting..."
+  }
+}

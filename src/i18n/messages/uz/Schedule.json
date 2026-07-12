@@ -1,0 +1,58 @@
+{
+  "team": {
+    "title": "Jamoa jadvali",
+    "subtitle": "Hafta kunlari bo'yicha sartaroshlar bandligi",
+    "today": "Bugun",
+    "filterAll": "Hammasi",
+    "masterColumn": "Sartarosh",
+    "emptyMasters": "Salonda hali sartaroshlar yo'q.",
+    "cellBooked": "{count} band",
+    "kpiBookings": "Shu haftadagi yozuvlar",
+    "kpiRevenue": "Shu haftadagi daromad",
+    "kpiAvgLoad": "O'rtacha bandlik",
+    "million": "mln",
+    "legendBooked": "Band",
+    "legendFree": "Bo'sh",
+    "legendDayOff": "Dam olish kuni"
+  },
+  "editor": {
+    "title": "Jadval",
+    "subtitle": "Har bir hafta kuni uchun ish vaqtini sozlang",
+    "saving": "Saqlanmoqda…",
+    "saved": "Saqlandi!",
+    "break": "Tanaffus:",
+    "dayOff": "Dam olish kuni"
+  },
+  "days": {
+    "mon": "Dushanba",
+    "tue": "Seshanba",
+    "wed": "Chorshanba",
+    "thu": "Payshanba",
+    "fri": "Juma",
+    "sat": "Shanba",
+    "sun": "Yakshanba"
+  },
+  "daysShort": {
+    "mon": "Du",
+    "tue": "Se",
+    "wed": "Cho",
+    "thu": "Pa",
+    "fri": "Ju",
+    "sat": "Sha",
+    "sun": "Ya"
+  },
+  "months": {
+    "jan": "yan",
+    "feb": "fev",
+    "mar": "mar",
+    "apr": "apr",
+    "may": "may",
+    "jun": "iyun",
+    "jul": "iyul",
+    "aug": "avg",
+    "sep": "sen",
+    "oct": "okt",
+    "nov": "noy",
+    "dec": "dek"
+  }
+}

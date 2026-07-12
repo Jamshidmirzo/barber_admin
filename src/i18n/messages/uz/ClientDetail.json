@@ -1,0 +1,27 @@
+{
+  "backLink": "Mijozlarga qaytish",
+  "currency": "so'm",
+  "notFound": "Mijoz topilmadi",
+  "favoriteBarberLabel": "Usta:",
+  "favoriteServiceLabel": "Xizmat:",
+  "idle": {
+    "today": "Bugun kelgan",
+    "daysAgo": "{days, plural, other {# kundan beri kelmagan}}"
+  },
+  "kpi": {
+    "visits": "Tashriflar",
+    "revenue": "Daromad",
+    "firstVisit": "Birinchi tashrif",
+    "lastVisit": "Oxirgi tashrif"
+  },
+  "history": {
+    "title": "Tashriflar tarixi",
+    "empty": "Hali yakunlangan tashriflar yo'q",
+    "table": {
+      "date": "Sana",
+      "barber": "Usta",
+      "service": "Xizmat",
+      "amount": "Summa"
+    }
+  }
+}

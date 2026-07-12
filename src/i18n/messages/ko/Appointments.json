@@ -1,0 +1,36 @@
+{
+  "title": "예약",
+  "today": "오늘",
+  "newAppointment": "새 예약",
+  "emptyState": "이 날짜에는 예약이 없습니다",
+  "unknownClient": "고객",
+  "unknownService": "서비스",
+  "currency": "숨",
+  "status": {
+    "pending": "대기 중",
+    "scheduled": "예정됨",
+    "confirmed": "확정됨",
+    "inProgress": "진행 중",
+    "completed": "완료됨",
+    "cancelled": "취소됨",
+    "noShow": "노쇼"
+  },
+  "modal": {
+    "newTitle": "새 예약",
+    "editTitle": "예약 수정",
+    "clientLabel": "고객",
+    "clientPlaceholder": "이름 또는 전화번호",
+    "serviceLabel": "서비스",
+    "selectServicePlaceholder": "— 서비스를 선택하세요 —",
+    "timeLabel": "시간",
+    "masterLabel": "디자이너",
+    "noMasterOption": "— 선택 안 함 —",
+    "statusLabel": "상태",
+    "saving": "...",
+    "deleteButton": "예약 삭제",
+    "deleting": "삭제 중...",
+    "deleteConfirm": "이 예약을 삭제하시겠습니까?",
+    "createError": "예약 생성 중 오류가 발생했습니다",
+    "saveError": "저장 중 오류가 발생했습니다"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "title": "Создание салона",
+  "subtitle": "Назовите барбершоп, чтобы начать работу",
+  "name": {
+    "label": "Название салона",
+    "placeholder": "Flek Barbershop"
+  },
+  "brn": {
+    "label": "Номер регистрации бизнеса (사업자등록번호)",
+    "placeholder": "0000000000",
+    "error": "Должно содержать ровно 10 цифр"
+  },
+  "location": {
+    "label": "Найдите ваш салон на Kakao Map",
+    "change": "Изменить",
+    "manualPlaceholder": "Полный адрес салона",
+    "findButton": "Найти",
+    "backToSearch": "← Вернуться к поиску по названию",
+    "searchPlaceholder": "Название салона на Kakao Map",
+    "noResults": "Ничего не найдено",
+    "manualToggle": "Не могу найти — ввести адрес вручную"
+  },
+  "errors": {
+    "geocode": "Не удалось определить адрес",
+    "submit": "Не удалось создать салон"
+  },
+  "submit": {
+    "button": "Создать салон",
+    "submitting": "Создаём..."
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "groups": { "main": "Главное", "clientele": "Клиентура", "business": "Бизнес" },
+  "items": {
+    "overview": "Обзор",
+    "appointments": "Записи",
+    "schedule": "Расписание",
+    "promotions": "Акции",
+    "clients": "Клиенты",
+    "services": "Услуги",
+    "barbers": "Мастера",
+    "analytics": "Аналитика",
+    "finance": "Финансы"
+  },
+  "lightTheme": "Светлая тема",
+  "darkTheme": "Тёмная тема",
+  "logout": "Выйти",
+  "language": "Язык",
+  "owner": "Владелец",
+  "master": "Мастер",
+  "loadError": {
+    "title": "Не удалось загрузить салон",
+    "subtitle": "Проверьте подключение и обновите страницу."
+  }
+}

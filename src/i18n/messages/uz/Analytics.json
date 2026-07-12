@@ -1,0 +1,71 @@
+{
+  "title": "Tahlil",
+  "subtitle": "Yuklama, daromad tendensiyalari va aksiya bo'yicha tavsiyalar",
+  "currency": "so'm",
+  "periods": {
+    "d30": "30 kun",
+    "d90": "90 kun",
+    "m6": "6 oy",
+    "year": "yil"
+  },
+  "days": {
+    "short": {
+      "mon": "Dush",
+      "tue": "Sesh",
+      "wed": "Chor",
+      "thu": "Pay",
+      "fri": "Juma",
+      "sat": "Shan",
+      "sun": "Yak"
+    },
+    "full": {
+      "mon": "Dushanba",
+      "tue": "Seshanba",
+      "wed": "Chorshanba",
+      "thu": "Payshanba",
+      "fri": "Juma",
+      "sat": "Shanba",
+      "sun": "Yakshanba"
+    }
+  },
+  "heatmap": {
+    "title": "Yuklama issiqlik xaritasi",
+    "peakLabel": "Cho'qqi:",
+    "quietLabel": "Sokin:",
+    "empty": "Ushbu davrda yozuvlar yo'q",
+    "cellTooltip": "{day} {hour} — {count, plural, other {# ta yozuv}}, {revenue}"
+  },
+  "kpi": {
+    "avgCheck": "O'rtacha chek",
+    "avgCheckCaption": "davrga nisbatan",
+    "revenueGrowth": "Daromad o'sishi",
+    "revenueGrowthCaption": "oydan oyga",
+    "peak": "Cho'qqi",
+    "peakCaption": "maks. yuklama",
+    "quiet": "Pasayish",
+    "quietCaption": "min. yuklama"
+  },
+  "charts": {
+    "revenueByWeekTitle": "Haftalik daromad",
+    "revenueLabel": "Daromad",
+    "revenueByDowTitle": "Hafta kunlari bo'yicha o'rtacha daromad",
+    "avgRevenueLabel": "O'rt. daromad",
+    "empty": "Ushbu davr uchun ma'lumot yo'q"
+  },
+  "promo": {
+    "title": "AI aksiya tavsiyalari",
+    "generateButton": "AI tavsiyalarini olish",
+    "generating": "AI tahlil qilmoqda…",
+    "loadingTitle": "AI ma'lumotlaringizni tahlil qilmoqda…",
+    "loadingSubtitle": "odatda 2–5 soniya",
+    "errorFallback": "Tavsiyalarni olib bo'lmadi",
+    "emptySuggestions": "Tavsiyalar yo'q — yuklama bir tekis.",
+    "idleHint": "Tugmani bosing — AI kam yuklangan soatlarni topib, ularni to'ldirish uchun aksiyalar taklif qiladi.",
+    "aiBadge": "AI",
+    "discountTag": "Chegirma {discount}",
+    "copy": "Post uchun nusxalash",
+    "copied": "Nusxalandi",
+    "clipboardDiscountLabel": "Chegirma",
+    "clipboardFooter": "Hoziroq yoziling — o'rinlar soni cheklangan!"
+  }
+}

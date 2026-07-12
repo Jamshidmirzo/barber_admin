@@ -1,0 +1,45 @@
+{
+  "backToTeam": "팀으로 돌아가기",
+  "defaultName": "디자이너",
+  "call": "전화하기",
+  "currency": "숨",
+  "summary": {
+    "appointments": "예약",
+    "clients": "고객",
+    "revenue": "매출"
+  },
+  "periods": {
+    "d7": "7일",
+    "d30": "30일",
+    "d90": "90일",
+    "custom": "기간"
+  },
+  "content": {
+    "title": "콘텐츠",
+    "posts": "게시물",
+    "reels": "릴스",
+    "likes": "좋아요",
+    "stories24h": "스토리 24시간"
+  },
+  "timeUsage": {
+    "title": "시간 활용도",
+    "idlePct": "유휴 슬롯 {pct}%",
+    "worked": "근무 {hours}시간",
+    "idle": "유휴 {hours}시간"
+  },
+  "revenueChart": {
+    "title": "일별 매출",
+    "tooltipLabel": "매출",
+    "empty": "해당 기간 매출이 없습니다"
+  },
+  "topServices": {
+    "title": "인기 서비스"
+  },
+  "recentClients": {
+    "title": "최근 고객",
+    "columnName": "이름",
+    "columnService": "서비스",
+    "columnAmount": "금액",
+    "empty": "완료된 예약이 없습니다"
+  }
+}

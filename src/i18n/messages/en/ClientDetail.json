@@ -1,0 +1,27 @@
+{
+  "backLink": "Back to clients",
+  "currency": "sum",
+  "notFound": "Client not found",
+  "favoriteBarberLabel": "Barber:",
+  "favoriteServiceLabel": "Service:",
+  "idle": {
+    "today": "Visited today",
+    "daysAgo": "{days, plural, one {Hasn't visited in # day} other {Hasn't visited in # days}}"
+  },
+  "kpi": {
+    "visits": "Visits",
+    "revenue": "Revenue",
+    "firstVisit": "First visit",
+    "lastVisit": "Last visit"
+  },
+  "history": {
+    "title": "Visit history",
+    "empty": "No completed visits yet",
+    "table": {
+      "date": "Date",
+      "barber": "Barber",
+      "service": "Service",
+      "amount": "Amount"
+    }
+  }
+}

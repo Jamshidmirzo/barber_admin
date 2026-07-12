@@ -1,0 +1,40 @@
+{
+  "title": "Услуги",
+  "addButton": "Услуга",
+  "newService": "Новая услуга",
+  "allBarbers": "Все мастера",
+  "noBarberName": "Без имени",
+  "currency": "сум",
+  "minutesUnit": "мин",
+  "categories": {
+    "all": "Все",
+    "haircut": "Стрижка",
+    "beard": "Борода",
+    "coloring": "Окрашивание",
+    "treatment": "Уход",
+    "other": "Прочее"
+  },
+  "empty": {
+    "noServices": "Нет услуг. Добавьте первую!",
+    "noneInCategory": "Нет услуг в этой категории."
+  },
+  "form": {
+    "nameLabel": "Название",
+    "namePlaceholder": "Мужская стрижка",
+    "categoryLabel": "Категория",
+    "priceLabel": "Цена ({currency})",
+    "pricePlaceholder": "50000",
+    "durationLabel": "Длительность ({unit})",
+    "durationPlaceholder": "30"
+  },
+  "errors": {
+    "nameRequired": "Введите название услуги",
+    "invalidPrice": "Введите корректную цену",
+    "invalidDuration": "Введите корректную длительность",
+    "createFailed": "Ошибка при создании услуги"
+  },
+  "saving": "Сохраняем...",
+  "deleteServiceTitle": "Удалить услугу",
+  "durationValue": "{minutes} {unit}",
+  "priceValue": "{price} {currency}"
+}

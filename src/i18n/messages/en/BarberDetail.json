@@ -1,0 +1,45 @@
+{
+  "backToTeam": "Back to team",
+  "defaultName": "Barber",
+  "call": "Call",
+  "currency": "sum",
+  "summary": {
+    "appointments": "Bookings",
+    "clients": "Clients",
+    "revenue": "Revenue"
+  },
+  "periods": {
+    "d7": "7d",
+    "d30": "30d",
+    "d90": "90d",
+    "custom": "Period"
+  },
+  "content": {
+    "title": "Content",
+    "posts": "Posts",
+    "reels": "Reels",
+    "likes": "Likes",
+    "stories24h": "Stories 24h"
+  },
+  "timeUsage": {
+    "title": "Time utilization",
+    "idlePct": "{pct}% idle slots",
+    "worked": "Worked {hours} h",
+    "idle": "Idle {hours} h"
+  },
+  "revenueChart": {
+    "title": "Revenue by day",
+    "tooltipLabel": "Revenue",
+    "empty": "No revenue for this period"
+  },
+  "topServices": {
+    "title": "Top services"
+  },
+  "recentClients": {
+    "title": "Recent clients",
+    "columnName": "Name",
+    "columnService": "Service",
+    "columnAmount": "Amount",
+    "empty": "No completed bookings"
+  }
+}

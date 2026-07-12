@@ -1,0 +1,24 @@
+{
+  "groups": { "main": "Asosiy", "clientele": "Mijozlar", "business": "Biznes" },
+  "items": {
+    "overview": "Umumiy",
+    "appointments": "Yozilishlar",
+    "schedule": "Jadval",
+    "promotions": "Aksiyalar",
+    "clients": "Mijozlar",
+    "services": "Xizmatlar",
+    "barbers": "Ustalar",
+    "analytics": "Tahlil",
+    "finance": "Moliya"
+  },
+  "lightTheme": "Yorug' rejim",
+  "darkTheme": "Qorong'i rejim",
+  "logout": "Chiqish",
+  "language": "Til",
+  "owner": "Egasi",
+  "master": "Usta",
+  "loadError": {
+    "title": "Salonni yuklab bo'lmadi",
+    "subtitle": "Ulanishni tekshiring va sahifani yangilang."
+  }
+}

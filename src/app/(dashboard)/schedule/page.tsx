@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { Clock, Save, ChevronLeft, ChevronRight } from "lucide-react";
 import api from "@/lib/api";
 import { useSalon, isManager } from "@/hooks/useSalon";
@@ -10,15 +11,14 @@ import { useSalon, isManager } from "@/hooks/useSalon";
 
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 type DayKey = (typeof DAY_KEYS)[number];
-const DAY_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
-const MONTHS_SHORT = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
+const MONTH_KEYS = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"] as const;
 
 function fmtDateISO(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
 function parseISO(s: string) { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); }
 function addDays(d: Date, n: number) { const r=new Date(d); r.setDate(r.getDate()+n); return r; }
-function fmtMoney(v: number) { return (v/1_000_000).toFixed(1).replace(".",",")+" млн"; }
+function fmtMoney(v: number, suffix: string) { return (v/1_000_000).toFixed(1).replace(".",",")+" "+suffix; }
 
 // ─── page entry ─────────────────────────────────────────────────────────────
 
@@ -38,6 +38,7 @@ interface WeekSchedule { week_start: string; barbers: BarberWeek[]; }
 // ─── owner: summary grid ────────────────────────────────────────────────────
 
 function TeamScheduleGrid() {
+  const t = useTranslations("Schedule");
   const { salon } = useSalon();
   const [anchor, setAnchor] = useState(() => fmtDateISO(new Date()));
   const [barberFilter, setBarberFilter] = useState("all");
@@ -58,8 +59,8 @@ function TeamScheduleGrid() {
 
   const weekLabel = useMemo(() => {
     const end = addDays(weekStart, 6);
-    return `${weekStart.getDate()} ${MONTHS_SHORT[weekStart.getMonth()]} – ${end.getDate()} ${MONTHS_SHORT[end.getMonth()]}`;
-  }, [weekStart]);
+    return `${weekStart.getDate()} ${t(`months.${MONTH_KEYS[weekStart.getMonth()]}`)} – ${end.getDate()} ${t(`months.${MONTH_KEYS[end.getMonth()]}`)}`;
+  }, [weekStart, t]);
 
   // weekly aggregates for KPI cards
   const weeklyStats = useMemo(() => {
@@ -84,10 +85,10 @@ function TeamScheduleGrid() {
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: "var(--text)", margin: 0 }}>
-          Расписание команды
+          {t("team.title")}
         </h1>
         <p style={{ color: "var(--text2)", fontSize: 13, marginTop: 4, marginBottom: 0 }}>
-          Загрузка мастеров по дням недели
+          {t("team.subtitle")}
         </p>
       </div>
 
@@ -111,12 +112,12 @@ function TeamScheduleGrid() {
             onClick={() => setAnchor(fmtDateISO(new Date()))}
             style={{ fontSize: 12, color: "var(--gold)", background: "none", border: "none", cursor: "pointer", marginLeft: 4 }}
           >
-            Сегодня
+            {t("team.today")}
           </button>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-          <FilterChip active={barberFilter === "all"} onClick={() => setBarberFilter("all")}>Все</FilterChip>
+          <FilterChip active={barberFilter === "all"} onClick={() => setBarberFilter("all")}>{t("team.filterAll")}</FilterChip>
           {data?.barbers.map(b => (
             <FilterChip key={b.master_id} active={barberFilter === b.master_id} onClick={() => setBarberFilter(b.master_id)}>
               {b.name}
@@ -132,20 +133,20 @@ function TeamScheduleGrid() {
         </div>
       ) : barbers.length === 0 ? (
         <div style={{ ...card, padding: 40, textAlign: "center", color: "var(--text2)", fontSize: 14 }}>
-          В салоне пока нет мастеров.
+          {t("team.emptyMasters")}
         </div>
       ) : (
         <div style={{ ...card, overflow: "hidden" }}>
           {/* Header row */}
           <div style={{ display: "grid", gridTemplateColumns: "180px repeat(7,1fr)", borderBottom: "1px solid var(--border)" }}>
             <div style={{ padding: "14px 18px", fontSize: 11, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text3)", fontWeight: 600 }}>
-              Мастер
+              {t("team.masterColumn")}
             </div>
             {DAY_KEYS.map((key, i) => {
               const d = weekDates[i];
               return (
                 <div key={key} style={{ padding: "14px 8px", textAlign: "center", fontSize: 12, fontWeight: 600, color: "var(--text2)", borderLeft: "1px solid rgba(255,255,255,0.05)" }}>
-                  {DAY_SHORT[i]} <span style={{ color: "var(--text3)", fontWeight: 400 }}>{d.getDate()}</span>
+                  {t(`daysShort.${key}`)} <span style={{ color: "var(--text3)", fontWeight: 400 }}>{d.getDate()}</span>
                 </div>
               );
             })}
@@ -173,7 +174,7 @@ function TeamScheduleGrid() {
                     cellBg = "var(--gold-dim)";
                     cellBorder = "1px solid rgba(201,164,92,0.32)";
                     cellColor = "var(--gold)";
-                    cellLabel = `${count} зап`;
+                    cellLabel = t("team.cellBooked", { count });
                   } else {
                     cellBg = "transparent";
                     cellBorder = "1px solid var(--border)";
@@ -196,24 +197,24 @@ function TeamScheduleGrid() {
 
       {/* KPI cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginTop: 16 }}>
-        <KpiCard label="Записей за неделю" value={String(weeklyStats.totalBooked)} />
-        <KpiCard label="Выручка за неделю" value={weeklyStats.totalRevenue > 0 ? fmtMoney(weeklyStats.totalRevenue) : "—"} gold />
-        <KpiCard label="Средняя загрузка" value={`${weeklyStats.avgLoad}%`} />
+        <KpiCard label={t("team.kpiBookings")} value={String(weeklyStats.totalBooked)} />
+        <KpiCard label={t("team.kpiRevenue")} value={weeklyStats.totalRevenue > 0 ? fmtMoney(weeklyStats.totalRevenue, t("team.million")) : "—"} gold />
+        <KpiCard label={t("team.kpiAvgLoad")} value={`${weeklyStats.avgLoad}%`} />
       </div>
 
       {/* Legend */}
       <div style={{ display: "flex", gap: 16, marginTop: 16, fontSize: 12, color: "var(--text2)" }}>
         <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
           <span style={{ width: 14, height: 14, borderRadius: 4, background: "var(--gold-dim)", border: "1px solid rgba(201,164,92,0.32)", display: "inline-block" }} />
-          Записи
+          {t("team.legendBooked")}
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
           <span style={{ width: 14, height: 14, borderRadius: 4, background: "transparent", border: "1px solid var(--border)", display: "inline-block" }} />
-          Свободно
+          {t("team.legendFree")}
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
           <span style={{ width: 14, height: 14, borderRadius: 4, background: "transparent", border: "1px dashed var(--text3)", display: "inline-block" }} />
-          Выходной
+          {t("team.legendDayOff")}
         </span>
       </div>
     </div>
@@ -268,15 +269,14 @@ interface Workday {
   is_working: boolean;
 }
 
-const DAY_NAMES = ["Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"];
-const DAY_LABELS = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
-
 const DEFAULT_DAYS: Workday[] = Array.from({ length: 7 }, (_, i) => ({
   day_of_week: i, start_time: "09:00", end_time: "18:00",
   break_start: "13:00", break_end: "14:00", is_working: i < 6,
 }));
 
 function WorkdaysEditor() {
+  const t = useTranslations("Schedule");
+  const tCommon = useTranslations("Common");
   const qc = useQueryClient();
   const [days, setDays] = useState<Workday[]>(DEFAULT_DAYS);
   const [saved, setSaved] = useState(false);
@@ -310,10 +310,10 @@ function WorkdaysEditor() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
         <div>
           <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: "var(--text)", margin: 0 }}>
-            Расписание
+            {t("editor.title")}
           </h1>
           <p style={{ color: "var(--text2)", fontSize: 13, marginTop: 4, marginBottom: 0 }}>
-            Настройте график на каждый день недели
+            {t("editor.subtitle")}
           </p>
         </div>
         <button
@@ -322,7 +322,7 @@ function WorkdaysEditor() {
           style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--gold)", color: "#0a0a0b", border: "none", borderRadius: "var(--radius)", padding: "9px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer", opacity: saveMutation.isPending ? 0.5 : 1 }}
         >
           <Save size={14} />
-          {saved ? "Сохранено!" : saveMutation.isPending ? "Сохраняем…" : "Сохранить"}
+          {saved ? t("editor.saved") : saveMutation.isPending ? t("editor.saving") : tCommon("save")}
         </button>
       </div>
 
@@ -339,7 +339,7 @@ function WorkdaysEditor() {
             {days.map((day, idx) => (
               <div key={day.day_of_week} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12 }}>
                 <span style={{ width: 44, fontWeight: 600, fontSize: 13, color: "var(--text)", flexShrink: 0 }}>
-                  {DAY_LABELS[day.day_of_week]}
+                  {t(`daysShort.${DAY_KEYS[day.day_of_week]}`)}
                 </span>
 
                 {/* Toggle */}
@@ -358,7 +358,7 @@ function WorkdaysEditor() {
                       <span style={{ color: "var(--text3)", fontSize: 12 }}>—</span>
                       <input type="time" value={day.end_time} onChange={e => update(idx, { end_time: e.target.value })} style={timeInput} />
                     </div>
-                    <span style={{ color: "var(--text3)", fontSize: 12, marginLeft: 4 }}>Перерыв:</span>
+                    <span style={{ color: "var(--text3)", fontSize: 12, marginLeft: 4 }}>{t("editor.break")}</span>
                     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       <input type="time" value={day.break_start ?? ""} onChange={e => update(idx, { break_start: e.target.value || null })} style={timeInput} />
                       <span style={{ color: "var(--text3)", fontSize: 12 }}>—</span>
@@ -366,7 +366,7 @@ function WorkdaysEditor() {
                     </div>
                   </div>
                 ) : (
-                  <span style={{ flex: 1, fontSize: 13, color: "var(--text3)" }}>Выходной</span>
+                  <span style={{ flex: 1, fontSize: 13, color: "var(--text3)" }}>{t("editor.dayOff")}</span>
                 )}
               </div>
             ))}

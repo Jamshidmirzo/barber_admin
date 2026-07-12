@@ -1,0 +1,36 @@
+{
+  "title": "Appointments",
+  "today": "Today",
+  "newAppointment": "New appointment",
+  "emptyState": "No appointments for this day",
+  "unknownClient": "Client",
+  "unknownService": "Service",
+  "currency": "sum",
+  "status": {
+    "pending": "Pending",
+    "scheduled": "Scheduled",
+    "confirmed": "Confirmed",
+    "inProgress": "In progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "noShow": "No-show"
+  },
+  "modal": {
+    "newTitle": "New appointment",
+    "editTitle": "Edit appointment",
+    "clientLabel": "Client",
+    "clientPlaceholder": "Name or phone",
+    "serviceLabel": "Service",
+    "selectServicePlaceholder": "— select a service —",
+    "timeLabel": "Time",
+    "masterLabel": "Barber",
+    "noMasterOption": "— not selected —",
+    "statusLabel": "Status",
+    "saving": "...",
+    "deleteButton": "Delete appointment",
+    "deleting": "Deleting...",
+    "deleteConfirm": "Delete this appointment?",
+    "createError": "Error creating appointment",
+    "saveError": "Error saving changes"
+  }
+}

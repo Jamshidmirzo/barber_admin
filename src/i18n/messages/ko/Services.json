@@ -1,0 +1,40 @@
+{
+  "title": "서비스",
+  "addButton": "서비스",
+  "newService": "새 서비스",
+  "allBarbers": "전체 디자이너",
+  "noBarberName": "이름 없음",
+  "currency": "숨",
+  "minutesUnit": "분",
+  "categories": {
+    "all": "전체",
+    "haircut": "커트",
+    "beard": "수염",
+    "coloring": "염색",
+    "treatment": "케어",
+    "other": "기타"
+  },
+  "empty": {
+    "noServices": "서비스가 없습니다. 첫 서비스를 추가해 보세요!",
+    "noneInCategory": "이 카테고리에 서비스가 없습니다."
+  },
+  "form": {
+    "nameLabel": "이름",
+    "namePlaceholder": "남성 커트",
+    "categoryLabel": "카테고리",
+    "priceLabel": "가격 ({currency})",
+    "pricePlaceholder": "50000",
+    "durationLabel": "소요 시간 ({unit})",
+    "durationPlaceholder": "30"
+  },
+  "errors": {
+    "nameRequired": "서비스 이름을 입력하세요",
+    "invalidPrice": "올바른 가격을 입력하세요",
+    "invalidDuration": "올바른 소요 시간을 입력하세요",
+    "createFailed": "서비스 생성에 실패했습니다"
+  },
+  "saving": "저장 중...",
+  "deleteServiceTitle": "서비스 삭제",
+  "durationValue": "{minutes}{unit}",
+  "priceValue": "{price} {currency}"
+}
