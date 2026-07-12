@@ -5,7 +5,6 @@
   "emptyState": "No appointments for this day",
   "unknownClient": "Client",
   "unknownService": "Service",
-  "currency": "sum",
   "status": {
     "pending": "Pending",
     "scheduled": "Scheduled",

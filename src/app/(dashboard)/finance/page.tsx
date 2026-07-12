@@ -6,6 +6,8 @@ import { useTranslations } from "next-intl";
 import { TrendingUp } from "lucide-react";
 import api from "@/lib/api";
 import { useSalon } from "@/hooks/useSalon";
+import { useIntlLocale } from "@/lib/locale";
+import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
 
 type Period = "month" | "quarter" | "year";
 
@@ -22,9 +24,9 @@ interface WeeklyStats {
   compared_to_previous_week: { appointments_delta_pct: number | null; revenue_delta_pct: number | null };
 }
 
-function fmt(n: number) {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(".", ",") + " млн";
-  return n.toLocaleString("ru") + " сум";
+function fmt(n: number, currency: string, locale: string) {
+  if (n >= 1_000_000) return (n / 1_000_000).toLocaleString(locale, { maximumFractionDigits: 1 }) + "M " + currency;
+  return n.toLocaleString(locale) + " " + currency;
 }
 
 const PERIODS: { key: Period }[] = [
@@ -41,6 +43,8 @@ export default function FinancePage() {
   const t = useTranslations("Finance");
   const tCommon = useTranslations("Common");
   const { salon } = useSalon();
+  const locale = useIntlLocale();
+  const currency = currencyForCountry(useAdminCountry());
   const [period, setPeriod] = useState<Period>("month");
 
   const { data: stats, isLoading } = useQuery<WeeklyStats>({
@@ -97,7 +101,7 @@ export default function FinancePage() {
             }}>
               <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>{t("kpi.revenue.label")}</div>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:600, color:"var(--gold)" }}>
-                {fmt(stats.revenue_total_uzs)}
+                {fmt(stats.revenue_total_uzs, currency, locale)}
               </div>
               <div style={{ fontSize:12, color: revDelta != null && revDelta >= 0 ? "var(--green)" : "var(--red)", fontWeight:600, marginTop:8 }}>
                 {revDelta != null ? `${revDelta >= 0 ? "+" : ""}${revDelta.toFixed(0)}%` : "—"}{" "}
@@ -177,7 +181,7 @@ export default function FinancePage() {
                       <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:6 }}>
                         <span style={{ fontSize:13, fontWeight:600, color:"var(--text)" }}>{s.service_name}</span>
                         <span style={{ fontFamily:"'Playfair Display',serif", fontSize:12.5, color:"var(--gold)", fontWeight:600 }}>
-                          {fmt(s.revenue)}
+                          {fmt(s.revenue, currency, locale)}
                         </span>
                       </div>
                       <div style={{ height:6, background:"var(--surface)", borderRadius:6, overflow:"hidden" }}>

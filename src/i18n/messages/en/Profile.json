@@ -20,5 +20,11 @@
     "saving": "Saving…",
     "saved": "Saved!"
   },
-  "saveError": "Failed to save. Please try again."
+  "saveError": "Failed to save. Please try again.",
+  "business": {
+    "title": "Business",
+    "salonName": "Salon name",
+    "address": "Address",
+    "brn": "Business registration number"
+  }
 }

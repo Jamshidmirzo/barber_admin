@@ -9,6 +9,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianG
 import { ArrowLeft, Phone, TrendingUp, FileText, Film, Heart, Eye } from "lucide-react";
 import api from "@/lib/api";
 import { useIntlLocale } from "@/lib/locale";
+import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
 
 interface TopService { service_id: string; name: string; count: number; }
 interface RecentClient { client_id: string | null; name: string; date: string; service_name: string | null; amount_uzs: number; }
@@ -38,7 +39,7 @@ export default function BarberDetailPage() {
   const tc = useTranslations("Common");
   const params = useParams<{ id: string }>();
   const id = params.id;
-  const currency = t("currency");
+  const currency = currencyForCountry(useAdminCountry());
   const [period, setPeriod] = useState<PeriodKey>("30");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");

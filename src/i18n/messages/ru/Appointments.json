@@ -5,7 +5,6 @@
   "emptyState": "Нет записей на этот день",
   "unknownClient": "Клиент",
   "unknownService": "Услуга",
-  "currency": "сум",
   "status": {
     "pending": "Ожидает",
     "scheduled": "Запланирован",

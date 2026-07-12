@@ -7,6 +7,8 @@ import { useTranslations } from "next-intl";
 import { ArrowLeft, Phone, MapPin, Scissors, UserRound, Calendar, Wallet, Clock } from "lucide-react";
 import api from "@/lib/api";
 import { useSalon } from "@/hooks/useSalon";
+import { useIntlLocale } from "@/lib/locale";
+import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
 
 interface VisitHistoryItem {
   appointment_id: string; date: string; barber_name: string;
@@ -20,7 +22,7 @@ interface ClientDetail {
   visits_history: VisitHistoryItem[];
 }
 
-function fmtMoney(n: number, currency: string) { return n.toLocaleString("ru") + " " + currency; }
+function fmtMoney(n: number, currency: string, locale: string) { return n.toLocaleString(locale) + " " + currency; }
 function fmtDate(iso: string | null) { if (!iso) return "—"; return new Date(iso).toLocaleDateString("ru", { day:"numeric", month:"short", year:"numeric" }); }
 function fmtDateTime(iso: string) { return new Date(iso).toLocaleString("ru", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }); }
 function initials(name: string) { return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2); }
@@ -29,6 +31,8 @@ function daysSince(iso: string | null): number | null { if (!iso) return null; r
 export default function ClientDetailPage() {
   const t = useTranslations("ClientDetail");
   const { salon } = useSalon();
+  const locale = useIntlLocale();
+  const currency = currencyForCountry(useAdminCountry());
   const params = useParams<{ id: string }>();
   const clientId = params.id;
 
@@ -105,7 +109,7 @@ export default function ClientDetailPage() {
       {/* KPI */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:16 }}>
         <KpiCard icon={<Calendar size={14} />} label={t("kpi.visits")} value={String(data.total_visits)} />
-        <KpiCard icon={<Wallet size={14} />} label={t("kpi.revenue")} value={fmtMoney(data.total_spent, t("currency"))} />
+        <KpiCard icon={<Wallet size={14} />} label={t("kpi.revenue")} value={fmtMoney(data.total_spent, currency, locale)} />
         <KpiCard icon={<Clock size={14} />} label={t("kpi.firstVisit")} value={fmtDate(data.first_visit)} />
         <KpiCard icon={<Clock size={14} />} label={t("kpi.lastVisit")} value={fmtDate(data.last_visit)} />
       </div>
@@ -132,7 +136,7 @@ export default function ClientDetailPage() {
                   <td style={{ padding:"12px 20px", color:"var(--text2)" }}>{fmtDateTime(v.date)}</td>
                   <td style={{ padding:"12px 20px", color:"var(--text2)" }}>{v.barber_name}</td>
                   <td style={{ padding:"12px 20px", color:"var(--text3)" }}>{v.service_name ?? "—"}</td>
-                  <td style={{ padding:"12px 20px", textAlign:"right", color:"var(--gold)", fontWeight:600 }}>{fmtMoney(v.amount, t("currency"))}</td>
+                  <td style={{ padding:"12px 20px", textAlign:"right", color:"var(--gold)", fontWeight:600 }}>{fmtMoney(v.amount, currency, locale)}</td>
                 </tr>
               ))}
             </tbody>

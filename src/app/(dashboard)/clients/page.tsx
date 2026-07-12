@@ -7,10 +7,10 @@ import { useTranslations } from "next-intl";
 import { Plus, Search, UserRound, Download, ChevronRight, Trophy, Share2, Check, X } from "lucide-react";
 import api, { parseApiError } from "@/lib/api";
 import { useSalon, isManager } from "@/hooks/useSalon";
+import { useIntlLocale } from "@/lib/locale";
+import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
 
-interface City { id: string; slug: string; name: string; sort_order: number; }
-
-function fmtMoney(n: number, currency: string) { return n.toLocaleString("ru") + " " + currency; }
+function fmtMoney(n: number, currency: string, locale: string) { return n.toLocaleString(locale) + " " + currency; }
 function fmtDate(iso: string | null) { if (!iso) return "—"; return new Date(iso).toLocaleDateString("ru", { day:"numeric", month:"short", year:"numeric" }); }
 function initials(name: string) { return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2); }
 
@@ -82,21 +82,20 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
   const t = useTranslations("Clients");
   const tCommon = useTranslations("Common");
   const router = useRouter();
+  const locale = useIntlLocale();
+  const currency = currencyForCountry(useAdminCountry());
   const [tab, setTab] = useState<Tab>("list");
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
-  const [cityId, setCityId] = useState("");
   const [sort, setSort] = useState<Sort>("visits");
   const [exporting, setExporting] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => { const t = setTimeout(() => setDebounced(search.trim()), 300); return () => clearTimeout(t); }, [search]);
 
-  const { data: cities } = useQuery<City[]>({ queryKey:["cities"], queryFn: () => api.get("/cities").then((r) => r.data), staleTime:30*60_000 });
-
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery<ClientPage>({
-    queryKey:["salon-clients", salonId, debounced, cityId, sort],
-    queryFn: ({ pageParam }) => api.get(`/salons/${salonId}/clients`, { params:{ search:debounced||undefined, city_id:cityId||undefined, sort, page:pageParam, limit:20 } }).then((r) => r.data),
+    queryKey:["salon-clients", salonId, debounced, sort],
+    queryFn: ({ pageParam }) => api.get(`/salons/${salonId}/clients`, { params:{ search:debounced||undefined, sort, page:pageParam, limit:20 } }).then((r) => r.data),
     initialPageParam: 1,
     getNextPageParam: (last, pages) => { const loaded = pages.reduce((n,p)=>n+p.items.length,0); return loaded < last.total ? last.page+1 : undefined; },
     enabled: tab === "list",
@@ -114,7 +113,7 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
   async function handleExport() {
     setExporting(true);
     try {
-      const res = await api.get(`/salons/${salonId}/clients/export`, { params:{ search:debounced||undefined, city_id:cityId||undefined, sort }, responseType:"blob" });
+      const res = await api.get(`/salons/${salonId}/clients/export`, { params:{ search:debounced||undefined, sort }, responseType:"blob" });
       const url = URL.createObjectURL(res.data as Blob);
       const a = document.createElement("a"); a.href = url; a.download = `clients_${new Date().toISOString().slice(0,10)}.csv`;
       document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
@@ -163,10 +162,6 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
               <Search size={14} style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"var(--text3)", pointerEvents:"none" }} />
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("searchPlaceholder")} style={{ ...inp, width:"100%", paddingLeft:36, boxSizing:"border-box" }} />
             </div>
-            <select value={cityId} onChange={(e) => setCityId(e.target.value)} style={{ ...inp, minWidth:140 }}>
-              <option value="">{t("crm.allCities")}</option>
-              {cities?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
             <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} style={{ ...inp, minWidth:150 }}>
               {(Object.keys(SORT_KEYS) as Sort[]).map((s) => <option key={s} value={s}>{t(`crm.sort.${SORT_KEYS[s]}`)}</option>)}
             </select>
@@ -176,7 +171,7 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
           {isLoading ? (
             <CrmSkeleton />
           ) : items.length === 0 ? (
-            <EmptyState text={debounced || cityId ? t("emptyState.notFound") : t("emptyState.noClients")} />
+            <EmptyState text={debounced ? t("emptyState.notFound") : t("emptyState.noClients")} />
           ) : (
             <div style={cardS}>
               <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
@@ -205,7 +200,7 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
                       <td style={{ padding:"12px 16px", color:"var(--text2)" }}>{c.phone}</td>
                       <td style={{ padding:"12px 16px", color:"var(--text2)" }}>{c.city_name ?? "—"}</td>
                       <td style={{ padding:"12px 16px", textAlign:"right", color:"var(--text)", fontWeight:600 }}>{c.total_visits}</td>
-                      <td style={{ padding:"12px 16px", textAlign:"right", color:"var(--text2)" }}>{fmtMoney(c.total_spent, t("currency"))}</td>
+                      <td style={{ padding:"12px 16px", textAlign:"right", color:"var(--text2)" }}>{fmtMoney(c.total_spent, currency, locale)}</td>
                       <td style={{ padding:"12px 16px", textAlign:"right", color:"var(--text3)" }}>{fmtDate(c.last_visit_date)}</td>
                       <td style={{ padding:"12px 8px" }}><ChevronRight size={14} style={{ color:"var(--text3)" }} /></td>
                     </tr>
@@ -248,7 +243,7 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
                   </div>
                   <div style={{ textAlign:"right", flexShrink:0 }}>
                     <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>{t("visitsCount", { count:c.total_visits })}</p>
-                    <p style={{ color:"var(--text3)", fontSize:12, margin:0 }}>{fmtMoney(c.total_spent, t("currency"))}</p>
+                    <p style={{ color:"var(--text3)", fontSize:12, margin:0 }}>{fmtMoney(c.total_spent, currency, locale)}</p>
                   </div>
                 </div>
               ))}

@@ -1,9 +1,7 @@
 {
   "title": "Ustalar",
   "searchPlaceholder": "Telefon raqami bo'yicha qidirish",
-  "invite": "Taklif qilish",
   "addBarber": "Usta qo'shish",
-  "currency": "so'm",
   "banner": {
     "created": "Usta yaratildi — kirish ma'lumotlarini yetkazing:",
     "copy": "Nusxalash",
@@ -23,23 +21,13 @@
   },
   "modal": {
     "title": "Usta qo'shish",
-    "tabCreate": "Yangi yaratish",
-    "tabSearch": "Tizimdan topish",
     "nameLabel": "Ism",
-    "namePlaceholder": "Alisher",
     "lastNameLabel": "Familiya",
-    "lastNamePlaceholder": "Karimov",
     "phoneLabel": "Telefon",
-    "phonePlaceholder": "+998 90 123 45 67",
     "passwordLabel": "Parol",
     "passwordPlaceholder": "Kamida 6 ta belgi",
     "createError": "Yaratishda xatolik",
     "creating": "Yaratilmoqda...",
-    "create": "Yaratish",
-    "searchPlaceholder": "Ism yoki telefon...",
-    "searching": "Qidirilmoqda...",
-    "noResults": "Hech kim topilmadi",
-    "inTeam": "Jamoada bor",
-    "minChars": "Kamida 2 ta belgi kiriting"
+    "create": "Yaratish"
   }
 }

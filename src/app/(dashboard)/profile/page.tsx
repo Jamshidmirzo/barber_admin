@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, Camera } from "lucide-react";
+import { Save, Camera, Building2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import api from "@/lib/api";
+import { useSalon } from "@/hooks/useSalon";
 
 interface Profile {
   id: string;
@@ -15,6 +16,7 @@ interface Profile {
   photo_url: string | null;
   city: string | null;
   specializations: string[];
+  country: "uz" | "kr" | null;
   is_onboarded: boolean;
 }
 
@@ -32,6 +34,7 @@ const label: React.CSSProperties = {
 
 export default function ProfilePage() {
   const t = useTranslations("Profile");
+  const { salon } = useSalon();
   const qc = useQueryClient();
   const [form, setForm] = useState({ name: "", last_name: "", city: "", bio: "", specializations: "" });
   const [saved, setSaved] = useState(false);
@@ -189,6 +192,34 @@ export default function ProfilePage() {
           <p style={{ color: "var(--red)", fontSize: 12, marginTop: 10 }}>
             {t("saveError")}
           </p>
+        )}
+      </div>
+
+      {/* Business info — captured at registration */}
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: 26, maxWidth: 620, marginTop: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+          <Building2 size={16} style={{ color: "var(--gold)" }} />
+          <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 17, fontWeight: 600, color: "var(--text)" }}>
+            {t("business.title")}
+          </span>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: data.country === "kr" ? 14 : 0 }}>
+          <div>
+            <label style={label}>{t("business.salonName")}</label>
+            <input value={salon.name} disabled style={{ ...inp, opacity: 0.5, cursor: "not-allowed" }} />
+          </div>
+          <div>
+            <label style={label}>{t("business.address")}</label>
+            <input value={salon.address ?? "—"} disabled style={{ ...inp, opacity: 0.5, cursor: "not-allowed" }} />
+          </div>
+        </div>
+
+        {data.country === "kr" && (
+          <div>
+            <label style={label}>{t("business.brn")}</label>
+            <input value={salon.business_registration_number ?? "—"} disabled style={{ ...inp, opacity: 0.5, cursor: "not-allowed" }} />
+          </div>
         )}
       </div>
     </div>

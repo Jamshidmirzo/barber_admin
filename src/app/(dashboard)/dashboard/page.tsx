@@ -7,6 +7,7 @@ import { TrendingUp, Receipt, Gauge, CreditCard } from "lucide-react";
 import api from "@/lib/api";
 import { useSalon } from "@/hooks/useSalon";
 import { useIntlLocale } from "@/lib/locale";
+import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -132,7 +133,7 @@ export default function DashboardPage() {
   const d = data;
   const locale = useIntlLocale(); 
   const units = { million: t("units.million"), thousand: t("units.thousand") };
-  const currency = t("currency");
+  const currency = currencyForCountry(useAdminCountry());
   const revenueText = (n: number) => `${fmtRevenue(n, units, locale)} ${currency}`;
 
   const maxRevenue = d ? Math.max(...d.week_revenue_by_day.map((b) => b.revenue), 1) : 1;

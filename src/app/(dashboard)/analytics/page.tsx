@@ -1,15 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar,
   XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
-import { Sparkles, Copy, Check, TrendingUp, TrendingDown } from "lucide-react";
-import api, { parseApiError } from "@/lib/api";
+import { TrendingUp, TrendingDown } from "lucide-react";
+import api from "@/lib/api";
 import { useSalon } from "@/hooks/useSalon";
+import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
 
 interface HeatCell { day: string; hour: number; appointments: number; revenue: number; }
 interface HeatmapResponse {
@@ -25,11 +26,6 @@ interface TrendsResponse {
   avg_check: number;
   growth_vs_prev_period: number;
 }
-interface PromoSuggestion {
-  title: string; description: string; day: string; hours: string;
-  discount_suggestion: string; expected_impact: string;
-}
-interface PromoResponse { suggestions: PromoSuggestion[]; summary: string; }
 
 const DAYS = ["mon","tue","wed","thu","fri","sat","sun"] as const;
 const HOURS = Array.from({ length:12 }, (_, i) => i + 9);
@@ -113,14 +109,13 @@ export default function AnalyticsPage() {
 
       <HeatmapSection q={heatmapQ} />
       <TrendsSection q={trendsQ} heatmap={heatmapQ.data} />
-      <PromoSection salonId={salonId} heatmap={heatmapQ.data} trends={trendsQ.data} />
     </div>
   );
 }
 
 function HeatmapSection({ q }: { q: { data?: HeatmapResponse; isLoading: boolean } }) {
   const t = useTranslations("Analytics");
-  const currency = t("currency");
+  const currency = currencyForCountry(useAdminCountry());
   const cells = q.data?.heatmap ?? [];
   const map = useMemo(() => {
     const m = new Map<string, HeatCell>();
@@ -213,7 +208,7 @@ function HeatmapSection({ q }: { q: { data?: HeatmapResponse; isLoading: boolean
 
 function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: boolean }; heatmap?: HeatmapResponse }) {
   const t = useTranslations("Analytics");
-  const currency = t("currency");
+  const currency = currencyForCountry(useAdminCountry());
   const data = q.data;
   const dowData = (data?.revenue_by_day_of_week ?? []).map((d) => ({ ...d, day_label: dayLabel(t, d.day, false) }));
   const growth = data?.growth_vs_prev_period ?? 0;
@@ -313,143 +308,3 @@ function EmptyChart() {
   );
 }
 
-function PromoSection({ salonId, heatmap, trends }: { salonId: string; heatmap?: HeatmapResponse; trends?: TrendsResponse }) {
-  const t = useTranslations("Analytics");
-  const dayLoads = useMemo(() => {
-    if (!heatmap) return [];
-    const totals = new Map<string, number>();
-    for (const c of heatmap.heatmap) totals.set(c.day, (totals.get(c.day) ?? 0) + c.appointments);
-    return DAYS.filter((d) => totals.has(d)).map((d) => ({ day: d, appointments: totals.get(d) ?? 0 }));
-  }, [heatmap]);
-
-  const mutation = useMutation<PromoResponse, unknown>({
-    mutationFn: () =>
-      api.post(`/salons/${salonId}/analytics/promo-suggestions`, {
-        peak_day: heatmap?.peak_day ?? null, peak_hour: heatmap?.peak_hour ?? null,
-        slowest_day: heatmap?.slowest_day ?? null, slowest_hour: heatmap?.slowest_hour ?? null,
-        avg_check: trends?.avg_check ?? 0,
-        growth_vs_prev_period: trends?.growth_vs_prev_period ?? 0,
-        day_loads: dayLoads,
-      }).then((r) => r.data),
-  });
-
-  const ready = !!heatmap && !!trends;
-
-  return (
-    <div style={{ ...cardStyle, marginBottom:20 }}>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, flexWrap:"wrap", gap:12 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <Sparkles size={16} style={{ color:"var(--gold)" }} />
-          <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>{t("promo.title")}</p>
-        </div>
-        <button
-          onClick={() => mutation.mutate()}
-          disabled={!ready || mutation.isPending}
-          style={{
-            display:"flex", alignItems:"center", gap:8, background:"var(--gold)", color:"#0a0a0b",
-            border:"none", borderRadius:"var(--radius)", padding:"9px 18px",
-            fontSize:13, fontWeight:700, cursor: (!ready || mutation.isPending) ? "not-allowed" : "pointer",
-            opacity: (!ready || mutation.isPending) ? 0.5 : 1, fontFamily:"'Manrope',sans-serif",
-          }}
-        >
-          <Sparkles size={14} />
-          {mutation.isPending ? t("promo.generating") : t("promo.generateButton")}
-        </button>
-      </div>
-
-      {mutation.isPending && (
-        <div style={{ padding:"40px 0", display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center" }}>
-          <div style={{ width:32, height:32, borderRadius:"50%", border:"2px solid var(--border)", borderTopColor:"var(--gold)", animation:"spin 0.8s linear infinite", marginBottom:12 }} />
-          <p style={{ color:"var(--text2)", fontSize:13 }}>{t("promo.loadingTitle")}</p>
-          <p style={{ color:"var(--text3)", fontSize:12, marginTop:4 }}>{t("promo.loadingSubtitle")}</p>
-          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-        </div>
-      )}
-
-      {mutation.isError && !mutation.isPending && (
-        <p style={{ color:"var(--red)", fontSize:13, padding:"12px 0" }}>
-          {parseApiError(mutation.error, t("promo.errorFallback"))}
-        </p>
-      )}
-
-      {mutation.data && !mutation.isPending && (
-        <div>
-          {mutation.data.summary && (
-            <p style={{
-              color:"var(--text2)", fontSize:13, background:"var(--bg2)",
-              border:"1px solid var(--border)", borderRadius:"var(--radius)",
-              padding:"14px 16px", marginBottom:16, lineHeight:1.6,
-            }}>
-              {mutation.data.summary}
-            </p>
-          )}
-          {mutation.data.suggestions.length === 0 ? (
-            <p style={{ color:"var(--text2)", fontSize:13, textAlign:"center", padding:"12px 0" }}>
-              {t("promo.emptySuggestions")}
-            </p>
-          ) : (
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:14 }}>
-              {mutation.data.suggestions.map((s, i) => <PromoCard key={i} s={s} />)}
-            </div>
-          )}
-        </div>
-      )}
-
-      {!mutation.data && !mutation.isPending && !mutation.isError && (
-        <p style={{ color:"var(--text3)", fontSize:13 }}>
-          {t("promo.idleHint")}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function PromoCard({ s }: { s: PromoSuggestion }) {
-  const t = useTranslations("Analytics");
-  const [copied, setCopied] = useState(false);
-
-  function copyForPost() {
-    const text = `🔥 ${s.title}\n\n${s.description}\n\n📅 ${dayLabel(t, s.day, true)}, ${s.hours}\n🎁 ${t("promo.clipboardDiscountLabel")} ${s.discount_suggestion}\n\n${t("promo.clipboardFooter")}`;
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  return (
-    <div style={{
-      background:"var(--bg2)", border:"1px solid var(--border)",
-      borderRadius:"var(--radius)", padding:16,
-    }}>
-      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:8, marginBottom:8 }}>
-        <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>{s.title}</p>
-        <span style={{ flexShrink:0, fontSize:10, fontWeight:700, background:"var(--gold-dim)", color:"var(--gold)", padding:"2px 8px", borderRadius:20 }}>
-          🤖 {t("promo.aiBadge")}
-        </span>
-      </div>
-      <p style={{ color:"var(--text2)", fontSize:13, marginBottom:12, lineHeight:1.55, marginTop:0 }}>{s.description}</p>
-      <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:10 }}>
-        <span style={{ fontSize:11, background:"var(--surface)", color:"var(--text2)", padding:"3px 9px", borderRadius:20, border:"1px solid var(--border)" }}>
-          {dayLabel(t, s.day, true)} · {s.hours}
-        </span>
-        <span style={{ fontSize:11, background:"rgba(76,175,125,0.12)", color:"var(--green)", padding:"3px 9px", borderRadius:20 }}>
-          {t("promo.discountTag", { discount: s.discount_suggestion })}
-        </span>
-      </div>
-      {s.expected_impact && (
-        <p style={{ color:"var(--text3)", fontSize:12, marginBottom:12 }}>📈 {s.expected_impact}</p>
-      )}
-      <button
-        onClick={copyForPost}
-        style={{
-          display:"flex", alignItems:"center", gap:6, background:"var(--surface)",
-          border:"1px solid var(--border)", borderRadius:"var(--radius)",
-          color:"var(--text2)", fontSize:12, fontWeight:500, padding:"6px 12px",
-          cursor:"pointer",
-        }}
-      >
-        {copied ? <Check size={12} /> : <Copy size={12} />}
-        {copied ? t("promo.copied") : t("promo.copy")}
-      </button>
-    </div>
-  );
-}

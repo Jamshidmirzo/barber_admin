@@ -1,6 +1,5 @@
 {
   "title": "Mijozlar",
-  "currency": "so'm",
   "searchPlaceholder": "Ism yoki telefon raqami bo'yicha qidirish",
   "emptyState": {
     "notFound": "Hech narsa topilmadi",
@@ -11,10 +10,23 @@
     "subtitle": "Salon mijozlar bazasida {count} ta mijoz bor",
     "exportButton": "CSV eksport",
     "exportingButton": "Tayyorlanmoqda...",
-    "tabs": { "list": "Barcha mijozlar", "rating": "Sodiqlik reytingi" },
-    "allCities": "Barcha shaharlar",
-    "sort": { "visits": "Tashriflar bo'yicha", "revenue": "Daromad bo'yicha", "lastVisit": "Sana bo'yicha" },
-    "table": { "name": "Ism", "phone": "Telefon", "city": "Shahar", "visits": "Tashriflar", "revenue": "Daromad", "lastVisit": "Oxirgi" },
+    "tabs": {
+      "list": "Barcha mijozlar",
+      "rating": "Sodiqlik reytingi"
+    },
+    "sort": {
+      "visits": "Tashriflar bo'yicha",
+      "revenue": "Daromad bo'yicha",
+      "lastVisit": "Sana bo'yicha"
+    },
+    "table": {
+      "name": "Ism",
+      "phone": "Telefon",
+      "city": "Shahar",
+      "visits": "Tashriflar",
+      "revenue": "Daromad",
+      "lastVisit": "Oxirgi"
+    },
     "loadMore": "Ko'proq ko'rsatish",
     "rating": {
       "subtitle": "Tashriflar soni bo'yicha eng yaxshi 20 ta mijoz",
@@ -27,7 +39,10 @@
   },
   "personal": {
     "subtitle": "{count} ta mijoz",
-    "modal": { "createTitle": "Yangi mijoz", "editTitle": "Mijozni tahrirlash" },
+    "modal": {
+      "createTitle": "Yangi mijoz",
+      "editTitle": "Mijozni tahrirlash"
+    },
     "form": {
       "name": "Ism",
       "phone": "Telefon",

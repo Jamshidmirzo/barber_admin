@@ -6,6 +6,8 @@ import { Plus, Clock, Scissors, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import api from "@/lib/api";
 import { useSalon } from "@/hooks/useSalon";
+import { useIntlLocale } from "@/lib/locale";
+import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
 
 interface ServiceItem {
   id: string;
@@ -56,6 +58,7 @@ export default function ServicesPage() {
   const tCommon = useTranslations("Common");
   const { salon } = useSalon();
   const qc = useQueryClient();
+  const currency = currencyForCountry(useAdminCountry());
 
   const CATEGORIES = [
     { value: "all", label: t("categories.all") },
@@ -357,7 +360,7 @@ export default function ServicesPage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 12, color: "var(--text2)", marginBottom: 5, fontWeight: 500 }}>
-                    {t("form.priceLabel", { currency: t("currency") })}
+                    {t("form.priceLabel", { currency })}
                   </label>
                   <input
                     value={form.price}
@@ -453,6 +456,8 @@ interface ServiceCardProps {
 function ServiceCard({ service, onDelete, deleting }: ServiceCardProps) {
   const t = useTranslations("Services");
   const tCommon = useTranslations("Common");
+  const locale = useIntlLocale();
+  const currency = currencyForCountry(useAdminCountry());
   const [hovered, setHovered] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -573,7 +578,7 @@ function ServiceCard({ service, onDelete, deleting }: ServiceCardProps) {
           fontWeight: 600,
           color: "var(--gold)",
         }}>
-          {t("priceValue", { price: service.price.toLocaleString("ru"), currency: t("currency") })}
+          {t("priceValue", { price: service.price.toLocaleString(locale), currency })}
         </div>
       </div>
     </div>

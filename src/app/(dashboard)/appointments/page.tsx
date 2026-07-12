@@ -7,6 +7,7 @@ import { Calendar, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import api from "@/lib/api";
 import { useSalon, isManager } from "@/hooks/useSalon";
 import { useIntlLocale } from "@/lib/locale";
+import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
 
 interface Appointment {
   id: string;
@@ -364,6 +365,7 @@ export default function AppointmentsPage() {
   const t = useTranslations("Appointments");
   const { salon } = useSalon();
   const locale = useIntlLocale();
+  const currency = currencyForCountry(useAdminCountry());
   const salonId = salon?.id ?? "";
 
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -421,7 +423,7 @@ export default function AppointmentsPage() {
   }
 
   const isToday = date === new Date().toISOString().slice(0, 10);
-  const displayDate = new Date(date).toLocaleDateString("ru", {
+  const displayDate = new Date(date).toLocaleDateString(locale, {
     weekday: "long", day: "numeric", month: "long",
   });
 
@@ -647,7 +649,7 @@ export default function AppointmentsPage() {
                   )}
                   {a.price != null && (
                     <div style={{ fontSize: 12, color: "var(--gold)", fontWeight: 600, fontFamily: "'Playfair Display',serif", marginTop: masterName ? 2 : 0 }}>
-                      {a.price.toLocaleString("ru")} {t("currency")}
+                      {a.price.toLocaleString(locale)} {currency}
                     </div>
                   )}
                 </div>

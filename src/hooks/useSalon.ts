@@ -20,6 +20,7 @@ export interface Salon {
   tagline: string | null;
   working_hours: Record<string, unknown>;
   site_content: Record<string, unknown> | null;
+  business_registration_number: string | null;
   created_at: string | null;
 }
 

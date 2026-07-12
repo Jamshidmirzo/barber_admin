@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { Plus, UserX, Eye, EyeOff, Copy, Check, Search, UserCheck, X } from "lucide-react";
+import { Plus, UserX, Eye, EyeOff, Copy, Check, Search, X } from "lucide-react";
 import api from "@/lib/api";
 import { useIntlLocale } from "@/lib/locale";
+import { useAdminCountry, currencyForCountry, phoneCodeForCountry, formatPhoneForCountry } from "@/hooks/useAdminCountry";
 
 interface Barber {
   id: string;
@@ -19,16 +20,6 @@ interface Barber {
   specializations: string[];
 }
 
-interface SearchResult {
-  id: string;
-  phone: string;
-  name: string | null;
-  last_name: string | null;
-  photo_url: string | null;
-  specializations: string[];
-  is_already_in_team: boolean;
-}
-
 interface TeamMemberStat {
   master_id: string;
   name: string;
@@ -38,12 +29,12 @@ interface TeamMemberStat {
   worked_hours: number;
 }
 
-function initials(b: Barber | SearchResult) {
+function initials(b: Barber) {
   const n = [b.name, b.last_name].filter(Boolean).join(" ");
   return n ? n.slice(0, 2).toUpperCase() : b.phone.slice(-2);
 }
 
-function fullName(b: Barber | SearchResult) {
+function fullName(b: Barber) {
   return [b.name, b.last_name].filter(Boolean).join(" ") || "—";
 }
 
@@ -58,26 +49,21 @@ const inputStyle: React.CSSProperties = {
   outline:"none",
 };
 
-type ModalTab = "create" | "search";
-
 export default function BarbersPage() {
   const t = useTranslations("Barbers");
   const tc = useTranslations("Common");
   const locale = useIntlLocale();
   const qc = useQueryClient();
+  const country = useAdminCountry();
+  const phoneCode = phoneCodeForCountry(country);
+  const currency = currencyForCountry(country);
   const [showModal, setShowModal] = useState(false);
-  const [tab, setTab] = useState<ModalTab>("create");
   const [created, setCreated] = useState<{ phone: string; password: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [showPass, setShowPass] = useState(false);
-  const [form, setForm] = useState({ name:"", last_name:"", phone:"+998", password:"" });
+  const [form, setForm] = useState({ name:"", last_name:"", phone: phoneCode as string, password:"" });
   const [formErr, setFormErr] = useState("");
   const [filterQ, setFilterQ] = useState("");
-  const [searchQ, setSearchQ] = useState("");
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [searching, setSearching] = useState(false);
-  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
 
   const { data, isLoading } = useQuery<{ items: Barber[]; total: number }>({
     queryKey: ["team-members"],
@@ -91,23 +77,12 @@ export default function BarbersPage() {
 
   const statsById = new Map((teamStats?.members ?? []).map((m) => [m.master_id, m]));
 
-  function formatPhone(raw: string): string {
-    const digits = raw.replace(/\D/g, "");
-    const local = digits.startsWith("998") ? digits.slice(3) : digits;
-    let out = "+998";
-    if (local.length > 0) out += " " + local.slice(0, 2);
-    if (local.length > 2) out += " " + local.slice(2, 5);
-    if (local.length > 5) out += " " + local.slice(5, 7);
-    if (local.length > 7) out += " " + local.slice(7, 9);
-    return out;
-  }
-
   const createMutation = useMutation({
     mutationFn: (body: typeof form) => api.post("/team/members", { ...body, phone: body.phone.replace(/\s/g, "") }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["team-members"] });
       setCreated({ phone: form.phone, password: form.password });
-      setForm({ name:"", last_name:"", phone:"+998", password:"" });
+      setForm({ name:"", last_name:"", phone: phoneCode, password:"" });
       setShowModal(false);
     },
     onError: (err: unknown) => {
@@ -120,28 +95,6 @@ export default function BarbersPage() {
     mutationFn: (id: string) => api.delete(`/team/members/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["team-members"] }),
   });
-
-  const transferMutation = useMutation({
-    mutationFn: (master_id: string) => api.post("/team/transfer", { master_id }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["team-members"] });
-      setShowModal(false);
-      setSearchQ(""); setSearchResults([]);
-    },
-  });
-
-  useEffect(() => {
-    if (searchQ.length < 2) { setSearchResults([]); return; }
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(async () => {
-      setSearching(true);
-      try {
-        const res = await api.get("/team/search", { params: { q: searchQ } });
-        setSearchResults(res.data);
-      } catch { setSearchResults([]); }
-      finally { setSearching(false); }
-    }, 300);
-  }, [searchQ]);
 
   function copyCreated() {
     if (!created) return;
@@ -172,19 +125,9 @@ export default function BarbersPage() {
               }}
             />
           </div>
-          <button
-            onClick={() => { setShowModal(true); setTab("search"); setFormErr(""); }}
-            style={{
-              padding:"10px 16px", border:"1px solid rgba(201,164,92,0.20)",
-              background:"rgba(201,164,92,0.12)", color:"var(--gold)",
-              borderRadius:11, cursor:"pointer", fontSize:12.5, fontWeight:600,
-            }}
-          >
-            {t("invite")}
-          </button>
           <div style={{ flex:1 }} />
           <button
-            onClick={() => { setShowModal(true); setTab("create"); setFormErr(""); setSearchQ(""); setSearchResults([]); }}
+            onClick={() => { setShowModal(true); setFormErr(""); setForm((p) => ({ ...p, phone: phoneCode })); }}
             style={{
               display:"flex", alignItems:"center", gap:7, background:"var(--gold)", color:"#171205",
               border:"none", borderRadius:11, padding:"10px 16px",
@@ -322,7 +265,7 @@ export default function BarbersPage() {
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, paddingTop:16, borderTop:"1px solid var(--border)" }}>
                   <div>
                     <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, color:"var(--gold)" }}>
-                      {st ? (st.total_revenue >= 1_000_000 ? (st.total_revenue / 1_000_000).toFixed(1) + "M" : fmtMoney(st.total_revenue, t("currency"), locale)) : "—"}
+                      {st ? (st.total_revenue >= 1_000_000 ? (st.total_revenue / 1_000_000).toFixed(1) + "M" : fmtMoney(st.total_revenue, currency, locale)) : "—"}
                     </div>
                     <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>{t("stats.revenue")}</div>
                   </div>
@@ -362,177 +305,78 @@ export default function BarbersPage() {
               </button>
             </div>
 
-            {/* Modal tabs */}
-            <div style={{
-              display:"flex", background:"var(--bg)", border:"1px solid var(--border)",
-              borderRadius:"var(--radius)", padding:4, marginBottom:20,
-            }}>
-              {(["create","search"] as ModalTab[]).map((mt) => (
-                <button
-                  key={mt}
-                  onClick={() => setTab(mt)}
-                  style={{
-                    flex:1, padding:"7px 0", fontSize:13, fontWeight:600,
-                    borderRadius:9, border:"none", cursor:"pointer",
-                    background: tab === mt ? "var(--gold)" : "transparent",
-                    color: tab === mt ? "#0a0a0b" : "var(--text2)",
-                    transition:"background 0.15s, color 0.15s",
-                  }}
-                >
-                  {mt === "create" ? t("modal.tabCreate") : t("modal.tabSearch")}
-                </button>
-              ))}
-            </div>
-
-            {/* Create tab */}
-            {tab === "create" && (
-              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                  {(["name","last_name"] as const).map((f) => (
-                    <div key={f}>
-                      <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>
-                        {f === "name" ? t("modal.nameLabel") : t("modal.lastNameLabel")}
-                      </label>
-                      <input
-                        value={form[f]}
-                        onChange={(e) => setForm((p) => ({ ...p, [f]: e.target.value }))}
-                        placeholder={f === "name" ? t("modal.namePlaceholder") : t("modal.lastNamePlaceholder")}
-                        style={inputStyle}
-                      />
-                    </div>
-                  ))}
-                </div>
-                <div>
-                  <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>{t("modal.phoneLabel")}</label>
-                  <input
-                    value={form.phone}
-                    onChange={(e) => {
-                      const raw = e.target.value;
-                      if (!raw.startsWith("+998")) { setForm((p) => ({ ...p, phone: "+998" })); return; }
-                      setForm((p) => ({ ...p, phone: formatPhone(raw) }));
-                    }}
-                    placeholder={t("modal.phonePlaceholder")} type="tel" style={inputStyle}
-                  />
-                </div>
-                <div>
-                  <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>{t("modal.passwordLabel")}</label>
-                  <div style={{ position:"relative" }}>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                {(["name","last_name"] as const).map((f) => (
+                  <div key={f}>
+                    <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>
+                      {f === "name" ? t("modal.nameLabel") : t("modal.lastNameLabel")}
+                    </label>
                     <input
-                      value={form.password}
-                      onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-                      type={showPass ? "text" : "password"}
-                      placeholder={t("modal.passwordPlaceholder")}
-                      style={{ ...inputStyle, paddingRight:40 }}
+                      value={form[f]}
+                      onChange={(e) => setForm((p) => ({ ...p, [f]: e.target.value }))}
+                      style={inputStyle}
                     />
-                    <button
-                      type="button" onClick={() => setShowPass((v) => !v)}
-                      style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"var(--text2)" }}
-                    >
-                      {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
-                    </button>
                   </div>
-                </div>
-                {formErr && (
-                  <div style={{ background:"rgba(224,90,90,0.08)", border:"1px solid rgba(224,90,90,0.2)", borderRadius:"var(--radius)", padding:"9px 13px", color:"var(--red)", fontSize:13 }}>
-                    {formErr}
-                  </div>
-                )}
-                <div style={{ display:"flex", gap:10, marginTop:4 }}>
+                ))}
+              </div>
+              <div>
+                <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>{t("modal.phoneLabel")}</label>
+                <input
+                  value={form.phone}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (!raw.startsWith(phoneCode)) { setForm((p) => ({ ...p, phone: phoneCode })); return; }
+                    setForm((p) => ({ ...p, phone: formatPhoneForCountry(raw, country) }));
+                  }}
+                  placeholder={country === "kr" ? "+82 10 1234 5678" : "+998 90 123 45 67"}
+                  type="tel" style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>{t("modal.passwordLabel")}</label>
+                <div style={{ position:"relative" }}>
+                  <input
+                    value={form.password}
+                    onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+                    type={showPass ? "text" : "password"}
+                    placeholder={t("modal.passwordPlaceholder")}
+                    style={{ ...inputStyle, paddingRight:40 }}
+                  />
                   <button
-                    onClick={() => setShowModal(false)}
-                    style={{ flex:1, background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"10px", fontSize:13, fontWeight:500, color:"var(--text2)", cursor:"pointer" }}
+                    type="button" onClick={() => setShowPass((v) => !v)}
+                    style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"var(--text2)" }}
                   >
-                    {tc("cancel")}
-                  </button>
-                  <button
-                    onClick={() => { setFormErr(""); createMutation.mutate(form); }}
-                    disabled={createMutation.isPending || !form.phone || !form.password}
-                    style={{
-                      flex:1, background:"var(--gold)", color:"#0a0a0b",
-                      border:"none", borderRadius:"var(--radius)", padding:"10px",
-                      fontSize:13, fontWeight:700, cursor:"pointer",
-                      opacity: (createMutation.isPending || !form.phone || !form.password) ? 0.5 : 1,
-                    }}
-                  >
-                    {createMutation.isPending ? t("modal.creating") : t("modal.create")}
+                    {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
               </div>
-            )}
-
-            {/* Search tab */}
-            {tab === "search" && (
-              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                <div style={{ position:"relative" }}>
-                  <Search size={14} style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"var(--text3)", pointerEvents:"none" }} />
-                  <input
-                    value={searchQ}
-                    onChange={(e) => setSearchQ(e.target.value)}
-                    placeholder={t("modal.searchPlaceholder")}
-                    style={{ ...inputStyle, paddingLeft:36 }}
-                    autoFocus
-                  />
+              {formErr && (
+                <div style={{ background:"rgba(224,90,90,0.08)", border:"1px solid rgba(224,90,90,0.2)", borderRadius:"var(--radius)", padding:"9px 13px", color:"var(--red)", fontSize:13 }}>
+                  {formErr}
                 </div>
-                {searching && <p style={{ color:"var(--text2)", fontSize:13, textAlign:"center", padding:"12px 0" }}>{t("modal.searching")}</p>}
-                {!searching && searchQ.length >= 2 && searchResults.length === 0 && (
-                  <p style={{ color:"var(--text2)", fontSize:13, textAlign:"center", padding:"12px 0" }}>{t("modal.noResults")}</p>
-                )}
-                {searchResults.length > 0 && (
-                  <div style={{ display:"flex", flexDirection:"column", gap:6, maxHeight:240, overflowY:"auto" }}>
-                    {searchResults.map((r) => (
-                      <div key={r.id} style={{
-                        display:"flex", alignItems:"center", gap:12,
-                        background:"var(--bg)", border:"1px solid var(--border)",
-                        borderRadius:"var(--radius)", padding:"10px 14px",
-                      }}>
-                        <div style={{
-                          width:36, height:36, borderRadius:"50%",
-                          background:"var(--gold-dim)", color:"var(--gold)",
-                          display:"flex", alignItems:"center", justifyContent:"center",
-                          fontWeight:700, fontSize:12, flexShrink:0,
-                        }}>
-                          {initials(r)}
-                        </div>
-                        <div style={{ minWidth:0, flex:1 }}>
-                          <p style={{ color:"var(--text)", fontSize:13, fontWeight:600, margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{fullName(r)}</p>
-                          <p style={{ color:"var(--text3)", fontSize:12, margin:0 }}>{r.phone}</p>
-                        </div>
-                        {r.is_already_in_team ? (
-                          <span style={{ display:"flex", alignItems:"center", gap:4, fontSize:11, color:"var(--green)", background:"rgba(76,175,125,0.1)", padding:"3px 8px", borderRadius:20, flexShrink:0 }}>
-                            <UserCheck size={11} /> {t("modal.inTeam")}
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => transferMutation.mutate(r.id)}
-                            disabled={transferMutation.isPending}
-                            style={{
-                              background:"var(--gold)", color:"#0a0a0b", border:"none",
-                              borderRadius:"var(--radius)", padding:"5px 12px",
-                              fontSize:12, fontWeight:700, cursor:"pointer", flexShrink:0,
-                              opacity: transferMutation.isPending ? 0.5 : 1,
-                            }}
-                          >
-                            {tc("add")}
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {searchQ.length < 2 && (
-                  <p style={{ color:"var(--text3)", fontSize:12, textAlign:"center", padding:"16px 0" }}>{t("modal.minChars")}</p>
-                )}
+              )}
+              <div style={{ display:"flex", gap:10, marginTop:4 }}>
                 <button
                   onClick={() => setShowModal(false)}
+                  style={{ flex:1, background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"10px", fontSize:13, fontWeight:500, color:"var(--text2)", cursor:"pointer" }}
+                >
+                  {tc("cancel")}
+                </button>
+                <button
+                  onClick={() => { setFormErr(""); createMutation.mutate(form); }}
+                  disabled={createMutation.isPending || !form.phone || !form.password}
                   style={{
-                    background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)",
-                    padding:"10px", fontSize:13, fontWeight:500, color:"var(--text2)", cursor:"pointer", marginTop:4,
+                    flex:1, background:"var(--gold)", color:"#0a0a0b",
+                    border:"none", borderRadius:"var(--radius)", padding:"10px",
+                    fontSize:13, fontWeight:700, cursor:"pointer",
+                    opacity: (createMutation.isPending || !form.phone || !form.password) ? 0.5 : 1,
                   }}
                 >
-                  {tc("close")}
+                  {createMutation.isPending ? t("modal.creating") : t("modal.create")}
                 </button>
               </div>
-            )}
+            </div>
           </div>
         </div>
       )}

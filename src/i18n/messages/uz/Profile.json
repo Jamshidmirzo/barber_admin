@@ -20,5 +20,11 @@
     "saving": "Saqlanmoqda…",
     "saved": "Saqlandi!"
   },
-  "saveError": "Saqlab bo'lmadi. Qaytadan urinib ko'ring."
+  "saveError": "Saqlab bo'lmadi. Qaytadan urinib ko'ring.",
+  "business": {
+    "title": "Biznes",
+    "salonName": "Salon nomi",
+    "address": "Manzil",
+    "brn": "Biznes ro'yxatga olish raqami"
+  }
 }

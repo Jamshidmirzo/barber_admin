@@ -1,7 +1,6 @@
 {
   "title": "Analytics",
-  "subtitle": "Utilization, revenue trends, and promotion suggestions",
-  "currency": "sum",
+  "subtitle": "Utilization and revenue trends",
   "periods": {
     "d30": "30d",
     "d90": "90d",
@@ -51,21 +50,5 @@
     "revenueByDowTitle": "Average revenue by day of week",
     "avgRevenueLabel": "Avg. revenue",
     "empty": "No data for this period"
-  },
-  "promo": {
-    "title": "AI promotion suggestions",
-    "generateButton": "Get AI suggestions",
-    "generating": "AI is analyzing…",
-    "loadingTitle": "AI is analyzing your data…",
-    "loadingSubtitle": "usually 2–5 seconds",
-    "errorFallback": "Couldn't get suggestions",
-    "emptySuggestions": "No suggestions — your load is well balanced.",
-    "idleHint": "Click the button — AI will find slow hours and suggest promotions to fill them.",
-    "aiBadge": "AI",
-    "discountTag": "Discount {discount}",
-    "copy": "Copy for post",
-    "copied": "Copied",
-    "clipboardDiscountLabel": "Discount",
-    "clipboardFooter": "Book now — limited spots available!"
   }
 }

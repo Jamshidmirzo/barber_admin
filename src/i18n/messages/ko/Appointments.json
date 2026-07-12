@@ -5,7 +5,6 @@
   "emptyState": "이 날짜에는 예약이 없습니다",
   "unknownClient": "고객",
   "unknownService": "서비스",
-  "currency": "숨",
   "status": {
     "pending": "대기 중",
     "scheduled": "예정됨",

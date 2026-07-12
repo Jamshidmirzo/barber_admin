@@ -1,7 +1,6 @@
 {
   "title": "분석",
-  "subtitle": "예약 현황, 매출 트렌드 및 프로모션 제안",
-  "currency": "숨",
+  "subtitle": "예약 현황 및 매출 트렌드",
   "periods": {
     "d30": "30일",
     "d90": "90일",
@@ -51,21 +50,5 @@
     "revenueByDowTitle": "요일별 평균 매출",
     "avgRevenueLabel": "평균 매출",
     "empty": "해당 기간의 데이터가 없습니다"
-  },
-  "promo": {
-    "title": "AI 프로모션 제안",
-    "generateButton": "AI 제안 받기",
-    "generating": "AI 분석 중…",
-    "loadingTitle": "AI가 데이터를 분석하고 있습니다…",
-    "loadingSubtitle": "보통 2~5초 소요",
-    "errorFallback": "제안을 가져오지 못했습니다",
-    "emptySuggestions": "제안이 없습니다 — 예약률이 고르게 분산되어 있습니다.",
-    "idleHint": "버튼을 클릭하면 AI가 한산한 시간대를 찾아 이를 채울 프로모션을 제안합니다.",
-    "aiBadge": "AI",
-    "discountTag": "할인 {discount}",
-    "copy": "게시물용으로 복사",
-    "copied": "복사됨",
-    "clipboardDiscountLabel": "할인",
-    "clipboardFooter": "지금 예약하세요 — 좌석이 한정되어 있습니다!"
   }
 }
