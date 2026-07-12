@@ -88,60 +88,34 @@ export default function LoginPage() {
   }
 
   async function handleLogin(e: React.FormEvent) {
-  e.preventDefault();
-  setError("");
-  if (!isValidPhone(phone, loginCountry)) {
-    setError(loginCountry === "82" ? t("errors.phoneInvalidKr") : t("errors.phoneInvalidUz"));
-    return;
-  }
-  setLoading(true);
-  try {
-    const res = await api.post("/auth/login", { phone: phone.replace(/\s/g, ""), password });
-    const token = res.data?.tokens?.access_token;
-    if (token) saveToken(token);
-    else setError(t("errors.serverResponseInvalid"));
-  } catch (err) {
-    setError(parseApiError(err, t("errors.loginFailed")));
-  } finally { setLoading(false); }
-}
     e.preventDefault();
-    setError(""); setLoading(true);
+    setError("");
+    if (!isValidPhone(phone, loginCountry)) {
+      setError(loginCountry === "82" ? t("errors.phoneInvalidKr") : t("errors.phoneInvalidUz"));
+      return;
+    }
+    setLoading(true);
     try {
       const res = await api.post("/auth/login", { phone: phone.replace(/\s/g, ""), password });
       const tokens = res.data?.tokens;
       if (tokens?.access_token) saveTokens(tokens);
-      else setError("Неверный ответ сервера");
+      else setError(t("errors.serverResponseInvalid"));
     } catch (err) {
-      setError(parseApiError(err, "Неверный телефон или пароль"));
-    } finally { setLoading(false); }
+      setError(parseApiError(err, t("errors.loginFailed")));
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleRegister(e: React.FormEvent) {
-  e.preventDefault();
-  setError("");
-  if (!isValidPhone(regPhone, regCountry)) {
-    setError(regCountry === "82" ? t("errors.phoneInvalidKr") : t("errors.phoneInvalidUz"));
-    return;
-  }
-  if (regPass !== regPass2) { setError(t("errors.passwordMismatch")); return; }
-  if (regPass.length < 6) { setError(t("errors.passwordTooShort")); return; }
-  setLoading(true);
-  try {
-    const res = await api.post("/auth/register", {
-      phone: regPhone.replace(/\s/g, ""), password: regPass,
-      name: regName, last_name: regLastName,
-    });
-    const token = res.data?.tokens?.access_token;
-    if (token) saveToken(token);
-    else setError(t("errors.serverResponseInvalid"));
-  } catch (err) {
-    setError(parseApiError(err, t("errors.registerFailed")));
-  } finally { setLoading(false); }
-}
     e.preventDefault();
     setError("");
-    if (regPass !== regPass2) { setError("Пароли не совпадают"); return; }
-    if (regPass.length < 6) { setError("Пароль минимум 6 символов"); return; }
+    if (!isValidPhone(regPhone, regCountry)) {
+      setError(regCountry === "82" ? t("errors.phoneInvalidKr") : t("errors.phoneInvalidUz"));
+      return;
+    }
+    if (regPass !== regPass2) { setError(t("errors.passwordMismatch")); return; }
+    if (regPass.length < 6) { setError(t("errors.passwordTooShort")); return; }
     setLoading(true);
     try {
       const res = await api.post("/auth/register", {
@@ -150,10 +124,12 @@ export default function LoginPage() {
       });
       const tokens = res.data?.tokens;
       if (tokens?.access_token) saveTokens(tokens);
-      else setError("Неверный ответ сервера");
+      else setError(t("errors.serverResponseInvalid"));
     } catch (err) {
-      setError(parseApiError(err, "Ошибка регистрации"));
-    } finally { setLoading(false); }
+      setError(parseApiError(err, t("errors.registerFailed")));
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -362,4 +338,4 @@ export default function LoginPage() {
       </div>
     </div>
   );
-}
+}sa
