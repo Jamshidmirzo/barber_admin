@@ -1,0 +1,16 @@
+{
+  "myLocation": "Моё местоположение",
+  "helperText": "Кликните на карте, чтобы уточнить точку салона",
+  "selectedPointFallback": "Выбранная точка",
+  "searchPlaceholder": "Поиск по адресу",
+  "searchButton": "Найти",
+  "errors": {
+    "mapLoadFailed": "Не удалось загрузить Яндекс Карты — проверьте настройки API-ключа в консоли Яндекса",
+    "sdkLoadFailed": "Не удалось загрузить SDK Яндекс Карт",
+    "geolocationUnavailable": "Геолокация недоступна в этом браузере",
+    "locateFailed": "Не удалось определить местоположение",
+    "missingKey": "Карта недоступна: не задан NEXT_PUBLIC_YANDEX_JS_KEY",
+    "noResults": "Ничего не найдено",
+    "geocodeFailed": "Не удалось найти этот адрес"
+  }
+}

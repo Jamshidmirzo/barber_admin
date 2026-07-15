@@ -5,16 +5,21 @@
     "lastName": "성",
     "phone": "전화번호",
     "city": "도시",
-    "specializations": "전문 분야 (쉼표로 구분)",
+    "specializations": "전문 분야",
     "bio": "자기소개"
   },
   "placeholders": {
     "firstName": "이름",
     "lastName": "성",
     "city": "타슈켄트",
-    "specializations": "클래식 커트, 면도",
-    "bio": "자기소개를 입력하세요…"
+    "specializationsSearch": "전문 분야 검색…",
+    "bio": "바버샵에 대해 소개해주세요…"
   },
+  "specializations": {
+    "noResults": "일치하는 전문 분야가 없습니다",
+    "remove": "삭제"
+  },
+  "bioCounter": "{count}/{max}",
   "save": {
     "idle": "변경사항 저장",
     "saving": "저장 중…",

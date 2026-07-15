@@ -20,6 +20,10 @@
     "noResults": "Hech narsa topilmadi",
     "manualToggle": "Topa olmayapsizmi — manzilni qo'lda kiriting"
   },
+  "locationUz": {
+    "label": "Saloningiz joylashuvini xaritada belgilang",
+    "change": "O'zgartirish"
+  },
   "errors": {
     "geocode": "Manzilni aniqlab bo'lmadi",
     "submit": "Salon yaratib bo'lmadi"

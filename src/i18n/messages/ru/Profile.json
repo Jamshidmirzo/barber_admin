@@ -5,16 +5,21 @@
     "lastName": "Фамилия",
     "phone": "Телефон",
     "city": "Город",
-    "specializations": "Специализации (через запятую)",
+    "specializations": "Специализации",
     "bio": "О себе"
   },
   "placeholders": {
     "firstName": "Имя",
     "lastName": "Фамилия",
     "city": "Ташкент",
-    "specializations": "Классические стрижки, бритьё",
-    "bio": "Расскажите о себе…"
+    "specializationsSearch": "Поиск специализаций…",
+    "bio": "Расскажите о своём барбершопе…"
   },
+  "specializations": {
+    "noResults": "Специализации не найдены",
+    "remove": "Удалить"
+  },
+  "bioCounter": "{count}/{max}",
   "save": {
     "idle": "Сохранить изменения",
     "saving": "Сохраняем…",

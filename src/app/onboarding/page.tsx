@@ -2,21 +2,38 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Scissors, Loader2, MapPin, Check } from "lucide-react";
 import api, { parseApiError } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useSalonContextQuery } from "@/hooks/useSalon";
+import { useProfileQuery } from "@/hooks/useProfile";
 import KakaoMapPicker, { type PickedPlace } from "@/components/KakaoMapPicker";
-
-interface Profile {
-  country: "uz" | "kr" | null;
-}
+import YandexMapPicker from "@/components/YandexMapPicker";
 
 type PlaceResult = PickedPlace;
 
 const BRN_RE = /^\d{10}$/;
+
+// The Kakao place-search/geocode and Yandex manual-geocode results all go
+// through our own backend (no structured locality field — see
+// PlaceResultSchema), so `place.city` is only set when the map SDK resolved
+// it directly (map click / "use my location"). Fall back to parsing the
+// address string for the common search/manual-entry paths.
+function deriveCity(place: PickedPlace, korea: boolean): string | null {
+  if (place.city) return place.city;
+  const source = place.road_address_name || place.address_name;
+  if (!source) return null;
+  if (korea) {
+    // Korean addresses lead with the region/city: "서울특별시 강남구 ..."
+    return source.trim().split(/\s+/)[0] || null;
+  }
+  // Yandex-formatted addresses are comma-separated and often lead with the
+  // country name before the city ("Узбекистан, Ташкент, ...").
+  const parts = source.split(",").map((p) => p.trim()).filter(Boolean);
+  return parts.find((p) => !/узбекистан|uzbekistan/i.test(p)) ?? parts[0] ?? null;
+}
 
 const inp: React.CSSProperties = {
   width:"100%", background:"rgba(255,255,255,0.04)", color:"var(--text)",
@@ -34,11 +51,10 @@ export default function OnboardingPage() {
   const { data: salonCtx } = useSalonContextQuery();
   useEffect(() => { if (salonCtx?.salon) router.replace("/appointments"); }, [salonCtx, router]);
 
-  const { data: profile } = useQuery<Profile>({
-    queryKey: ["profile"],
-    queryFn: () => api.get("/profile").then((r) => r.data),
-  });
+  const { data: profile } = useProfileQuery();
   const isKorea = profile?.country === "kr";
+  const isUzbek = profile?.country === "uz";
+  const countryKnown = profile?.country != null;
 
   const [name, setName] = useState("");
   const [brn, setBrn] = useState("");
@@ -83,23 +99,36 @@ export default function OnboardingPage() {
   }
 
   const brnValid = !isKorea || BRN_RE.test(brn.replace(/[\s-]/g, ""));
-  const locationValid = !isKorea || selectedPlace !== null;
+  const locationValid = !countryKnown || selectedPlace !== null;
   const canSubmit = name.trim().length >= 2 && brnValid && locationValid && !submitting;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
     setError(""); setSubmitting(true);
+    const city = selectedPlace ? deriveCity(selectedPlace, isKorea) : null;
     try {
       await api.post("/salons", {
         name: name.trim(),
-        ...(isKorea ? {
-          business_registration_number: brn.replace(/[\s-]/g, ""),
-          address: selectedPlace?.road_address_name || selectedPlace?.address_name,
-          latitude: selectedPlace?.latitude,
-          longitude: selectedPlace?.longitude,
+        ...(isKorea ? { business_registration_number: brn.replace(/[\s-]/g, "") } : {}),
+        ...(selectedPlace ? {
+          address: selectedPlace.road_address_name || selectedPlace.address_name,
+          latitude: selectedPlace.latitude,
+          longitude: selectedPlace.longitude,
         } : {}),
+        ...(city ? { city } : {}),
       });
+
+      // The salon's city doesn't automatically carry over to the owner's own
+      // profile (separate records) — save it there too so the Profile screen
+      // is pre-filled instead of asking the user to type it again.
+      if (city) {
+        try {
+          await api.put("/profile", { city });
+          qc.setQueryData(["profile"], (prev: { city?: string | null } | undefined) => (prev ? { ...prev, city } : prev));
+        } catch { /* non-critical — salon creation already succeeded */ }
+      }
+
       await qc.invalidateQueries({ queryKey:["salon-context"] });
       router.replace("/barbers");
     } catch (err) { setError(parseApiError(err, t("errors.submit"))); setSubmitting(false); }
@@ -225,6 +254,30 @@ export default function OnboardingPage() {
               <div style={{ marginTop:12 }}>
                 <KakaoMapPicker selected={selectedPlace} onPick={setSelectedPlace} />
               </div>
+            </div>
+          )}
+
+          {/* Yandex Map location — Uzbekistan only */}
+          {isUzbek && (
+            <div>
+              <label style={{ display:"block", color:"var(--text2)", fontSize:13, marginBottom:8 }}>{t("locationUz.label")}</label>
+
+              {selectedPlace && (
+                <div style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"12px 14px", background:"rgba(56,161,105,0.08)", border:"1px solid var(--green,#38a169)", borderRadius:"var(--radius)", marginBottom:12 }}>
+                  <Check size={16} style={{ color:"var(--green,#38a169)", flexShrink:0, marginTop:2 }} />
+                  <div style={{ minWidth:0, flex:1 }}>
+                    <p style={{ color:"var(--text)", fontSize:13, fontWeight:600, margin:0 }}>{selectedPlace.place_name}</p>
+                    <p style={{ color:"var(--text2)", fontSize:12, margin:"2px 0 0" }}>{selectedPlace.road_address_name || selectedPlace.address_name}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlace(null)}
+                    style={{ background:"transparent", border:"none", color:"var(--text2)", fontSize:12, cursor:"pointer", flexShrink:0 }}
+                  >{t("locationUz.change")}</button>
+                </div>
+              )}
+
+              <YandexMapPicker selected={selectedPlace} onPick={setSelectedPlace} />
             </div>
           )}
 

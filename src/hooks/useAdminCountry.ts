@@ -1,17 +1,12 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import api from "@/lib/api";
+import { useProfileQuery } from "@/hooks/useProfile";
 
 export type AdminCountry = "uz" | "kr" | null;
 
 /** Admin's registered country (from /profile) — drives currency and phone format across the dashboard. */
 export function useAdminCountry(): AdminCountry {
-  const { data } = useQuery<{ country: AdminCountry }>({
-    queryKey: ["profile"],
-    queryFn: () => api.get("/profile").then((r) => r.data),
-    staleTime: 5 * 60_000,
-  });
+  const { data } = useProfileQuery();
   return data?.country ?? null;
 }
 

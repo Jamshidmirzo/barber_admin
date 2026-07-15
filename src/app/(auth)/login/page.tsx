@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Eye, EyeOff } from "lucide-react";
 import api, { parseApiError } from "@/lib/api";
+import type { Profile } from "@/hooks/useProfile";
 
 const inp: React.CSSProperties = {
   width:"100%", background:"var(--surface)", color:"var(--text)",
@@ -64,6 +66,7 @@ type View = "login" | "register";
 export default function LoginPage() {
   const t = useTranslations("Login");
   const router = useRouter();
+  const qc = useQueryClient();
   const [view, setView] = useState<View>("login");
   const [phone, setPhone] = useState("+998");
   const [loginCountry, setLoginCountry] = useState<CountryCode>("998");
@@ -79,11 +82,22 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function saveTokens(tokens: { access_token: string; refresh_token?: string }) {
+  function saveTokens(tokens: { access_token: string; refresh_token?: string }, profilePrimer?: Profile) {
     localStorage.setItem("barber_admin_token", tokens.access_token);
     if (tokens.refresh_token) {
       localStorage.setItem("barber_admin_refresh_token", tokens.refresh_token);
     }
+    // Every cached query (profile, salon-context, etc.) is scoped to whichever
+    // account was logged in when it was fetched, but none of the query keys
+    // encode the user — without this, switching accounts client-side (no full
+    // reload) can serve a previous account's stale profile/salon/country data.
+    qc.clear();
+    // Registration already gave us name/last_name/phone/country — seed the
+    // profile cache with them so the onboarding screen right after doesn't
+    // have to block on a fresh GET /profile for data we already typed in.
+    // staleTime on useProfileQuery still lets it reconcile with the backend
+    // (real id, bio, photo_url, ...) in the background once it goes stale.
+    if (profilePrimer) qc.setQueryData(["profile"], profilePrimer);
     router.push("/appointments");
   }
 
@@ -118,13 +132,31 @@ export default function LoginPage() {
     if (regPass.length < 6) { setError(t("errors.passwordTooShort")); return; }
     setLoading(true);
     try {
+      const cleanPhone = regPhone.replace(/\s/g, "");
       const res = await api.post("/auth/register", {
-        phone: regPhone.replace(/\s/g, ""), password: regPass,
+        phone: cleanPhone, password: regPass,
         name: regName, last_name: regLastName,
       });
       const tokens = res.data?.tokens;
-      if (tokens?.access_token) saveTokens(tokens);
-      else setError(t("errors.serverResponseInvalid"));
+      if (!tokens?.access_token) {
+        setError(t("errors.serverResponseInvalid"));
+        return;
+      }
+      saveTokens(tokens, {
+        // The register response only carries tokens, no user object — the
+        // real id/created_at/etc. get filled in on the first real /profile
+        // fetch once this primer goes stale.
+        id: "",
+        phone: cleanPhone,
+        name: regName.trim() || null,
+        last_name: regLastName.trim() || null,
+        bio: null,
+        photo_url: null,
+        city: null,
+        specializations: [],
+        country: regCountry === "82" ? "kr" : "uz",
+        is_onboarded: false,
+      });
     } catch (err) {
       setError(parseApiError(err, t("errors.registerFailed")));
     } finally {

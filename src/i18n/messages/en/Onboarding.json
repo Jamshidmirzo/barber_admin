@@ -20,6 +20,10 @@
     "noResults": "No results found",
     "manualToggle": "Can't find it — enter address manually"
   },
+  "locationUz": {
+    "label": "Pick your salon's location on the map",
+    "change": "Change"
+  },
   "errors": {
     "geocode": "Could not determine the address",
     "submit": "Could not create the salon"

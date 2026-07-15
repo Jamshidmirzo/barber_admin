@@ -1,24 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, Camera, Building2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Save, Building2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import api from "@/lib/api";
 import { useSalon } from "@/hooks/useSalon";
+import { useProfileQuery, type Profile } from "@/hooks/useProfile";
+import { SPECIALIZATION_IDS } from "@/lib/specializations";
 
-interface Profile {
-  id: string;
-  phone: string;
-  name: string | null;
-  last_name: string | null;
-  bio: string | null;
-  photo_url: string | null;
-  city: string | null;
-  specializations: string[];
-  country: "uz" | "kr" | null;
-  is_onboarded: boolean;
-}
+const BIO_MAX_LENGTH = 500;
 
 const inp: React.CSSProperties = {
   width: "100%", padding: "11px 13px",
@@ -34,15 +25,18 @@ const label: React.CSSProperties = {
 
 export default function ProfilePage() {
   const t = useTranslations("Profile");
+  const tSpec = useTranslations("Specializations");
+  // Guards against ids saved by an older catalog version that no longer
+  // exist — falls back to the raw id instead of throwing on a missing key.
+  const specLabel = (id: string) => (SPECIALIZATION_IDS.includes(id) ? tSpec(`items.${id}`) : id);
   const { salon } = useSalon();
   const qc = useQueryClient();
-  const [form, setForm] = useState({ name: "", last_name: "", city: "", bio: "", specializations: "" });
+  const [form, setForm] = useState({ name: "", last_name: "", city: "", bio: "" });
+  const [specializations, setSpecializations] = useState<string[]>([]);
+  const [specQuery, setSpecQuery] = useState("");
   const [saved, setSaved] = useState(false);
 
-  const { data, isLoading } = useQuery<Profile>({
-    queryKey: ["profile"],
-    queryFn: () => api.get("/profile").then((r) => r.data),
-  });
+  const { data, isLoading } = useProfileQuery();
 
   useEffect(() => {
     if (!data) return;
@@ -51,20 +45,40 @@ export default function ProfilePage() {
       last_name: data.last_name ?? "",
       city: data.city ?? "",
       bio: data.bio ?? "",
-      specializations: data.specializations.join(", "),
     });
+    setSpecializations(data.specializations);
   }, [data]);
 
+  const specMatches = useMemo(() => {
+    const q = specQuery.trim().toLowerCase();
+    if (!q) return [];
+    return SPECIALIZATION_IDS
+      .filter((id) => !specializations.includes(id) && specLabel(id).toLowerCase().includes(q))
+      .slice(0, 8);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [specQuery, specializations]);
+
+  function addSpecialization(id: string) {
+    setSpecializations((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    setSpecQuery("");
+  }
+
+  function removeSpecialization(id: string) {
+    setSpecializations((prev) => prev.filter((s) => s !== id));
+  }
+
   const saveMutation = useMutation({
-    mutationFn: () => api.patch("/profile", {
+    mutationFn: () => api.put("/profile", {
       name: form.name.trim() || null,
       last_name: form.last_name.trim() || null,
       city: form.city.trim() || null,
       bio: form.bio.trim() || null,
-      specializations: form.specializations.split(",").map((s) => s.trim()).filter(Boolean),
+      specializations,
     }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["profile"] });
+    onSuccess: (res) => {
+      // Write the server's response straight into the cache instead of
+      // invalidating — we just saved this data, no need for a follow-up GET.
+      qc.setQueryData<Profile>(["profile"], (prev) => ({ ...(prev as Profile), ...res.data }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     },
@@ -102,27 +116,16 @@ export default function ProfilePage() {
 
         {/* Avatar + name */}
         <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 26, paddingBottom: 22, borderBottom: "1px solid var(--border)" }}>
-          <div style={{ position: "relative", flexShrink: 0 }}>
-            <div style={{
-              width: 72, height: 72, borderRadius: 20,
-              background: "var(--gold-dim)", color: "var(--gold)",
-              fontWeight: 700, fontSize: 26, display: "flex",
-              alignItems: "center", justifyContent: "center", overflow: "hidden",
-            }}>
-              {data.photo_url
-                // eslint-disable-next-line @next/next/no-img-element
-                ? <img src={data.photo_url} alt={fullName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                : initials}
-            </div>
-            <button style={{
-              position: "absolute", bottom: -4, right: -4,
-              width: 26, height: 26, borderRadius: "50%",
-              background: "var(--gold)", border: "2px solid var(--card)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer",
-            }}>
-              <Camera size={12} style={{ color: "#0a0a0b" }} />
-            </button>
+          <div style={{
+            width: 72, height: 72, borderRadius: 20,
+            background: "var(--gold-dim)", color: "var(--gold)",
+            fontWeight: 700, fontSize: 26, display: "flex",
+            alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0,
+          }}>
+            {data.photo_url
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={data.photo_url} alt={fullName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : initials}
           </div>
           <div>
             <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 600, color: "var(--text)" }}>
@@ -159,18 +162,80 @@ export default function ProfilePage() {
 
         <div style={{ marginBottom: 14 }}>
           <label style={label}>{t("fields.specializations")}</label>
-          <input value={form.specializations} onChange={(e) => set("specializations", e.target.value)} placeholder={t("placeholders.specializations")} style={inp} />
+          {specializations.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+              {specializations.map((s) => (
+                <span key={s} style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "6px 6px 6px 12px", borderRadius: 999,
+                  background: "var(--gold-dim)", color: "var(--gold)",
+                  fontSize: 12.5, fontWeight: 600,
+                }}>
+                  {specLabel(s)}
+                  <button
+                    type="button" onClick={() => removeSpecialization(s)}
+                    aria-label={`${t("specializations.remove")}: ${specLabel(s)}`}
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      width: 16, height: 16, borderRadius: "50%", border: "none",
+                      background: "rgba(0,0,0,0.15)", color: "inherit", cursor: "pointer", padding: 0,
+                    }}
+                  >
+                    <X size={10} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div style={{ position: "relative" }}>
+            <input
+              value={specQuery}
+              onChange={(e) => setSpecQuery(e.target.value)}
+              placeholder={t("placeholders.specializationsSearch")}
+              style={inp}
+            />
+            {specQuery.trim().length > 0 && (
+              <div style={{
+                position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, zIndex: 5,
+                background: "var(--card)", border: "1px solid var(--border)",
+                borderRadius: "var(--radius)", overflow: "hidden",
+                boxShadow: "0 12px 24px rgba(0,0,0,0.18)",
+              }}>
+                {specMatches.length > 0 ? specMatches.map((id, i) => (
+                  <button
+                    key={id} type="button" onClick={() => addSpecialization(id)}
+                    style={{
+                      display: "block", width: "100%", textAlign: "left",
+                      padding: "10px 14px", background: "transparent", border: "none",
+                      borderBottom: i < specMatches.length - 1 ? "1px solid var(--border)" : "none",
+                      color: "var(--text)", fontSize: 13, cursor: "pointer",
+                    }}
+                  >
+                    {specLabel(id)}
+                  </button>
+                )) : (
+                  <div style={{ padding: "10px 14px", color: "var(--text3)", fontSize: 12.5 }}>
+                    {t("specializations.noResults")}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <div style={{ marginBottom: 20 }}>
           <label style={label}>{t("fields.bio")}</label>
           <textarea
             value={form.bio}
-            onChange={(e) => set("bio", e.target.value)}
+            onChange={(e) => set("bio", e.target.value.slice(0, BIO_MAX_LENGTH))}
             rows={3}
+            maxLength={BIO_MAX_LENGTH}
             placeholder={t("placeholders.bio")}
             style={{ ...inp, resize: "vertical", fontFamily: "inherit" }}
           />
+          <div style={{ textAlign: "right", fontSize: 11, color: "var(--text3)", marginTop: 4 }}>
+            {t("bioCounter", { count: form.bio.length, max: BIO_MAX_LENGTH })}
+          </div>
         </div>
 
         <button

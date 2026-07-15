@@ -1,0 +1,16 @@
+{
+  "myLocation": "My location",
+  "helperText": "Click on the map to fine-tune the salon's location",
+  "selectedPointFallback": "Selected point",
+  "searchPlaceholder": "Search for an address",
+  "searchButton": "Find",
+  "errors": {
+    "mapLoadFailed": "Failed to load Yandex Map — check the API key settings in the Yandex console",
+    "sdkLoadFailed": "Failed to load the Yandex Map SDK",
+    "geolocationUnavailable": "Geolocation is not available in this browser",
+    "locateFailed": "Could not determine your location",
+    "missingKey": "Map unavailable: NEXT_PUBLIC_YANDEX_JS_KEY is not set",
+    "noResults": "No results found",
+    "geocodeFailed": "Could not find that address"
+  }
+}

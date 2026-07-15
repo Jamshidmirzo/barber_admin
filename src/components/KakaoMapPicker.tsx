@@ -18,8 +18,8 @@ interface KakaoMap {
   panTo(pos: KakaoLatLng): void;
 }
 interface KakaoGeocoderAddressResult {
-  road_address?: { address_name: string } | null;
-  address?: { address_name: string } | null;
+  road_address?: { address_name: string; region_1depth_name?: string } | null;
+  address?: { address_name: string; region_1depth_name?: string } | null;
 }
 interface KakaoGeocoder {
   coord2Address(
@@ -59,6 +59,8 @@ export interface PickedPlace {
   phone: string | null;
   latitude: number;
   longitude: number;
+  /** City/region, when the geocoder gave us a structured one (not always available). */
+  city?: string | null;
 }
 
 interface KakaoMapPickerProps {
@@ -95,6 +97,7 @@ export default function KakaoMapPicker({ selected, onPick }: KakaoMapPickerProps
       const doc = result[0];
       const road = doc.road_address?.address_name;
       const jibun = doc.address?.address_name;
+      const city = doc.address?.region_1depth_name || doc.road_address?.region_1depth_name || null;
       onPickRef.current({
         place_name: road || jibun || t("selectedPointFallback"),
         address_name: jibun || road || "",
@@ -102,6 +105,7 @@ export default function KakaoMapPicker({ selected, onPick }: KakaoMapPickerProps
         phone: null,
         latitude: lat,
         longitude: lng,
+        city,
       });
     });
   }

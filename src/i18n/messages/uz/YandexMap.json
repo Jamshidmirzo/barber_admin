@@ -1,0 +1,16 @@
+{
+  "myLocation": "Mening joylashuvim",
+  "helperText": "Salon joylashuvini aniqlashtirish uchun xaritani bosing",
+  "selectedPointFallback": "Tanlangan nuqta",
+  "searchPlaceholder": "Manzil bo'yicha qidirish",
+  "searchButton": "Qidirish",
+  "errors": {
+    "mapLoadFailed": "Yandex Xaritalar yuklanmadi — Yandex konsolida API kalit sozlamalarini tekshiring",
+    "sdkLoadFailed": "Yandex Xaritalar SDK yuklanmadi",
+    "geolocationUnavailable": "Bu brauzerda geolokatsiya mavjud emas",
+    "locateFailed": "Joylashuvni aniqlab bo'lmadi",
+    "missingKey": "Xarita mavjud emas: NEXT_PUBLIC_YANDEX_JS_KEY sozlanmagan",
+    "noResults": "Hech narsa topilmadi",
+    "geocodeFailed": "Bu manzilni topib bo'lmadi"
+  }
+}

@@ -21,6 +21,8 @@ export interface Salon {
   working_hours: Record<string, unknown>;
   site_content: Record<string, unknown> | null;
   business_registration_number: string | null;
+  latitude: number | null;
+  longitude: number | null;
   created_at: string | null;
 }
 

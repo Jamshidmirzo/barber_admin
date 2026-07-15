@@ -5,16 +5,21 @@
     "lastName": "Last name",
     "phone": "Phone",
     "city": "City",
-    "specializations": "Specializations (comma-separated)",
+    "specializations": "Specializations",
     "bio": "About"
   },
   "placeholders": {
     "firstName": "First name",
     "lastName": "Last name",
     "city": "Tashkent",
-    "specializations": "Classic haircuts, shaving",
-    "bio": "Tell us about yourself…"
+    "specializationsSearch": "Search specializations…",
+    "bio": "Tell us about your barbershop…"
   },
+  "specializations": {
+    "noResults": "No matching specializations",
+    "remove": "Remove"
+  },
+  "bioCounter": "{count}/{max}",
   "save": {
     "idle": "Save changes",
     "saving": "Saving…",

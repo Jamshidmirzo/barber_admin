@@ -5,16 +5,21 @@
     "lastName": "Familiya",
     "phone": "Telefon",
     "city": "Shahar",
-    "specializations": "Mutaxassisliklar (vergul bilan)",
+    "specializations": "Mutaxassisliklar",
     "bio": "O'zingiz haqingizda"
   },
   "placeholders": {
     "firstName": "Ism",
     "lastName": "Familiya",
     "city": "Toshkent",
-    "specializations": "Klassik soch olish, soqol olish",
-    "bio": "O'zingiz haqingizda yozing…"
+    "specializationsSearch": "Mutaxassisliklarni qidirish…",
+    "bio": "Barbershopingiz haqida yozing…"
   },
+  "specializations": {
+    "noResults": "Mos mutaxassisliklar topilmadi",
+    "remove": "O'chirish"
+  },
+  "bioCounter": "{count}/{max}",
   "save": {
     "idle": "O'zgarishlarni saqlash",
     "saving": "Saqlanmoqda…",
