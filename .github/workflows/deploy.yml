@@ -14,9 +14,19 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
+          # Bumped from the default 10m — Next.js 16 + Turbopack compile is
+          # ~5 min and TypeScript check adds another ~5 min on the droplet's
+          # 2-vCPU box, so the previous cap killed builds mid-typecheck.
+          command_timeout: 30m
           script: |
+            set -e
             cd ${{ secrets.APP_DIR }}
-            git pull origin main
+            # Drop any local edits (previous `npm install` leaves package-lock
+            # diffs on disk that block `git pull`). This is a deploy target,
+            # not a dev checkout — the branch is the source of truth.
+            git fetch origin main
+            git reset --hard origin/main
             npm install --legacy-peer-deps
             npm run build
             pm2 restart barber_admin || pm2 start npm --name barber_admin -- start
+            pm2 save
