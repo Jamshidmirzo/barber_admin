@@ -25,7 +25,21 @@ export interface Profile {
 export function useProfileQuery(): UseQueryResult<Profile> {
   return useQuery<Profile>({
     queryKey: ["profile"],
-    queryFn: () => api.get("/profile").then((r) => r.data),
+    queryFn: () =>
+      api.get("/profile").then((r) => {
+        const data = r.data;
+        // Backend serializes `Country` as uppercase ("UZ"/"KR" — deliberately,
+        // after a past incident with mixed casing in that DB column, see
+        // app.domain.entities.user.Country's docstring). Every consumer here
+        // (useAdminCountry, onboarding's isKorea/isUzbek, barbers/profile
+        // pages) compares against lowercase "kr"/"uz" — normalize once at
+        // the fetch boundary instead of fixing every call site, and instead
+        // of re-opening the casing question on the backend.
+        return {
+          ...data,
+          country: data.country ? (data.country.toLowerCase() as "uz" | "kr") : null,
+        };
+      }),
     staleTime: 5 * 60_000,
   });
 }

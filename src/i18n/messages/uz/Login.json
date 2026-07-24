@@ -1,5 +1,7 @@
 {
   "tagline": "Sartaroshxona boshqaruv paneli",
+  "orContinueWith": "yoki davom eting",
+  "continueWithKakao": "Kakao orqali davom etish",
   "login": {
     "title": "Qaytganingizdan xursandmiz",
     "subtitle": "Davom etish uchun tizimga kiring",
@@ -33,6 +35,8 @@
     "passwordTooShort": "Parol kamida 6 ta belgidan iborat bo'lishi kerak",
     "serverResponseInvalid": "Serverdan noto'g'ri javob",
     "loginFailed": "Telefon raqami yoki parol noto'g'ri",
-    "registerFailed": "Ro'yxatdan o'tishda xatolik"
+    "registerFailed": "Ro'yxatdan o'tishda xatolik",
+    "kakaoFailed": "Kakao orqali kirishda xatolik",
+    "kakaoPopupBlocked": "Brauzer kirish oynasini bloklagan. Ushbu sayt uchun popup oynalarga ruxsat bering va qayta urinib ko'ring"
   }
 }

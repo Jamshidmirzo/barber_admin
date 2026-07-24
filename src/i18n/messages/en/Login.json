@@ -1,5 +1,7 @@
 {
   "tagline": "Barbershop management dashboard",
+  "orContinueWith": "or continue with",
+  "continueWithKakao": "Continue with Kakao",
   "login": {
     "title": "Welcome back",
     "subtitle": "Sign in to continue",
@@ -33,6 +35,8 @@
     "passwordTooShort": "Password must be at least 6 characters",
     "serverResponseInvalid": "Invalid server response",
     "loginFailed": "Incorrect phone number or password",
-    "registerFailed": "Registration failed"
+    "registerFailed": "Registration failed",
+    "kakaoFailed": "Kakao sign-in failed",
+    "kakaoPopupBlocked": "Your browser blocked the sign-in popup. Allow popups for this site and try again"
   }
 }

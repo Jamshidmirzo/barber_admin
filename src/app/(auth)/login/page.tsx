@@ -4,9 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, MessageCircle } from "lucide-react";
 import api, { parseApiError } from "@/lib/api";
 import type { Profile } from "@/hooks/useProfile";
+
+const KAKAO_YELLOW = "#FEE500";
+const KAKAO_INK = "#191919";
 
 const inp: React.CSSProperties = {
   width:"100%", background:"var(--surface)", color:"var(--text)",
@@ -121,7 +124,7 @@ export default function LoginPage() {
     }
   }
 
-  async function handleRegister(e: React.FormEvent) {
+  function handleRegisterFormSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if (!isValidPhone(regPhone, regCountry)) {
@@ -130,9 +133,13 @@ export default function LoginPage() {
     }
     if (regPass !== regPass2) { setError(t("errors.passwordMismatch")); return; }
     if (regPass.length < 6) { setError(t("errors.passwordTooShort")); return; }
+    void submitRegister();
+  }
+
+  async function submitRegister() {
+    const cleanPhone = regPhone.replace(/\s/g, "");
     setLoading(true);
     try {
-      const cleanPhone = regPhone.replace(/\s/g, "");
       const res = await api.post("/auth/register", {
         phone: cleanPhone, password: regPass,
         name: regName, last_name: regLastName,
@@ -162,6 +169,56 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleKakaoLogin() {
+    setError("");
+    const baseUrl = api.defaults.baseURL || "";
+    const absoluteBase = baseUrl.startsWith("http") ? baseUrl : `${window.location.origin}${baseUrl}`;
+    const url = `${absoluteBase}/auth/kakao/authorize?role=master&origin=${encodeURIComponent(window.location.origin)}`;
+
+    const popup = window.open(url, "kakao-login", "width=480,height=640");
+    if (!popup) {
+      setError(t("errors.kakaoPopupBlocked"));
+      return;
+    }
+    setLoading(true);
+
+    function cleanup() {
+      window.removeEventListener("message", onMessage);
+      clearInterval(closedPoll);
+      setLoading(false);
+    }
+
+    function onMessage(event: MessageEvent) {
+      // Comparing by window reference (not event.origin) is what actually
+      // ties this message to the popup we opened — the callback runs on
+      // the backend's own origin, which varies by env (proxied same-origin
+      // in prod, a different port in dev).
+      if (event.source !== popup) return;
+      const data = event.data as
+        | { type: "kakao-login"; tokens?: { access_token?: string; refresh_token?: string }; is_new_user?: boolean }
+        | { type: "kakao-login-error"; message?: string }
+        | undefined;
+      if (!data || (data.type !== "kakao-login" && data.type !== "kakao-login-error")) return;
+
+      cleanup();
+      if (data.type === "kakao-login-error") {
+        setError(data.message || t("errors.kakaoFailed"));
+        return;
+      }
+      if (!data.tokens?.access_token) {
+        setError(t("errors.serverResponseInvalid"));
+        return;
+      }
+      saveTokens({ access_token: data.tokens.access_token, refresh_token: data.tokens.refresh_token });
+    }
+
+    const closedPoll = setInterval(() => {
+      if (popup.closed) cleanup();
+    }, 500);
+
+    window.addEventListener("message", onMessage);
   }
 
   return (
@@ -276,7 +333,7 @@ export default function LoginPage() {
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:19, fontWeight:600, marginBottom:2 }}>{t("register.title")}</div>
               <div style={{ color:"var(--text2)", fontSize:12.5, marginBottom:22 }}>{t("register.subtitle")}</div>
 
-              <form onSubmit={handleRegister} style={{ display:"flex", flexDirection:"column", gap:0 }}>
+              <form onSubmit={handleRegisterFormSubmit} style={{ display:"flex", flexDirection:"column", gap:0 }}>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
                   <div>
                     <label style={lbl}>{t("register.firstNameLabel")}</label>
@@ -366,6 +423,25 @@ export default function LoginPage() {
               </form>
             </>
           )}
+
+          <div style={{ display:"flex", alignItems:"center", gap:10, margin:"20px 0" }}>
+            <div style={{ flex:1, height:1, background:"var(--border)" }} />
+            <span style={{ fontSize:11.5, color:"var(--text3)" }}>{t("orContinueWith")}</span>
+            <div style={{ flex:1, height:1, background:"var(--border)" }} />
+          </div>
+
+          <button
+            type="button" onClick={handleKakaoLogin} disabled={loading}
+            style={{
+              width:"100%", height:48, display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+              background: KAKAO_YELLOW, color: KAKAO_INK, border:"none", borderRadius:11,
+              fontWeight:600, fontSize:14, fontFamily:"inherit",
+              cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1,
+            }}
+          >
+            <MessageCircle size={18} />
+            {t("continueWithKakao")}
+          </button>
         </div>
       </div>
     </div>
