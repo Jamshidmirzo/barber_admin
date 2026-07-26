@@ -12,13 +12,6 @@
     "loadError": "Failed to load credentials",
     "unavailable": "Password unavailable for this barber"
   },
-  "deactivate": {
-    "button": "Deactivate barber",
-    "confirmTitle": "Deactivate this barber?",
-    "confirmBody": "They will no longer be able to log in or receive new bookings.",
-    "confirm": "Deactivate",
-    "error": "Failed to deactivate"
-  },
   "summary": {
     "appointments": "Bookings",
     "clients": "Clients",

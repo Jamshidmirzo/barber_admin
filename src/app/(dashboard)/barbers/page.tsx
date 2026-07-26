@@ -90,11 +90,6 @@ export default function BarbersPage() {
     },
   });
 
-  const deactivateMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/team/members/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["team-members"] }),
-  });
-
   function copyCreated() {
     if (!created) return;
     navigator.clipboard.writeText(t("banner.clipboardText", { phone: created.phone, password: created.password }));

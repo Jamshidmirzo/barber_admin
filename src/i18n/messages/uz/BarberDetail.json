@@ -12,13 +12,6 @@
     "loadError": "Ma'lumotlarni yuklab bo'lmadi",
     "unavailable": "Bu usta uchun parol mavjud emas"
   },
-  "deactivate": {
-    "button": "Ustani faolsizlantirish",
-    "confirmTitle": "Bu ustani faolsizlantirasizmi?",
-    "confirmBody": "U endi tizimga kira olmaydi va yangi yozuvlar qabul qila olmaydi.",
-    "confirm": "Faolsizlantirish",
-    "error": "Faolsizlantirib bo'lmadi"
-  },
   "summary": {
     "appointments": "Yozuvlar",
     "clients": "Mijozlar",

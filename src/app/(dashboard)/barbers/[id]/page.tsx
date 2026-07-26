@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { ArrowLeft, Phone, TrendingUp, FileText, Film, Heart, Eye, EyeOff, KeyRound, Copy, Check, UserX } from "lucide-react";
-import api, { parseApiError } from "@/lib/api";
+import { ArrowLeft, Phone, TrendingUp, FileText, Film, Heart, Eye, EyeOff, KeyRound, Copy, Check } from "lucide-react";
+import api from "@/lib/api";
 import { useIntlLocale } from "@/lib/locale";
 import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
 
@@ -41,30 +41,17 @@ export default function BarberDetailPage() {
   const tc = useTranslations("Common");
   const params = useParams<{ id: string }>();
   const id = params.id;
-  const router = useRouter();
-  const qc = useQueryClient();
   const currency = currencyForCountry(useAdminCountry());
   const [period, setPeriod] = useState<PeriodKey>("30");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const [credRevealed, setCredRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [confirmingDeactivate, setConfirmingDeactivate] = useState(false);
-  const [deactivateErr, setDeactivateErr] = useState("");
 
   const { data: creds, isLoading: credsLoading, isError: credsError } = useQuery<Credentials>({
     queryKey: ["master", id, "credentials"],
     queryFn: () => api.get(`/team/members/${id}/credentials`).then((r) => r.data),
     enabled: credRevealed,
-  });
-
-  const deactivateMutation = useMutation({
-    mutationFn: () => api.delete(`/team/members/${id}`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["team-members"] });
-      router.push("/barbers");
-    },
-    onError: (err: unknown) => setDeactivateErr(parseApiError(err, t("deactivate.error"))),
   });
 
   function copyCreds() {
@@ -132,48 +119,7 @@ export default function BarberDetailPage() {
             </div>
           </div>
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <button
-            onClick={() => { setConfirmingDeactivate(true); setDeactivateErr(""); }}
-            style={{ display:"flex", alignItems:"center", gap:6, background:"transparent", border:"1px solid var(--border)", color:"var(--red)", borderRadius:"var(--radius)", padding:"9px 16px", fontSize:13, fontWeight:600, cursor:"pointer" }}
-          >
-            <UserX size={14} /> {t("deactivate.button")}
-          </button>
-        </div>
       </div>
-
-      {/* Deactivate confirmation */}
-      {confirmingDeactivate && (
-        <div style={{
-          position:"fixed", inset:0, background:"rgba(0,0,0,0.7)",
-          display:"flex", alignItems:"center", justifyContent:"center", zIndex:50, padding:20,
-        }}>
-          <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", width:"100%", maxWidth:400, padding:24 }}>
-            <p style={{ color:"var(--text)", fontWeight:600, fontSize:16, margin:"0 0 8px" }}>{t("deactivate.confirmTitle")}</p>
-            <p style={{ color:"var(--text2)", fontSize:13, margin:"0 0 18px" }}>{t("deactivate.confirmBody")}</p>
-            {deactivateErr && (
-              <div style={{ background:"rgba(224,90,90,0.08)", border:"1px solid rgba(224,90,90,0.2)", borderRadius:"var(--radius)", padding:"9px 13px", color:"var(--red)", fontSize:13, marginBottom:14 }}>
-                {deactivateErr}
-              </div>
-            )}
-            <div style={{ display:"flex", gap:10 }}>
-              <button
-                onClick={() => setConfirmingDeactivate(false)}
-                style={{ flex:1, background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"10px", fontSize:13, fontWeight:500, color:"var(--text2)", cursor:"pointer" }}
-              >
-                {tc("cancel")}
-              </button>
-              <button
-                onClick={() => deactivateMutation.mutate()}
-                disabled={deactivateMutation.isPending}
-                style={{ flex:1, background:"var(--red)", color:"#fff", border:"none", borderRadius:"var(--radius)", padding:"10px", fontSize:13, fontWeight:700, cursor:"pointer", opacity: deactivateMutation.isPending ? 0.6 : 1 }}
-              >
-                {t("deactivate.confirm")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Credentials */}
       <div style={{ ...cardS, padding:20, marginBottom:16 }}>

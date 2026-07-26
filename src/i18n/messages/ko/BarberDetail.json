@@ -12,13 +12,6 @@
     "loadError": "정보를 불러오지 못했습니다",
     "unavailable": "이 디자이너의 비밀번호를 사용할 수 없습니다"
   },
-  "deactivate": {
-    "button": "디자이너 비활성화",
-    "confirmTitle": "이 디자이너를 비활성화할까요?",
-    "confirmBody": "더 이상 로그인하거나 새 예약을 받을 수 없습니다.",
-    "confirm": "비활성화",
-    "error": "비활성화에 실패했습니다"
-  },
   "summary": {
     "appointments": "예약",
     "clients": "고객",
