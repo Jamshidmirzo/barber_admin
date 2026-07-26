@@ -103,8 +103,15 @@ export default function ProfilePage() {
 
   if (!data) return null;
 
+  // Kakao gives no real phone number without a Business-review-gated scope
+  // (see backend's auth_service.kakao_login) — a synthetic "kakao:<id>"
+  // placeholder is stored instead, purely so `phone` can stay NOT NULL /
+  // unique. It was never meant to be shown to the user as their phone.
+  const isKakaoPlaceholderPhone = data.phone.startsWith("kakao:");
   const fullName = [data.name, data.last_name].filter(Boolean).join(" ") || "—";
-  const initials = fullName !== "—" ? fullName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2) : data.phone.slice(-2);
+  const initials = fullName !== "—"
+    ? fullName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
+    : isKakaoPlaceholderPhone ? "K" : data.phone.slice(-2);
 
   return (
     <div style={{ padding: "32px 36px" }}>
@@ -132,7 +139,7 @@ export default function ProfilePage() {
               {fullName}
             </div>
             <div style={{ fontSize: 13, color: "var(--text2)", marginTop: 3 }}>
-              {data.phone}
+              {isKakaoPlaceholderPhone ? t("kakaoLinkedLabel") : data.phone}
             </div>
           </div>
         </div>
@@ -152,7 +159,12 @@ export default function ProfilePage() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
           <div>
             <label style={label}>{t("fields.phone")}</label>
-            <input value={data.phone} disabled style={{ ...inp, opacity: 0.5, cursor: "not-allowed" }} />
+            <input
+              value={isKakaoPlaceholderPhone ? "" : data.phone}
+              placeholder={isKakaoPlaceholderPhone ? t("placeholders.phone") : undefined}
+              disabled
+              style={{ ...inp, opacity: 0.5, cursor: "not-allowed" }}
+            />
           </div>
           <div>
             <label style={label}>{t("fields.city")}</label>

@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { Plus, UserX, Eye, EyeOff, Copy, Check, Search, X } from "lucide-react";
-import api from "@/lib/api";
+import { Plus, Phone, KeyRound, Eye, EyeOff, Copy, Check, Search, X } from "lucide-react";
+import api, { parseApiError } from "@/lib/api";
 import { useIntlLocale } from "@/lib/locale";
 import { useAdminCountry, currencyForCountry, phoneCodeForCountry, formatPhoneForCountry } from "@/hooks/useAdminCountry";
 
@@ -86,8 +86,7 @@ export default function BarbersPage() {
       setShowModal(false);
     },
     onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || t("modal.createError");
-      setFormErr(msg);
+      setFormErr(parseApiError(err, t("modal.createError")));
     },
   });
 
@@ -150,8 +149,12 @@ export default function BarbersPage() {
             <p style={{ color:"var(--green)", fontWeight:600, fontSize:13, margin:"0 0 8px" }}>
               {t("banner.created")}
             </p>
-            <p style={{ color:"var(--text)", fontFamily:"monospace", fontSize:13, margin:"0 0 4px" }}>📱 {created.phone}</p>
-            <p style={{ color:"var(--text)", fontFamily:"monospace", fontSize:13, margin:0 }}>🔑 {created.password}</p>
+            <p style={{ display:"flex", alignItems:"center", gap:7, color:"var(--text)", fontFamily:"monospace", fontSize:13, margin:"0 0 4px" }}>
+              <Phone size={13} style={{ color:"var(--green)", flexShrink:0 }} /> {created.phone}
+            </p>
+            <p style={{ display:"flex", alignItems:"center", gap:7, color:"var(--text)", fontFamily:"monospace", fontSize:13, margin:0 }}>
+              <KeyRound size={13} style={{ color:"var(--green)", flexShrink:0 }} /> {created.password}
+            </p>
           </div>
           <div style={{ display:"flex", gap:8, flexShrink:0 }}>
             <button
@@ -365,12 +368,12 @@ export default function BarbersPage() {
                 </button>
                 <button
                   onClick={() => { setFormErr(""); createMutation.mutate(form); }}
-                  disabled={createMutation.isPending || !form.phone || !form.password}
+                  disabled={createMutation.isPending || !form.phone || form.password.length < 6}
                   style={{
                     flex:1, background:"var(--gold)", color:"#0a0a0b",
                     border:"none", borderRadius:"var(--radius)", padding:"10px",
                     fontSize:13, fontWeight:700, cursor:"pointer",
-                    opacity: (createMutation.isPending || !form.phone || !form.password) ? 0.5 : 1,
+                    opacity: (createMutation.isPending || !form.phone || form.password.length < 6) ? 0.5 : 1,
                   }}
                 >
                   {createMutation.isPending ? t("modal.creating") : t("modal.create")}

@@ -2,15 +2,14 @@
   "title": "Услуги",
   "addButton": "Услуга",
   "newService": "Новая услуга",
-  "allBarbers": "Все мастера",
-  "noBarberName": "Без имени",
   "minutesUnit": "мин",
   "categories": {
     "all": "Все",
     "haircut": "Стрижка",
     "beard": "Борода",
     "coloring": "Окрашивание",
-    "treatment": "Уход",
+    "styling": "Укладка",
+    "care": "Уход",
     "other": "Прочее"
   },
   "empty": {

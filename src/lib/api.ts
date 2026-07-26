@@ -1,15 +1,28 @@
 import axios from "axios";
 import type { InternalAxiosRequestConfig } from "axios";
+import { localeCookieName } from "@/i18n/config";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8001/api/v1",
   timeout: 15000,
 });
 
+function readLocaleCookie(): string | null {
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${localeCookieName}=([^;]*)`)
+  );
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("barber_admin_token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
+
+    // Lets the backend return DomainError messages (parseApiError) in the
+    // admin's selected dashboard language instead of always Russian.
+    const locale = readLocaleCookie();
+    if (locale) config.headers["X-Locale"] = locale;
   }
   return config;
 });

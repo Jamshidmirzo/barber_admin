@@ -2,14 +2,16 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useParams, useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { ArrowLeft, Phone, TrendingUp, FileText, Film, Heart, Eye } from "lucide-react";
-import api from "@/lib/api";
+import { ArrowLeft, Phone, TrendingUp, FileText, Film, Heart, Eye, EyeOff, KeyRound, Copy, Check, UserX } from "lucide-react";
+import api, { parseApiError } from "@/lib/api";
 import { useIntlLocale } from "@/lib/locale";
 import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
+
+interface Credentials { phone: string; password: string | null; }
 
 interface TopService { service_id: string; name: string; count: number; }
 interface RecentClient { client_id: string | null; name: string; date: string; service_name: string | null; amount_uzs: number; }
@@ -39,10 +41,38 @@ export default function BarberDetailPage() {
   const tc = useTranslations("Common");
   const params = useParams<{ id: string }>();
   const id = params.id;
+  const router = useRouter();
+  const qc = useQueryClient();
   const currency = currencyForCountry(useAdminCountry());
   const [period, setPeriod] = useState<PeriodKey>("30");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
+  const [credRevealed, setCredRevealed] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [confirmingDeactivate, setConfirmingDeactivate] = useState(false);
+  const [deactivateErr, setDeactivateErr] = useState("");
+
+  const { data: creds, isLoading: credsLoading, isError: credsError } = useQuery<Credentials>({
+    queryKey: ["master", id, "credentials"],
+    queryFn: () => api.get(`/team/members/${id}/credentials`).then((r) => r.data),
+    enabled: credRevealed,
+  });
+
+  const deactivateMutation = useMutation({
+    mutationFn: () => api.delete(`/team/members/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["team-members"] });
+      router.push("/barbers");
+    },
+    onError: (err: unknown) => setDeactivateErr(parseApiError(err, t("deactivate.error"))),
+  });
+
+  function copyCreds() {
+    if (!creds?.password) return;
+    navigator.clipboard.writeText(`${creds.phone}\n${creds.password}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   const range = useMemo(() => {
     if (period === "custom") { if (!customFrom || !customTo) return null; return { from:customFrom, to:customTo }; }
@@ -102,10 +132,88 @@ export default function BarberDetailPage() {
             </div>
           </div>
         </div>
-        {data?.phone && (
-          <a href={`tel:${data.phone}`} style={{ display:"flex", alignItems:"center", gap:6, background:"var(--gold)", color:"#0a0a0b", textDecoration:"none", borderRadius:"var(--radius)", padding:"9px 16px", fontSize:13, fontWeight:700 }}>
-            <Phone size={14} /> {t("call")}
-          </a>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <button
+            onClick={() => { setConfirmingDeactivate(true); setDeactivateErr(""); }}
+            style={{ display:"flex", alignItems:"center", gap:6, background:"transparent", border:"1px solid var(--border)", color:"var(--red)", borderRadius:"var(--radius)", padding:"9px 16px", fontSize:13, fontWeight:600, cursor:"pointer" }}
+          >
+            <UserX size={14} /> {t("deactivate.button")}
+          </button>
+        </div>
+      </div>
+
+      {/* Deactivate confirmation */}
+      {confirmingDeactivate && (
+        <div style={{
+          position:"fixed", inset:0, background:"rgba(0,0,0,0.7)",
+          display:"flex", alignItems:"center", justifyContent:"center", zIndex:50, padding:20,
+        }}>
+          <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", width:"100%", maxWidth:400, padding:24 }}>
+            <p style={{ color:"var(--text)", fontWeight:600, fontSize:16, margin:"0 0 8px" }}>{t("deactivate.confirmTitle")}</p>
+            <p style={{ color:"var(--text2)", fontSize:13, margin:"0 0 18px" }}>{t("deactivate.confirmBody")}</p>
+            {deactivateErr && (
+              <div style={{ background:"rgba(224,90,90,0.08)", border:"1px solid rgba(224,90,90,0.2)", borderRadius:"var(--radius)", padding:"9px 13px", color:"var(--red)", fontSize:13, marginBottom:14 }}>
+                {deactivateErr}
+              </div>
+            )}
+            <div style={{ display:"flex", gap:10 }}>
+              <button
+                onClick={() => setConfirmingDeactivate(false)}
+                style={{ flex:1, background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"10px", fontSize:13, fontWeight:500, color:"var(--text2)", cursor:"pointer" }}
+              >
+                {tc("cancel")}
+              </button>
+              <button
+                onClick={() => deactivateMutation.mutate()}
+                disabled={deactivateMutation.isPending}
+                style={{ flex:1, background:"var(--red)", color:"#fff", border:"none", borderRadius:"var(--radius)", padding:"10px", fontSize:13, fontWeight:700, cursor:"pointer", opacity: deactivateMutation.isPending ? 0.6 : 1 }}
+              >
+                {t("deactivate.confirm")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Credentials */}
+      <div style={{ ...cardS, padding:20, marginBottom:16 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+          <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>{t("credentials.title")}</p>
+          <button
+            onClick={() => setCredRevealed((v) => !v)}
+            style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"6px 12px", fontSize:12, fontWeight:600, color:"var(--text2)", cursor:"pointer" }}
+          >
+            {credRevealed ? <EyeOff size={13} /> : <Eye size={13} />}
+            {credRevealed ? t("credentials.hide") : t("credentials.reveal")}
+          </button>
+        </div>
+        {credRevealed && (
+          credsLoading ? (
+            <p style={{ color:"var(--text3)", fontSize:13, margin:0 }}>{tc("loading")}</p>
+          ) : credsError ? (
+            <p style={{ color:"var(--red)", fontSize:13, margin:0 }}>{t("credentials.loadError")}</p>
+          ) : (
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+              <div>
+                <p style={{ display:"flex", alignItems:"center", gap:7, color:"var(--text)", fontFamily:"monospace", fontSize:13, margin:"0 0 6px" }}>
+                  <Phone size={13} style={{ color:"var(--text3)", flexShrink:0 }} /> {creds?.phone}
+                </p>
+                <p style={{ display:"flex", alignItems:"center", gap:7, color:"var(--text)", fontFamily:"monospace", fontSize:13, margin:0 }}>
+                  <KeyRound size={13} style={{ color:"var(--text3)", flexShrink:0 }} />
+                  {creds?.password ?? <span style={{ color:"var(--text3)", fontFamily:"'Manrope',sans-serif" }}>{t("credentials.unavailable")}</span>}
+                </p>
+              </div>
+              {creds?.password && (
+                <button
+                  onClick={copyCreds}
+                  style={{ display:"flex", alignItems:"center", gap:6, background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", color:"var(--text2)", fontSize:12, fontWeight:600, padding:"7px 12px", cursor:"pointer" }}
+                >
+                  {copied ? <Check size={13} /> : <Copy size={13} />}
+                  {copied ? t("credentials.copied") : t("credentials.copy")}
+                </button>
+              )}
+            </div>
+          )
         )}
       </div>
 

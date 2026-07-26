@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Clock, Scissors, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import api from "@/lib/api";
-import { useSalon } from "@/hooks/useSalon";
+import api, { parseApiError } from "@/lib/api";
 import { useIntlLocale } from "@/lib/locale";
 import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
 
@@ -13,31 +12,16 @@ interface ServiceItem {
   id: string;
   name: string;
   price: number;
-  duration_minutes: number;
+  duration_min: number;
   category: string;
 }
 
-interface ServicesResponse {
-  items: ServiceItem[];
-  total: number;
-}
-
-interface Barber {
-  id: string;
-  name: string | null;
-  last_name: string | null;
-  photo_url: string | null;
-}
-
-const CATEGORY_VALUES = ["haircut", "beard", "coloring", "treatment", "other"] as const;
+// Mirrors the backend's ServiceCategory enum (app/domain/entities/service.py).
+const CATEGORY_VALUES = ["haircut", "coloring", "styling", "care", "beard", "other"] as const;
 type CategoryValue = (typeof CATEGORY_VALUES)[number];
 
 function isKnownCategory(value: string): value is CategoryValue {
   return (CATEGORY_VALUES as readonly string[]).includes(value);
-}
-
-function barberLabel(b: Pick<Barber, "name" | "last_name">, noNameFallback: string): string {
-  return [b.name, b.last_name].filter(Boolean).join(" ") || noNameFallback;
 }
 
 const inputStyle: React.CSSProperties = {
@@ -53,10 +37,13 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
+const MIN_PRICE = 1000;
+const MIN_DURATION = 15;
+const MAX_DURATION = 240;
+
 export default function ServicesPage() {
   const t = useTranslations("Services");
   const tCommon = useTranslations("Common");
-  const { salon } = useSalon();
   const qc = useQueryClient();
   const currency = currencyForCountry(useAdminCountry());
 
@@ -66,56 +53,42 @@ export default function ServicesPage() {
   ];
 
   const [catFilter, setCatFilter] = useState<string>("all");
-  const [barberFilter, setBarberFilter] = useState<string>("all");
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: "", category: "haircut", price: "", duration_minutes: "" });
+  const [form, setForm] = useState({ name: "", category: "haircut", price: "", duration_min: "" });
   const [formErr, setFormErr] = useState("");
 
-  // Services list
-  const { data: servicesData, isLoading: servicesLoading } = useQuery<ServicesResponse>({
-    queryKey: ["salon-services", salon.id],
-    queryFn: () => api.get(`/salons/${salon.id}/services`).then((r) => r.data),
+  // Services list — self-scoped to the logged-in user (no salon-wide/team
+  // service catalog exists on the backend).
+  const { data: allServices, isLoading: servicesLoading } = useQuery<ServiceItem[]>({
+    queryKey: ["services"],
+    queryFn: () => api.get("/services").then((r) => r.data),
   });
 
-  // Team members for barber filter
-  const { data: team } = useQuery<{ items: Barber[]; total: number }>({
-    queryKey: ["team-members"],
-    queryFn: () => api.get("/team/members").then((r) => r.data),
-  });
-
-  const barbers = team?.items ?? [];
+  const services = allServices ?? [];
 
   // Create service mutation
   const createMutation = useMutation({
-    mutationFn: (body: { name: string; category: string; price: number; duration_minutes: number }) =>
-      api.post(`/salons/${salon.id}/services`, body).then((r) => r.data),
+    mutationFn: (body: { name: string; category: string; price: number; duration_min: number }) =>
+      api.post("/services", body).then((r) => r.data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["salon-services", salon.id] });
+      qc.invalidateQueries({ queryKey: ["services"] });
       setShowModal(false);
-      setForm({ name: "", category: "haircut", price: "", duration_minutes: "" });
+      setForm({ name: "", category: "haircut", price: "", duration_min: "" });
       setFormErr("");
     },
-    onError: (err: unknown) => {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        t("errors.createFailed");
-      setFormErr(msg);
-    },
+    onError: (err: unknown) => setFormErr(parseApiError(err, t("errors.createFailed"))),
   });
 
   // Delete service mutation
   const deleteMutation = useMutation({
-    mutationFn: (serviceId: string) =>
-      api.delete(`/salons/${salon.id}/services/${serviceId}`),
+    mutationFn: (serviceId: string) => api.delete(`/services/${serviceId}`),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["salon-services", salon.id] });
+      qc.invalidateQueries({ queryKey: ["services"] });
     },
   });
 
-  const allServices = servicesData?.items ?? [];
-
   // Apply filters
-  const filtered = allServices.filter((s) => {
+  const filtered = services.filter((s) => {
     if (catFilter !== "all" && s.category !== catFilter) return false;
     return true;
   });
@@ -123,29 +96,21 @@ export default function ServicesPage() {
   function handleSave() {
     setFormErr("");
     const price = parseFloat(form.price);
-    const duration = parseInt(form.duration_minutes, 10);
+    const duration = parseInt(form.duration_min, 10);
     if (!form.name.trim()) { setFormErr(t("errors.nameRequired")); return; }
-    if (isNaN(price) || price <= 0) { setFormErr(t("errors.invalidPrice")); return; }
-    if (isNaN(duration) || duration <= 0) { setFormErr(t("errors.invalidDuration")); return; }
-    createMutation.mutate({ name: form.name.trim(), category: form.category, price, duration_minutes: duration });
+    if (isNaN(price) || price < MIN_PRICE) { setFormErr(t("errors.invalidPrice")); return; }
+    if (isNaN(duration) || duration < MIN_DURATION || duration > MAX_DURATION) {
+      setFormErr(t("errors.invalidDuration"));
+      return;
+    }
+    createMutation.mutate({ name: form.name.trim(), category: form.category, price, duration_min: duration });
   }
 
   function openModal() {
-    setForm({ name: "", category: "haircut", price: "", duration_minutes: "" });
+    setForm({ name: "", category: "haircut", price: "", duration_min: "" });
     setFormErr("");
     setShowModal(true);
   }
-
-  const selectStyle: React.CSSProperties = {
-    padding: "10px 12px",
-    border: "1px solid var(--border)",
-    background: "var(--card, var(--surface))",
-    borderRadius: 11,
-    color: "var(--text)",
-    font: "600 12.5px 'Manrope',sans-serif",
-    cursor: "pointer",
-    outline: "none",
-  };
 
   return (
     <div style={{ padding: "32px 36px" }}>
@@ -156,21 +121,11 @@ export default function ServicesPage() {
 
       <div style={{ animation: "fadeUp .35s ease both" }}>
 
-        {/* Top bar: barber filter + new service button */}
+        {/* Top bar: title + new service button */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
           <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: "var(--text)", margin: 0, marginRight: 4 }}>
             {t("title")}
           </h1>
-          <select
-            value={barberFilter}
-            onChange={(e) => setBarberFilter(e.target.value)}
-            style={selectStyle}
-          >
-            <option value="all">{t("allBarbers")}</option>
-            {barbers.map((b) => (
-              <option key={b.id} value={b.id}>{barberLabel(b, t("noBarberName"))}</option>
-            ))}
-          </select>
           <div style={{ flex: 1 }} />
           <button
             onClick={openModal}
@@ -253,11 +208,11 @@ export default function ServicesPage() {
               <Scissors size={28} style={{ color: "var(--text3)" }} />
             </div>
             <p style={{ color: "var(--text2)", fontSize: 14, marginBottom: 16 }}>
-              {allServices.length === 0
+              {services.length === 0
                 ? t("empty.noServices")
                 : t("empty.noneInCategory")}
             </p>
-            {allServices.length === 0 && (
+            {services.length === 0 && (
               <button
                 onClick={openModal}
                 style={{
@@ -367,7 +322,7 @@ export default function ServicesPage() {
                     onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
                     placeholder={t("form.pricePlaceholder")}
                     type="number"
-                    min="0"
+                    min={MIN_PRICE}
                     style={inputStyle}
                   />
                 </div>
@@ -376,11 +331,12 @@ export default function ServicesPage() {
                     {t("form.durationLabel", { unit: t("minutesUnit") })}
                   </label>
                   <input
-                    value={form.duration_minutes}
-                    onChange={(e) => setForm((p) => ({ ...p, duration_minutes: e.target.value }))}
+                    value={form.duration_min}
+                    onChange={(e) => setForm((p) => ({ ...p, duration_min: e.target.value }))}
                     placeholder={t("form.durationPlaceholder")}
                     type="number"
-                    min="1"
+                    min={MIN_DURATION}
+                    max={MAX_DURATION}
                     style={inputStyle}
                   />
                 </div>
@@ -569,7 +525,7 @@ function ServiceCard({ service, onDelete, deleting }: ServiceCardProps) {
         {/* Duration */}
         <div style={{ fontSize: 12, color: "var(--text3)", display: "flex", alignItems: "center", gap: 5 }}>
           <Clock size={14} style={{ color: "var(--text3)" }} />
-          {t("durationValue", { minutes: service.duration_minutes, unit: t("minutesUnit") })}
+          {t("durationValue", { minutes: service.duration_min, unit: t("minutesUnit") })}
         </div>
         {/* Price */}
         <div style={{

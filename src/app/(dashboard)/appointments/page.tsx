@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Calendar, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
-import api from "@/lib/api";
-import { useSalon, isManager } from "@/hooks/useSalon";
+import api, { parseApiError } from "@/lib/api";
 import { useIntlLocale } from "@/lib/locale";
 import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
 
@@ -13,18 +12,16 @@ interface Appointment {
   id: string;
   client_id: string;
   service_id: string;
-  master_id?: string | null;
   starts_at: string;
   ends_at: string;
   status: string;
-  price?: number;
+  price?: number | null;
+  final_price_uzs?: number | null;
   note?: string | null;
 }
 
 interface Client { id: string; name: string; phone: string; }
 interface Service { id: string; name: string; }
-interface Master { id: string; name: string; }
-
 
 // Maps raw backend status codes (including variant spellings) to the
 // translation keys under the "status" namespace (Appointments.status.*)
@@ -45,7 +42,6 @@ function statusKey(raw: string): string {
 
 // Colors from design spec
 const STATUS_COLOR: Record<string, string> = {
-  pending:             "#c2933a",
   scheduled:           "#7d97b8",
   confirmed:           "#5f9d6f",
   in_progress:         "#c9a45c",
@@ -58,7 +54,6 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 const BADGE_BG: Record<string, string> = {
-  pending:             "rgba(194,147,58,0.13)",
   scheduled:           "rgba(125,151,184,0.13)",
   confirmed:           "rgba(95,157,111,0.13)",
   in_progress:         "rgba(201,164,92,0.13)",
@@ -71,7 +66,6 @@ const BADGE_BG: Record<string, string> = {
 };
 
 const STATUS_LEGEND = [
-  { key: "pending",     color: "#c2933a" },
   { key: "scheduled",   color: "#7d97b8" },
   { key: "confirmed",   color: "#5f9d6f" },
   { key: "in_progress", color: "#c9a45c" },
@@ -79,8 +73,39 @@ const STATUS_LEGEND = [
   { key: "cancelled",   color: "#b56a54" },
   { key: "no_show",     color: "#8a6a6a" },
 ];
+
+// Mirrors the backend's ALLOWED_TRANSITIONS (app/domain/entities/appointment.py).
+// Used only to keep the status dropdown from offering transitions the server
+// will reject outright — the server remains the source of truth.
+const ALLOWED_NEXT_STATUS: Record<string, string[]> = {
+  scheduled:   ["confirmed", "in_progress", "cancelled", "no_show"],
+  confirmed:   ["in_progress", "cancelled", "no_show"],
+  in_progress: ["completed"],
+  completed:   [],
+  cancelled:   [],
+  no_show:     [],
+};
+
 function formatTime(iso: string, locale: string) {
   return new Date(iso).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+}
+
+// Always 24h "HH:MM", independent of locale — required for <input type="time">'s
+// value format (some locales, e.g. en-US, render formatTime() with AM/PM which
+// that input silently rejects).
+function toHHMM(iso: string): string {
+  const d = new Date(iso);
+  const h = String(d.getHours()).padStart(2, "0");
+  const m = String(d.getMinutes()).padStart(2, "0");
+  return `${h}:${m}`;
+}
+
+function todayLocal(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function initials(name: string) {
@@ -90,20 +115,10 @@ function initials(name: string) {
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
 interface ApptForm {
-  client_name: string;
   service_id: string;
   starts_at: string;  // HH:MM
-  master_id: string;
   status: string;
 }
-
-const emptyForm: ApptForm = {
-  client_name: "",
-  service_id: "",
-  starts_at: "",
-  master_id: "",
-  status: "scheduled",
-};
 
 const fldInp: React.CSSProperties = {
   width: "100%",
@@ -121,86 +136,97 @@ const fldInp: React.CSSProperties = {
 function ApptModal({
   appt,
   date,
-  salonId,
   clients,
   services,
-  masters,
   onClose,
 }: {
   appt: Appointment | null;
   date: string;
-  salonId: string;
   clients: Client[];
   services: Service[];
-  masters: Master[];
   onClose: () => void;
 }) {
   const t = useTranslations("Appointments");
   const tc = useTranslations("Common");
-  const locale = useIntlLocale();
   const qc = useQueryClient();
   const isEdit = appt !== null;
 
   const [form, setForm] = useState<ApptForm>(() => {
     if (appt) {
       return {
-        client_name: "",
         service_id: appt.service_id,
-        starts_at: formatTime(appt.starts_at, locale),
-        master_id: appt.master_id ?? "",
+        starts_at: toHHMM(appt.starts_at),
         status: appt.status,
       };
     }
-    return { ...emptyForm };
+    return { service_id: "", starts_at: "", status: "scheduled" };
   });
 
-  const [clientSearch, setClientSearch] = useState(() => {
-    if (appt) return "";
-    return "";
-  });
-
+  const [clientSearch, setClientSearch] = useState("");
   const [err, setErr] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  function invalidateAndClose() {
+    qc.invalidateQueries({ queryKey: ["appointments"] });
+    onClose();
+  }
 
   const createM = useMutation({
-    mutationFn: (body: object) => api.post(`/salons/${salonId}/appointments`, body),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["appointments"] }); onClose(); },
-    onError: () => setErr(t("modal.createError")),
-  });
-
-  const updateM = useMutation({
-    mutationFn: (body: object) => api.put(`/salons/${salonId}/appointments/${appt?.id}`, body),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["appointments"] }); onClose(); },
-    onError: () => setErr(t("modal.saveError")),
+    mutationFn: (body: object) => api.post("/appointments", body),
+    onSuccess: invalidateAndClose,
+    onError: (e: unknown) => setErr(parseApiError(e, t("modal.createError"))),
   });
 
   const deleteM = useMutation({
-    mutationFn: () => api.delete(`/salons/${salonId}/appointments/${appt?.id}`),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["appointments"] }); onClose(); },
+    mutationFn: () => api.delete(`/appointments/${appt?.id}`),
+    onSuccess: invalidateAndClose,
+    onError: (e: unknown) => setErr(parseApiError(e, t("modal.deleteError"))),
   });
 
-  function handleSave() {
+  async function handleSave() {
     setErr("");
-    const body: Record<string, string> = {
-      service_id: form.service_id,
-      status: form.status,
-    };
-    if (form.starts_at) {
-      body.starts_at = `${date}T${form.starts_at}:00`;
-    }
-    if (form.master_id) body.master_id = form.master_id;
+
     if (!isEdit) {
-      // find client by search text
+      if (!form.service_id || !form.starts_at) return;
       const found = clients.find(
         (c) => c.name.toLowerCase() === clientSearch.toLowerCase() || c.phone === clientSearch
       );
-      if (found) body.client_id = found.id;
-      else if (clientSearch) body.client_name = clientSearch;
+      if (!found) {
+        setErr(t("modal.clientNotFound"));
+        return;
+      }
+      const startsAt = new Date(`${date}T${form.starts_at}:00`).toISOString();
+      createM.mutate({ client_id: found.id, service_id: form.service_id, starts_at: startsAt });
+      return;
     }
-    if (isEdit) updateM.mutate(body);
-    else createM.mutate(body);
+
+    // Edit: reschedule (time) and status-change are separate backend endpoints;
+    // service can't be changed on an existing appointment at all.
+    setSavingEdit(true);
+    try {
+      if (form.starts_at) {
+        const newMs = new Date(`${date}T${form.starts_at}:00`).getTime();
+        if (newMs !== new Date(appt!.starts_at).getTime()) {
+          await api.put(`/appointments/${appt!.id}/reschedule`, {
+            starts_at: new Date(newMs).toISOString(),
+          });
+        }
+      }
+      if (form.status !== appt!.status) {
+        await api.put(`/appointments/${appt!.id}/status`, { status: form.status });
+      }
+      invalidateAndClose();
+    } catch (e) {
+      setErr(parseApiError(e, t("modal.saveError")));
+    } finally {
+      setSavingEdit(false);
+    }
   }
 
-  const loading = createM.isPending || updateM.isPending;
+  const loading = createM.isPending || savingEdit;
+  const statusOptions = isEdit
+    ? [appt!.status, ...(ALLOWED_NEXT_STATUS[appt!.status] ?? [])]
+    : [];
 
   return (
     <div
@@ -258,16 +284,24 @@ function ApptModal({
             <label style={{ display: "block", fontSize: 11, color: "var(--text2)", marginBottom: 6, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
               {t("modal.serviceLabel")}
             </label>
-            <select
-              value={form.service_id}
-              onChange={(e) => setForm((f) => ({ ...f, service_id: e.target.value }))}
-              style={{ ...fldInp }}
-            >
-              <option value="">{t("modal.selectServicePlaceholder")}</option>
-              {services.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
+            {isEdit ? (
+              <input
+                value={services.find((s) => s.id === form.service_id)?.name ?? ""}
+                disabled
+                style={{ ...fldInp, opacity: 0.5, cursor: "not-allowed" }}
+              />
+            ) : (
+              <select
+                value={form.service_id}
+                onChange={(e) => setForm((f) => ({ ...f, service_id: e.target.value }))}
+                style={{ ...fldInp }}
+              >
+                <option value="">{t("modal.selectServicePlaceholder")}</option>
+                {services.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            )}
           </div>
 
           {/* Time */}
@@ -283,40 +317,23 @@ function ApptModal({
             />
           </div>
 
-          {/* Master */}
-          {masters.length > 0 && (
+          {/* Status (edit only — creation always starts as "scheduled") */}
+          {isEdit && (
             <div>
               <label style={{ display: "block", fontSize: 11, color: "var(--text2)", marginBottom: 6, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-                {t("modal.masterLabel")}
+                {t("modal.statusLabel")}
               </label>
               <select
-                value={form.master_id}
-                onChange={(e) => setForm((f) => ({ ...f, master_id: e.target.value }))}
+                value={form.status}
+                onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
                 style={{ ...fldInp }}
               >
-                <option value="">{t("modal.noMasterOption")}</option>
-                {masters.map((m) => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
+                {statusOptions.map((key) => (
+                  <option key={key} value={key}>{t(`status.${statusKey(key)}`)}</option>
                 ))}
               </select>
             </div>
           )}
-
-          {/* Status */}
-          <div>
-            <label style={{ display: "block", fontSize: 11, color: "var(--text2)", marginBottom: 6, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-              {t("modal.statusLabel")}
-            </label>
-            <select
-              value={form.status}
-              onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-              style={{ ...fldInp }}
-            >
-              {STATUS_LEGEND.map((s) => (
-                <option key={s.key} value={s.key}>{t(`status.${statusKey(s.key)}`)}</option>
-              ))}
-            </select>
-          </div>
 
           {err && (
             <p style={{ color: "var(--red)", fontSize: 12, background: "rgba(224,90,90,0.08)", borderRadius: "var(--radius)", padding: "8px 12px", margin: 0 }}>
@@ -363,17 +380,18 @@ function ApptModal({
 
 export default function AppointmentsPage() {
   const t = useTranslations("Appointments");
-  const { salon } = useSalon();
   const locale = useIntlLocale();
   const currency = currencyForCountry(useAdminCountry());
-  const salonId = salon?.id ?? "";
 
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => todayLocal());
   const [modalOpen, setModalOpen] = useState(false);
   const [editingAppt, setEditingAppt] = useState<Appointment | null>(null);
 
-  const start = `${date}T00:00:00`;
-  const end   = `${date}T23:59:59`;
+  // Local calendar-day boundaries, converted to proper timezone-aware ISO
+  // instants — the backend expects aware datetimes (naive strings are
+  // ambiguous and get misinterpreted).
+  const start = new Date(`${date}T00:00:00`).toISOString();
+  const end = new Date(`${date}T23:59:59.999`).toISOString();
 
   const { data: appointments, isLoading } = useQuery<Appointment[]>({
     queryKey: ["appointments", date],
@@ -396,22 +414,11 @@ export default function AppointmentsPage() {
     staleTime: 60_000,
   });
 
-  const { data: mastersData } = useQuery<Master[]>({
-    queryKey: ["masters"],
-    queryFn: () => api.get("/masters").then((r) => {
-      const d = r.data;
-      return Array.isArray(d) ? d : d?.items ?? [];
-    }),
-    staleTime: 60_000,
-  });
-
   const clientsArr = clientsData?.items ?? [];
   const servicesArr = services ?? [];
-  const mastersArr = mastersData ?? [];
 
   const clientMap = Object.fromEntries(clientsArr.map((c) => [c.id, c.name]));
   const serviceMap = Object.fromEntries(servicesArr.map((s) => [s.id, s.name]));
-  const masterMap = Object.fromEntries(mastersArr.map((m) => [m.id, m.name]));
 
   function prevDay() {
     const d = new Date(date); d.setDate(d.getDate() - 1);
@@ -422,7 +429,7 @@ export default function AppointmentsPage() {
     setDate(d.toISOString().slice(0, 10));
   }
 
-  const isToday = date === new Date().toISOString().slice(0, 10);
+  const isToday = date === todayLocal();
   const displayDate = new Date(date).toLocaleDateString(locale, {
     weekday: "long", day: "numeric", month: "long",
   });
@@ -588,8 +595,8 @@ export default function AppointmentsPage() {
             const color = STATUS_COLOR[a.status] ?? "var(--text3)";
             const badgeBg = BADGE_BG[a.status] ?? "rgba(255,255,255,0.06)";
             const clientName = clientMap[a.client_id] ?? t("unknownClient");
-            const masterName = a.master_id ? (masterMap[a.master_id] ?? "") : "";
             const isLast = idx === appointments.length - 1;
+            const displayPrice = a.final_price_uzs ?? a.price;
             return (
               <div
                 key={a.id}
@@ -640,16 +647,11 @@ export default function AppointmentsPage() {
                   </div>
                 </div>
 
-                {/* Master + price */}
+                {/* Price */}
                 <div style={{ textAlign: "right", minWidth: 110, flexShrink: 0 }}>
-                  {masterName && (
-                    <div style={{ fontSize: 12.5, color: "var(--text2)", fontWeight: 500 }}>
-                      {masterName}
-                    </div>
-                  )}
-                  {a.price != null && (
-                    <div style={{ fontSize: 12, color: "var(--gold)", fontWeight: 600, fontFamily: "'Playfair Display',serif", marginTop: masterName ? 2 : 0 }}>
-                      {a.price.toLocaleString(locale)} {currency}
+                  {displayPrice != null && (
+                    <div style={{ fontSize: 12, color: "var(--gold)", fontWeight: 600, fontFamily: "'Playfair Display',serif" }}>
+                      {displayPrice.toLocaleString(locale)} {currency}
                     </div>
                   )}
                 </div>
@@ -681,10 +683,8 @@ export default function AppointmentsPage() {
         <ApptModal
           appt={editingAppt}
           date={date}
-          salonId={salonId}
           clients={clientsArr}
           services={servicesArr}
-          masters={mastersArr}
           onClose={closeModal}
         />
       )}

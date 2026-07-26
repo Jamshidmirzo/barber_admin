@@ -13,8 +13,10 @@
     "lastName": "Last name",
     "city": "Tashkent",
     "specializationsSearch": "Search specializations…",
-    "bio": "Tell us about your barbershop…"
+    "bio": "Tell us about your barbershop…",
+    "phone": "Not provided"
   },
+  "kakaoLinkedLabel": "Signed in with Kakao — no phone on file",
   "specializations": {
     "noResults": "No matching specializations",
     "remove": "Remove"

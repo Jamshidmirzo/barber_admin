@@ -6,7 +6,6 @@
   "unknownClient": "Client",
   "unknownService": "Service",
   "status": {
-    "pending": "Pending",
     "scheduled": "Scheduled",
     "confirmed": "Confirmed",
     "inProgress": "In progress",
@@ -19,17 +18,17 @@
     "editTitle": "Edit appointment",
     "clientLabel": "Client",
     "clientPlaceholder": "Name or phone",
+    "clientNotFound": "No matching client — add them in Clients first",
     "serviceLabel": "Service",
     "selectServicePlaceholder": "— select a service —",
     "timeLabel": "Time",
-    "masterLabel": "Barber",
-    "noMasterOption": "— not selected —",
     "statusLabel": "Status",
     "saving": "...",
     "deleteButton": "Delete appointment",
     "deleting": "Deleting...",
     "deleteConfirm": "Delete this appointment?",
     "createError": "Error creating appointment",
-    "saveError": "Error saving changes"
+    "saveError": "Error saving changes",
+    "deleteError": "Error deleting appointment"
   }
 }

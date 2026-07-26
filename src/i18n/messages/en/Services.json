@@ -2,15 +2,14 @@
   "title": "Services",
   "addButton": "Service",
   "newService": "New Service",
-  "allBarbers": "All Barbers",
-  "noBarberName": "No name",
   "minutesUnit": "min",
   "categories": {
     "all": "All",
     "haircut": "Haircut",
     "beard": "Beard",
     "coloring": "Coloring",
-    "treatment": "Treatment",
+    "styling": "Styling",
+    "care": "Care",
     "other": "Other"
   },
   "empty": {

@@ -13,8 +13,10 @@
     "lastName": "Familiya",
     "city": "Toshkent",
     "specializationsSearch": "Mutaxassisliklarni qidirish…",
-    "bio": "Barbershopingiz haqida yozing…"
+    "bio": "Barbershopingiz haqida yozing…",
+    "phone": "Kiritilmagan"
   },
+  "kakaoLinkedLabel": "Kakao orqali kirilgan — telefon raqami yo'q",
   "specializations": {
     "noResults": "Mos mutaxassisliklar topilmadi",
     "remove": "O'chirish"

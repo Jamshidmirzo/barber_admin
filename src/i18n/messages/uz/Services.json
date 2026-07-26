@@ -2,15 +2,14 @@
   "title": "Xizmatlar",
   "addButton": "Xizmat",
   "newService": "Yangi xizmat",
-  "allBarbers": "Barcha ustalar",
-  "noBarberName": "Ismsiz",
   "minutesUnit": "daq",
   "categories": {
     "all": "Barchasi",
     "haircut": "Soch olish",
     "beard": "Soqol",
     "coloring": "Bo'yash",
-    "treatment": "Parvarish",
+    "styling": "Turmak",
+    "care": "Parvarish",
     "other": "Boshqa"
   },
   "empty": {

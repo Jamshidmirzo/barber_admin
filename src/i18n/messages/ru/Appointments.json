@@ -6,7 +6,6 @@
   "unknownClient": "Клиент",
   "unknownService": "Услуга",
   "status": {
-    "pending": "Ожидает",
     "scheduled": "Запланирован",
     "confirmed": "Подтверждён",
     "inProgress": "В процессе",
@@ -19,17 +18,17 @@
     "editTitle": "Редактировать запись",
     "clientLabel": "Клиент",
     "clientPlaceholder": "Имя или телефон",
+    "clientNotFound": "Клиент не найден — сначала добавьте его в разделе «Клиенты»",
     "serviceLabel": "Услуга",
     "selectServicePlaceholder": "— выберите услугу —",
     "timeLabel": "Время",
-    "masterLabel": "Мастер",
-    "noMasterOption": "— не выбран —",
     "statusLabel": "Статус",
     "saving": "...",
     "deleteButton": "Удалить запись",
     "deleting": "Удаляем...",
     "deleteConfirm": "Удалить запись?",
     "createError": "Ошибка при создании записи",
-    "saveError": "Ошибка при сохранении"
+    "saveError": "Ошибка при сохранении",
+    "deleteError": "Ошибка при удалении записи"
   }
 }

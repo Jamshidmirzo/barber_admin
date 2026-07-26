@@ -6,7 +6,6 @@
   "unknownClient": "Mijoz",
   "unknownService": "Xizmat",
   "status": {
-    "pending": "Kutilmoqda",
     "scheduled": "Rejalashtirilgan",
     "confirmed": "Tasdiqlangan",
     "inProgress": "Jarayonda",
@@ -19,17 +18,17 @@
     "editTitle": "Yozilishni tahrirlash",
     "clientLabel": "Mijoz",
     "clientPlaceholder": "Ism yoki telefon raqami",
+    "clientNotFound": "Mijoz topilmadi — avval uni \"Mijozlar\" bo'limiga qo'shing",
     "serviceLabel": "Xizmat",
     "selectServicePlaceholder": "— xizmatni tanlang —",
     "timeLabel": "Vaqt",
-    "masterLabel": "Usta",
-    "noMasterOption": "— tanlanmagan —",
     "statusLabel": "Holat",
     "saving": "...",
     "deleteButton": "Yozilishni o'chirish",
     "deleting": "O'chirilmoqda...",
     "deleteConfirm": "Yozilishni o'chirasizmi?",
     "createError": "Yozilishni yaratishda xatolik yuz berdi",
-    "saveError": "Saqlashda xatolik yuz berdi"
+    "saveError": "Saqlashda xatolik yuz berdi",
+    "deleteError": "O'chirishda xatolik yuz berdi"
   }
 }
