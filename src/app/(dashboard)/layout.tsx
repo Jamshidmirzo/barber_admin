@@ -101,6 +101,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (isError && status === 404) router.replace("/onboarding");
   }, [isError, status, router]);
 
+  // 401 means the session expired (e.g. long inactivity) and the axios
+  // interceptor's own token-refresh-then-logout already failed — send the
+  // user straight to login instead of flashing the generic connection error.
+  useEffect(() => {
+    if (isError && status === 401) router.replace("/login");
+  }, [isError, status, router]);
+
   const role = data?.role;
   useEffect(() => {
     if (!role) return;
@@ -115,7 +122,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (blocked) router.replace("/appointments");
   }, [role, pathname, router]);
 
-  if (isLoading || (isError && status === 404)) {
+  if (isLoading || (isError && (status === 404 || status === 401))) {
     return (
       <div style={{ display:"flex", height:"100vh", alignItems:"center", justifyContent:"center", background:"var(--bg)" }}>
         <div style={{
