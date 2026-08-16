@@ -27,7 +27,7 @@ const NAV_GROUPS = [
     groupKey: "clientele",
     items: [
       { href: "/clients",        itemKey: "clients",      icon: UserRound,  managerOnly: false, masterOnly: false },
-      { href: "/services",       itemKey: "services",     icon: Scissors,   managerOnly: false, masterOnly: false },
+      { href: "/services",       itemKey: "services",     icon: Scissors,   managerOnly: false, masterOnly: true  },
       { href: "/barbers",        itemKey: "barbers",      icon: Users,      managerOnly: true,  masterOnly: false },
     ],
   },

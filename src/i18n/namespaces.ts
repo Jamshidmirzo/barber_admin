@@ -15,7 +15,6 @@ export const NAMESPACES = [
   "Finance",
   "Analytics",
   "Profile",
-  "Specializations",
   "KakaoMap",
   "YandexMap",
 ] as const;

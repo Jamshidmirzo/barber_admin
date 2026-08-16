@@ -44,6 +44,11 @@
   "topServices": {
     "title": "Top services"
   },
+  "priceList": {
+    "title": "Price list",
+    "subtitle": "Set by the barber themselves",
+    "empty": "This barber hasn't added any services yet"
+  },
   "recentClients": {
     "title": "Recent clients",
     "columnName": "Name",

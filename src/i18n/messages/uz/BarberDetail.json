@@ -44,6 +44,11 @@
   "topServices": {
     "title": "Top xizmatlar"
   },
+  "priceList": {
+    "title": "Narxlar ro'yxati",
+    "subtitle": "Ustaning o'zi tomonidan to'ldiriladi",
+    "empty": "Bu usta hali birorta xizmat qo'shmagan"
+  },
   "recentClients": {
     "title": "So'nggi mijozlar",
     "columnName": "Ism",

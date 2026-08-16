@@ -44,6 +44,11 @@
   "topServices": {
     "title": "인기 서비스"
   },
+  "priceList": {
+    "title": "가격표",
+    "subtitle": "디자이너 본인이 직접 등록합니다",
+    "empty": "아직 등록된 서비스가 없습니다"
+  },
   "recentClients": {
     "title": "최근 고객",
     "columnName": "이름",

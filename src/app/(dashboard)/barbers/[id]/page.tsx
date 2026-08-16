@@ -26,6 +26,7 @@ interface MasterContentStats {
   master_id: string; posts_count: number; likes_count: number; comments_count: number;
   reels_count: number; total_reels_views: number; story_views_24h: number; subscribers_count: number;
 }
+interface BarberServiceItem { id: string; name: string; price: number; duration_min: number; category: string; is_active: boolean; }
 
 type PeriodKey = "7" | "30" | "90" | "custom";
 
@@ -39,6 +40,7 @@ const cardS: React.CSSProperties = { background:"var(--surface)", border:"1px so
 export default function BarberDetailPage() {
   const t = useTranslations("BarberDetail");
   const tc = useTranslations("Common");
+  const tServices = useTranslations("Services");
   const params = useParams<{ id: string }>();
   const id = params.id;
   const currency = currencyForCountry(useAdminCountry());
@@ -77,6 +79,13 @@ export default function BarberDetailPage() {
   const { data: contentData } = useQuery<MasterContentStats>({
     queryKey:["master", id, "content-stats"],
     queryFn: () => api.get(`/team/members/${id}/content-stats`).then((r) => r.data),
+  });
+
+  // Read-only — services are self-managed by the barber (see /services);
+  // the owner/admin only views what the barber has set up here.
+  const { data: barberServices, isLoading: servicesLoading } = useQuery<BarberServiceItem[]>({
+    queryKey:["master", id, "services"],
+    queryFn: () => api.get(`/team/members/${id}/services`).then((r) => r.data),
   });
 
   const locale = useIntlLocale();
@@ -160,6 +169,42 @@ export default function BarberDetailPage() {
               )}
             </div>
           )
+        )}
+      </div>
+
+      {/* Price list — read-only, filled in by the barber themselves */}
+      <div style={{ ...cardS, padding:20, marginBottom:16 }}>
+        <div style={{ marginBottom:14 }}>
+          <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>{t("priceList.title")}</p>
+          <p style={{ color:"var(--text3)", fontSize:12, margin:"2px 0 0" }}>{t("priceList.subtitle")}</p>
+        </div>
+        {servicesLoading ? (
+          <p style={{ color:"var(--text3)", fontSize:13, margin:0 }}>{tc("loading")}</p>
+        ) : barberServices && barberServices.length > 0 ? (
+          <div style={{ display:"flex", flexDirection:"column" }}>
+            {barberServices.map((s, i) => (
+              <div
+                key={s.id}
+                style={{
+                  display:"flex", alignItems:"center", justifyContent:"space-between", gap:12,
+                  padding:"10px 0",
+                  borderTop: i === 0 ? "none" : "1px solid var(--border)",
+                }}
+              >
+                <div style={{ minWidth:0 }}>
+                  <p style={{ color:"var(--text)", fontSize:13, fontWeight:500, margin:0 }}>{s.name}</p>
+                  <p style={{ color:"var(--text3)", fontSize:11, margin:"2px 0 0" }}>
+                    {tServices(`categories.${s.category}`)} · {tServices("durationValue", { minutes: s.duration_min, unit: tServices("minutesUnit") })}
+                  </p>
+                </div>
+                <span style={{ color:"var(--gold)", fontWeight:600, fontSize:13, whiteSpace:"nowrap" }}>
+                  {tServices("priceValue", { price: s.price.toLocaleString(locale), currency })}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ color:"var(--text3)", fontSize:13, textAlign:"center", padding:"20px 0", margin:0 }}>{t("priceList.empty")}</p>
         )}
       </div>
 

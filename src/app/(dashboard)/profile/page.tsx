@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import api from "@/lib/api";
 import { useSalon } from "@/hooks/useSalon";
 import { useProfileQuery, type Profile } from "@/hooks/useProfile";
-import { SPECIALIZATION_IDS } from "@/lib/specializations";
+import { useSpecializationsQuery, useSpecializationLabel } from "@/hooks/useSpecializations";
 
 const BIO_MAX_LENGTH = 500;
 
@@ -25,10 +25,12 @@ const label: React.CSSProperties = {
 
 export default function ProfilePage() {
   const t = useTranslations("Profile");
-  const tSpec = useTranslations("Specializations");
-  // Guards against ids saved by an older catalog version that no longer
-  // exist — falls back to the raw id instead of throwing on a missing key.
-  const specLabel = (id: string) => (SPECIALIZATION_IDS.includes(id) ? tSpec(`items.${id}`) : id);
+  const { data: specs } = useSpecializationsQuery();
+  const specById = useMemo(() => new Map((specs ?? []).map((s) => [s.id, s])), [specs]);
+  const specLabelFor = useSpecializationLabel();
+  // Falls back to the raw id for values saved before this catalog existed,
+  // or before /specializations has loaded — instead of throwing.
+  const specLabel = (id: string) => specLabelFor(specById.get(id), id);
   const { salon } = useSalon();
   const qc = useQueryClient();
   const [form, setForm] = useState({ name: "", last_name: "", city: "", bio: "" });
@@ -51,12 +53,12 @@ export default function ProfilePage() {
 
   const specMatches = useMemo(() => {
     const q = specQuery.trim().toLowerCase();
-    if (!q) return [];
-    return SPECIALIZATION_IDS
-      .filter((id) => !specializations.includes(id) && specLabel(id).toLowerCase().includes(q))
+    if (!q || !specs) return [];
+    return specs
+      .filter((s) => !specializations.includes(s.id) && specLabel(s.id).toLowerCase().includes(q))
       .slice(0, 8);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [specQuery, specializations]);
+  }, [specQuery, specializations, specs]);
 
   function addSpecialization(id: string) {
     setSpecializations((prev) => (prev.includes(id) ? prev : [...prev, id]));
@@ -179,10 +181,18 @@ export default function ProfilePage() {
               {specializations.map((s) => (
                 <span key={s} style={{
                   display: "flex", alignItems: "center", gap: 6,
-                  padding: "6px 6px 6px 12px", borderRadius: 999,
+                  padding: "5px 6px 5px 6px", borderRadius: 999,
                   background: "var(--gold-dim)", color: "var(--gold)",
                   fontSize: 12.5, fontWeight: 600,
                 }}>
+                  {specById.get(s)?.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={specById.get(s)!.image_url!}
+                      alt=""
+                      style={{ width: 20, height: 20, borderRadius: "50%", objectFit: "cover" }}
+                    />
+                  )}
                   {specLabel(s)}
                   <button
                     type="button" onClick={() => removeSpecialization(s)}
@@ -213,17 +223,27 @@ export default function ProfilePage() {
                 borderRadius: "var(--radius)", overflow: "hidden",
                 boxShadow: "0 12px 24px rgba(0,0,0,0.18)",
               }}>
-                {specMatches.length > 0 ? specMatches.map((id, i) => (
+                {specMatches.length > 0 ? specMatches.map((s, i) => (
                   <button
-                    key={id} type="button" onClick={() => addSpecialization(id)}
+                    key={s.id} type="button" onClick={() => addSpecialization(s.id)}
                     style={{
-                      display: "block", width: "100%", textAlign: "left",
-                      padding: "10px 14px", background: "transparent", border: "none",
+                      display: "flex", alignItems: "center", gap: 10, width: "100%", textAlign: "left",
+                      padding: "8px 14px", background: "transparent", border: "none",
                       borderBottom: i < specMatches.length - 1 ? "1px solid var(--border)" : "none",
                       color: "var(--text)", fontSize: 13, cursor: "pointer",
                     }}
                   >
-                    {specLabel(id)}
+                    {s.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={s.image_url}
+                        alt=""
+                        style={{ width: 28, height: 28, borderRadius: 7, objectFit: "cover", flexShrink: 0 }}
+                      />
+                    ) : (
+                      <span style={{ width: 28, height: 28, borderRadius: 7, background: "var(--border)", flexShrink: 0 }} />
+                    )}
+                    {specLabel(s.id)}
                   </button>
                 )) : (
                   <div style={{ padding: "10px 14px", color: "var(--text3)", fontSize: 12.5 }}>
