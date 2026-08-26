@@ -49,7 +49,7 @@ export default function OnboardingPage() {
   const qc = useQueryClient();
 
   const { data: salonCtx } = useSalonContextQuery();
-  useEffect(() => { if (salonCtx?.salon) router.replace("/appointments"); }, [salonCtx, router]);
+  useEffect(() => { if (salonCtx?.salon) router.replace("/schedule"); }, [salonCtx, router]);
 
   const { data: profile } = useProfileQuery();
   const isKorea = profile?.country === "kr";

@@ -13,7 +13,13 @@
     "million": "M",
     "legendBooked": "Booked",
     "legendFree": "Free",
-    "legendDayOff": "Day off"
+    "legendDayOff": "Day off",
+    "detail": {
+      "close": "Close",
+      "empty": "No appointments",
+      "unknownClient": "Client",
+      "unknownService": "Service"
+    }
   },
   "editor": {
     "title": "Schedule",

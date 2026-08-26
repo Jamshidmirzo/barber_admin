@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { TrendingUp, Receipt, Gauge, CreditCard } from "lucide-react";
@@ -120,7 +119,6 @@ export default function DashboardPage() {
   const t = useTranslations("Dashboard");
   const tCommon = useTranslations("Common");
   const { salon } = useSalon();
-  const router = useRouter();
 
   const { data, isLoading, isError } = useQuery<OverviewData>({
     queryKey: ["dashboard", "overview", salon.id],
@@ -413,15 +411,6 @@ export default function DashboardPage() {
           }}>
             {t("upcoming.title")}
           </div>
-          <span
-            onClick={() => router.push("/appointments")}
-            style={{
-              fontSize: 12.5, color: "var(--gold)",
-              cursor: "pointer", fontWeight: 600,
-            }}
-          >
-            {t("upcoming.viewAll")}
-          </span>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>

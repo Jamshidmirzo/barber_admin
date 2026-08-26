@@ -1,8 +1,11 @@
 {
-  "groups": { "main": "메인", "clientele": "고객 관리", "business": "비즈니스" },
+  "groups": {
+    "main": "메인",
+    "clientele": "고객 관리",
+    "business": "비즈니스"
+  },
   "items": {
     "overview": "개요",
-    "appointments": "예약",
     "schedule": "일정",
     "promotions": "프로모션",
     "clients": "고객",

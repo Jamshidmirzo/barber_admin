@@ -13,7 +13,13 @@
     "million": "백만",
     "legendBooked": "예약됨",
     "legendFree": "여유",
-    "legendDayOff": "휴무"
+    "legendDayOff": "휴무",
+    "detail": {
+      "close": "닫기",
+      "empty": "예약이 없습니다",
+      "unknownClient": "고객",
+      "unknownService": "서비스"
+    }
   },
   "editor": {
     "title": "일정",

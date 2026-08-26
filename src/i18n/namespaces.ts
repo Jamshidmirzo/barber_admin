@@ -4,7 +4,6 @@ export const NAMESPACES = [
   "Login",
   "Onboarding",
   "Dashboard",
-  "Appointments",
   "Barbers",
   "BarberDetail",
   "Clients",

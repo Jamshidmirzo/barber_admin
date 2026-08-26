@@ -13,7 +13,13 @@
     "million": "млн",
     "legendBooked": "Записи",
     "legendFree": "Свободно",
-    "legendDayOff": "Выходной"
+    "legendDayOff": "Выходной",
+    "detail": {
+      "close": "Закрыть",
+      "empty": "Нет записей",
+      "unknownClient": "Клиент",
+      "unknownService": "Услуга"
+    }
   },
   "editor": {
     "title": "Расписание",

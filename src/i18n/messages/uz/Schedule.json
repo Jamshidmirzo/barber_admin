@@ -13,7 +13,13 @@
     "million": "mln",
     "legendBooked": "Band",
     "legendFree": "Bo'sh",
-    "legendDayOff": "Dam olish kuni"
+    "legendDayOff": "Dam olish kuni",
+    "detail": {
+      "close": "Yopish",
+      "empty": "Yozuvlar yo'q",
+      "unknownClient": "Mijoz",
+      "unknownService": "Xizmat"
+    }
   },
   "editor": {
     "title": "Jadval",

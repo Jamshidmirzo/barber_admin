@@ -19,7 +19,6 @@
   },
   "upcoming": {
     "title": "Yaqin uchrashuvlar",
-    "viewAll": "Barchasini ko'rish →",
     "loadError": "Ma'lumotlarni yuklab bo'lmadi. Ulanishni tekshiring.",
     "empty": "Bugun uchrashuvlar yo'q"
   },

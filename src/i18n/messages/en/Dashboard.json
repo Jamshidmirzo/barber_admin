@@ -19,7 +19,6 @@
   },
   "upcoming": {
     "title": "Upcoming Appointments",
-    "viewAll": "View All →",
     "loadError": "Failed to load data. Check your connection.",
     "empty": "No appointments today"
   },

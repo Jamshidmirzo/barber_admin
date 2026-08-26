@@ -1,8 +1,11 @@
 {
-  "groups": { "main": "Главное", "clientele": "Клиентура", "business": "Бизнес" },
+  "groups": {
+    "main": "Главное",
+    "clientele": "Клиентура",
+    "business": "Бизнес"
+  },
   "items": {
     "overview": "Обзор",
-    "appointments": "Записи",
     "schedule": "Расписание",
     "promotions": "Акции",
     "clients": "Клиенты",

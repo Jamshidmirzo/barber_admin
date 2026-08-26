@@ -89,7 +89,7 @@ export default function LoginPage() {
     // encode the user — without this, switching accounts client-side (no full
     // reload) can serve a previous account's stale profile/salon/country data.
     qc.clear();
-    router.push("/appointments");
+    router.push("/schedule");
   }
 
   async function handleLogin(e: React.FormEvent) {

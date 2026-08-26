@@ -1,8 +1,11 @@
 {
-  "groups": { "main": "Asosiy", "clientele": "Mijozlar", "business": "Biznes" },
+  "groups": {
+    "main": "Asosiy",
+    "clientele": "Mijozlar",
+    "business": "Biznes"
+  },
   "items": {
     "overview": "Umumiy",
-    "appointments": "Yozilishlar",
     "schedule": "Jadval",
     "promotions": "Aksiyalar",
     "clients": "Mijozlar",

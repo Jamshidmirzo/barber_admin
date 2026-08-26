@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
-  Users, Scissors, Calendar, UserRound, Clock,
+  Users, Scissors, UserRound, Clock,
   TrendingUp, Settings, LogOut,
   BarChart3, Tag, Sun, Moon, LayoutDashboard,
 } from "lucide-react";
@@ -18,7 +18,6 @@ const NAV_GROUPS = [
     groupKey: "main",
     items: [
       { href: "/dashboard",      itemKey: "overview",     icon: LayoutDashboard, managerOnly: true,  masterOnly: false },
-      { href: "/appointments",   itemKey: "appointments", icon: Calendar,   managerOnly: false, masterOnly: false },
       { href: "/schedule",       itemKey: "schedule",     icon: Clock,      managerOnly: false, masterOnly: false },
       { href: "/promotions",     itemKey: "promotions",   icon: Tag,        managerOnly: false, masterOnly: true  },
     ],
@@ -119,7 +118,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (i.masterOnly && manager) return true;
       return false;
     });
-    if (blocked) router.replace("/appointments");
+    if (blocked) router.replace(manager ? "/dashboard" : "/schedule");
   }, [role, pathname, router]);
 
   if (isLoading || (isError && (status === 404 || status === 401))) {

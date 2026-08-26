@@ -1,8 +1,11 @@
 {
-  "groups": { "main": "Main", "clientele": "Clientele", "business": "Business" },
+  "groups": {
+    "main": "Main",
+    "clientele": "Clientele",
+    "business": "Business"
+  },
   "items": {
     "overview": "Overview",
-    "appointments": "Appointments",
     "schedule": "Schedule",
     "promotions": "Promotions",
     "clients": "Clients",

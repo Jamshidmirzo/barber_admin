@@ -31,17 +31,29 @@ export default function SchedulePage() {
 // ─── types ──────────────────────────────────────────────────────────────────
 
 interface DayStats { booked: number; free: number; blocked: number; revenue: number; }
-interface DaySchedule { working_hours: { start: string; end: string } | null; slots: unknown[]; stats: DayStats; }
+interface ScheduleSlot {
+  slot_id: string;
+  starts_at: string; // "HH:MM"
+  ends_at: string;   // "HH:MM"
+  status: "booked" | "free" | "blocked";
+  client_name: string | null;
+  service: string | null;
+  reason: string | null;
+}
+interface DaySchedule { working_hours: { start: string; end: string } | null; slots: ScheduleSlot[]; stats: DayStats; }
 interface BarberWeek { master_id: string; name: string; avatar_url: string | null; days: Record<string, DaySchedule>; }
 interface WeekSchedule { week_start: string; barbers: BarberWeek[]; }
 
 // ─── owner: summary grid ────────────────────────────────────────────────────
+
+interface DetailTarget { barberName: string; dayKey: DayKey; date: Date; slots: ScheduleSlot[]; }
 
 function TeamScheduleGrid() {
   const t = useTranslations("Schedule");
   const { salon } = useSalon();
   const [anchor, setAnchor] = useState(() => fmtDateISO(new Date()));
   const [barberFilter, setBarberFilter] = useState("all");
+  const [detail, setDetail] = useState<DetailTarget | null>(null);
 
   const { data, isLoading } = useQuery<WeekSchedule>({
     queryKey: ["salon-schedule", salon.id, anchor],
@@ -161,10 +173,11 @@ function TeamScheduleGrid() {
                   {b.name}
                 </span>
               </div>
-              {DAY_KEYS.map((key) => {
+              {DAY_KEYS.map((key, i) => {
                 const day = b.days[key];
                 const isWorking = !!day?.working_hours;
                 const count = day?.stats.booked ?? 0;
+                const clickable = isWorking && count > 0;
                 let cellBg = "transparent";
                 let cellBorder = "1px dashed var(--text3)";
                 let cellColor = "var(--text3)";
@@ -184,9 +197,19 @@ function TeamScheduleGrid() {
                 }
                 return (
                   <div key={key} style={{ borderLeft: "1px solid rgba(255,255,255,0.05)", padding: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ width: "100%", height: 42, borderRadius: 8, background: cellBg, border: cellBorder, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600, color: cellColor }}>
+                    <button
+                      type="button"
+                      disabled={!clickable}
+                      onClick={() => clickable && setDetail({ barberName: b.name, dayKey: key, date: weekDates[i], slots: day.slots })}
+                      style={{
+                        width: "100%", height: 42, borderRadius: 8, background: cellBg, border: cellBorder,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 12, fontWeight: 600, color: cellColor, fontFamily: "inherit",
+                        cursor: clickable ? "pointer" : "default",
+                      }}
+                    >
                       {cellLabel}
-                    </span>
+                    </button>
                   </div>
                 );
               })}
@@ -216,6 +239,67 @@ function TeamScheduleGrid() {
           <span style={{ width: 14, height: 14, borderRadius: 4, background: "transparent", border: "1px dashed var(--text3)", display: "inline-block" }} />
           {t("team.legendDayOff")}
         </span>
+      </div>
+
+      {detail && <DetailModal target={detail} onClose={() => setDetail(null)} />}
+    </div>
+  );
+}
+
+// ─── owner: read-only appointment detail popover ───────────────────────────
+
+function DetailModal({ target, onClose }: { target: DetailTarget; onClose: () => void }) {
+  const t = useTranslations("Schedule");
+  const booked = target.slots.filter(s => s.status === "booked");
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 16 }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ width: "100%", maxWidth: 420, maxHeight: "80vh", overflowY: "auto", background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: 22 }}
+      >
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4 }}>
+          <div>
+            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 17, fontWeight: 600, color: "var(--text)" }}>
+              {target.barberName}
+            </div>
+            <div style={{ fontSize: 12.5, color: "var(--text2)", marginTop: 2 }}>
+              {t(`days.${target.dayKey}`)}, {target.date.getDate()} {t(`months.${MONTH_KEYS[target.date.getMonth()]}`)}
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{ background: "transparent", border: "none", color: "var(--text2)", fontSize: 13, cursor: "pointer", padding: 4 }}
+          >
+            {t("team.detail.close")}
+          </button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 16 }}>
+          {booked.length === 0 ? (
+            <div style={{ color: "var(--text3)", fontSize: 13, textAlign: "center", padding: "16px 0" }}>
+              {t("team.detail.empty")}
+            </div>
+          ) : (
+            booked.map((s) => (
+              <div key={s.slot_id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 12px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10 }}>
+                <div style={{ fontFamily: "'Playfair Display',serif", fontWeight: 600, fontSize: 13.5, color: "var(--text)", width: 92, flex: "none" }}>
+                  {s.starts_at}–{s.ends_at}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {s.client_name ?? t("team.detail.unknownClient")}
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--text3)", marginTop: 1 }}>
+                    {s.service ?? t("team.detail.unknownService")}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
