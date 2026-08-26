@@ -9,9 +9,7 @@
   },
   "kpi": {
     "visits": "방문",
-    "revenue": "매출",
-    "firstVisit": "첫 방문",
-    "lastVisit": "최근 방문"
+    "revenue": "매출"
   },
   "history": {
     "title": "방문 내역",

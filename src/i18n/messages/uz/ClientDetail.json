@@ -9,9 +9,7 @@
   },
   "kpi": {
     "visits": "Tashriflar",
-    "revenue": "Daromad",
-    "firstVisit": "Birinchi tashrif",
-    "lastVisit": "Oxirgi tashrif"
+    "revenue": "Daromad"
   },
   "history": {
     "title": "Tashriflar tarixi",

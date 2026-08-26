@@ -5,7 +5,7 @@ import api from "@/lib/api";
 
 export interface Profile {
   id: string;
-  phone: string;
+  phone: string | null;
   name: string | null;
   last_name: string | null;
   bio: string | null;

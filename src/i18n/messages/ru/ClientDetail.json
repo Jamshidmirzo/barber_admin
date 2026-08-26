@@ -9,9 +9,7 @@
   },
   "kpi": {
     "visits": "Визиты",
-    "revenue": "Выручка",
-    "firstVisit": "Первый визит",
-    "lastVisit": "Последний визит"
+    "revenue": "Выручка"
   },
   "history": {
     "title": "История визитов",

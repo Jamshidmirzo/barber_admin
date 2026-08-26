@@ -109,11 +109,12 @@ export default function ProfilePage() {
   // (see backend's auth_service.kakao_login) — a synthetic "kakao:<id>"
   // placeholder is stored instead, purely so `phone` can stay NOT NULL /
   // unique. It was never meant to be shown to the user as their phone.
-  const isKakaoPlaceholderPhone = data.phone.startsWith("kakao:");
+  const phone = data.phone ?? "";
+  const isKakaoPlaceholderPhone = phone.startsWith("kakao:");
   const fullName = [data.name, data.last_name].filter(Boolean).join(" ") || "—";
   const initials = fullName !== "—"
     ? fullName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
-    : isKakaoPlaceholderPhone ? "K" : data.phone.slice(-2);
+    : isKakaoPlaceholderPhone ? "K" : phone.slice(-2);
 
   return (
     <div style={{ padding: "32px 36px" }}>
@@ -141,7 +142,7 @@ export default function ProfilePage() {
               {fullName}
             </div>
             <div style={{ fontSize: 13, color: "var(--text2)", marginTop: 3 }}>
-              {isKakaoPlaceholderPhone ? t("kakaoLinkedLabel") : data.phone}
+              {isKakaoPlaceholderPhone ? t("kakaoLinkedLabel") : phone}
             </div>
           </div>
         </div>
@@ -162,7 +163,7 @@ export default function ProfilePage() {
           <div>
             <label style={label}>{t("fields.phone")}</label>
             <input
-              value={isKakaoPlaceholderPhone ? "" : data.phone}
+              value={isKakaoPlaceholderPhone ? "" : phone}
               placeholder={isKakaoPlaceholderPhone ? t("placeholders.phone") : undefined}
               disabled
               style={{ ...inp, opacity: 0.5, cursor: "not-allowed" }}

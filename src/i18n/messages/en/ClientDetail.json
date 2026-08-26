@@ -9,9 +9,7 @@
   },
   "kpi": {
     "visits": "Visits",
-    "revenue": "Revenue",
-    "firstVisit": "First visit",
-    "lastVisit": "Last visit"
+    "revenue": "Revenue"
   },
   "history": {
     "title": "Visit history",

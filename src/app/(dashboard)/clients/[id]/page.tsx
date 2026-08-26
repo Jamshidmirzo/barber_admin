@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, Phone, MapPin, Scissors, UserRound, Calendar, Wallet, Clock } from "lucide-react";
+import { ArrowLeft, Phone, MapPin, Scissors, UserRound, Calendar, Wallet } from "lucide-react";
 import api from "@/lib/api";
 import { useSalon } from "@/hooks/useSalon";
 import { useIntlLocale } from "@/lib/locale";
@@ -23,7 +23,6 @@ interface ClientDetail {
 }
 
 function fmtMoney(n: number, currency: string, locale: string) { return n.toLocaleString(locale) + " " + currency; }
-function fmtDate(iso: string | null) { if (!iso) return "—"; return new Date(iso).toLocaleDateString("ru", { day:"numeric", month:"short", year:"numeric" }); }
 function fmtDateTime(iso: string) { return new Date(iso).toLocaleString("ru", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }); }
 function initials(name: string) { return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2); }
 function daysSince(iso: string | null): number | null { if (!iso) return null; return Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000); }
@@ -107,11 +106,9 @@ export default function ClientDetailPage() {
       </div>
 
       {/* KPI */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:16 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:12, marginBottom:16 }}>
         <KpiCard icon={<Calendar size={14} />} label={t("kpi.visits")} value={String(data.total_visits)} />
         <KpiCard icon={<Wallet size={14} />} label={t("kpi.revenue")} value={fmtMoney(data.total_spent, currency, locale)} />
-        <KpiCard icon={<Clock size={14} />} label={t("kpi.firstVisit")} value={fmtDate(data.first_visit)} />
-        <KpiCard icon={<Clock size={14} />} label={t("kpi.lastVisit")} value={fmtDate(data.last_visit)} />
       </div>
 
       {/* History */}
