@@ -16,16 +16,13 @@
     },
     "sort": {
       "visits": "By visits",
-      "revenue": "By revenue",
-      "lastVisit": "By date"
+      "revenue": "By revenue"
     },
     "table": {
       "name": "Name",
       "phone": "Phone",
-      "city": "City",
       "visits": "Visits",
-      "revenue": "Revenue",
-      "lastVisit": "Last visit"
+      "revenue": "Revenue"
     },
     "loadMore": "Load more",
     "rating": {

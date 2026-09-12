@@ -16,16 +16,13 @@
     },
     "sort": {
       "visits": "방문순",
-      "revenue": "매출순",
-      "lastVisit": "날짜순"
+      "revenue": "매출순"
     },
     "table": {
       "name": "이름",
       "phone": "전화번호",
-      "city": "도시",
       "visits": "방문",
-      "revenue": "매출",
-      "lastVisit": "최근 방문"
+      "revenue": "매출"
     },
     "loadMore": "더 보기",
     "rating": {

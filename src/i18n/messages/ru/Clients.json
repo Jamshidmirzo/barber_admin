@@ -16,16 +16,13 @@
     },
     "sort": {
       "visits": "По визитам",
-      "revenue": "По выручке",
-      "lastVisit": "По дате"
+      "revenue": "По выручке"
     },
     "table": {
       "name": "Имя",
       "phone": "Телефон",
-      "city": "Город",
       "visits": "Визиты",
-      "revenue": "Выручка",
-      "lastVisit": "Последний"
+      "revenue": "Выручка"
     },
     "loadMore": "Показать ещё",
     "rating": {

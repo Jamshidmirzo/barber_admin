@@ -16,16 +16,13 @@
     },
     "sort": {
       "visits": "Tashriflar bo'yicha",
-      "revenue": "Daromad bo'yicha",
-      "lastVisit": "Sana bo'yicha"
+      "revenue": "Daromad bo'yicha"
     },
     "table": {
       "name": "Ism",
       "phone": "Telefon",
-      "city": "Shahar",
       "visits": "Tashriflar",
-      "revenue": "Daromad",
-      "lastVisit": "Oxirgi"
+      "revenue": "Daromad"
     },
     "loadMore": "Ko'proq ko'rsatish",
     "rating": {

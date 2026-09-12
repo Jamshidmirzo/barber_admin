@@ -29,14 +29,14 @@ export default function ClientsPage() {
 // ─── CRM View (manager) ───────────────────────────────────────────────────────
 
 interface SalonClient {
-  id: string; name: string; phone: string; city_id: string | null; city_name: string | null;
-  total_visits: number; total_spent: number; last_visit_date: string | null; loyalty: "gold" | "silver" | null;
+  id: string; name: string; phone: string;
+  total_visits: number; total_spent: number; loyalty: "gold" | "silver" | null;
 }
 interface ClientPage { items: SalonClient[]; total: number; page: number; limit: number; }
 interface LoyaltyItem { rank: number; client_id: string; name: string; phone: string; total_visits: number; total_spent: number; }
-type Sort = "visits" | "revenue" | "last_visit";
+type Sort = "visits" | "revenue";
 type Tab = "list" | "rating";
-const SORT_KEYS: Record<Sort, string> = { visits:"visits", revenue:"revenue", last_visit:"lastVisit" };
+const SORT_KEYS: Record<Sort, string> = { visits:"visits", revenue:"revenue" };
 
 function TierBadge({ tier }: { tier: SalonClient["loyalty"] }) {
   if (tier === "gold") {
@@ -177,8 +177,8 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
               <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
                 <thead>
                   <tr style={{ borderBottom:"1px solid var(--border)" }}>
-                    {[t("crm.table.name"), t("crm.table.phone"), t("crm.table.city"), t("crm.table.visits"), t("crm.table.revenue"), t("crm.table.lastVisit"), ""].map((h, i) => (
-                      <th key={h || `col-${i}`} style={{ textAlign: i >= 3 ? "right" : "left", color:"var(--text3)", fontWeight:600, fontSize:11, padding:"10px 16px", textTransform:"uppercase", letterSpacing:"0.05em" }}>{h}</th>
+                    {[t("crm.table.name"), t("crm.table.phone"), t("crm.table.visits"), t("crm.table.revenue"), ""].map((h, i) => (
+                      <th key={h || `col-${i}`} style={{ textAlign: i >= 2 ? "right" : "left", color:"var(--text3)", fontWeight:600, fontSize:11, padding:"10px 16px", textTransform:"uppercase", letterSpacing:"0.05em" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -198,10 +198,8 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
                         </div>
                       </td>
                       <td style={{ padding:"12px 16px", color:"var(--text2)" }}>{c.phone}</td>
-                      <td style={{ padding:"12px 16px", color:"var(--text2)" }}>{c.city_name ?? "—"}</td>
                       <td style={{ padding:"12px 16px", textAlign:"right", color:"var(--text)", fontWeight:600 }}>{c.total_visits}</td>
                       <td style={{ padding:"12px 16px", textAlign:"right", color:"var(--text2)" }}>{fmtMoney(c.total_spent, currency, locale)}</td>
-                      <td style={{ padding:"12px 16px", textAlign:"right", color:"var(--text3)" }}>{fmtDate(c.last_visit_date)}</td>
                       <td style={{ padding:"12px 8px" }}><ChevronRight size={14} style={{ color:"var(--text3)" }} /></td>
                     </tr>
                   ))}
