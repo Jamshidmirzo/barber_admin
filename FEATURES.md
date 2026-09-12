@@ -65,22 +65,14 @@
 - Appointments-per-day bar chart
 - Delta vs previous period (%)
 
-### 8. Site — AI Generator *(Owner only)*
-3-step wizard:
-1. Salon name, address, phone, services list
-2. Free-text description + style picker (Modern / Classic / Luxury / Minimal)
-3. Result preview + link to public site (`slug.hayrli.app`)
-
-Claude generates unique copy and a custom color palette for each salon.
-
-### 9. Site Settings *(Owner only)*
+### 8. Site Settings *(Owner only)*
 - Edit: name, tagline, description, phone, address
 - Style picker (Modern / Classic / Luxury / Minimal)
 - Upload / delete cover photo
 - Working hours per day (each day individually, can mark as closed)
 - Services list for public site (name + description per service)
 
-### 10. Profile *(All)*
+### 9. Profile *(All)*
 - Name, last name, phone
 - City, bio, specializations
 

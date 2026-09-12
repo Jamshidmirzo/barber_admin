@@ -164,11 +164,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 )}
               </div>
               <div style={{ minWidth:0 }}>
-                <p style={{ color:"var(--text)", fontWeight:600, fontSize:13, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:2 }} title={data.salon.name}>
+                <p style={{ color:"var(--text)", fontWeight:600, fontSize:13, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }} title={data.salon.name}>
                   {data.salon.name}
-                </p>
-                <p style={{ color:"var(--text3)", fontSize:11, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-                  {data.salon.slug}.hayrli.app
                 </p>
               </div>
             </div>
