@@ -111,24 +111,35 @@ export default function BarberDetailPage() {
       </Link>
 
       {/* Header */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, flexWrap:"wrap", gap:12 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:16, minWidth:0 }}>
-          <div style={{ width:56, height:56, borderRadius:"50%", background:"var(--gold-dim)", color:"var(--gold)", fontWeight:700, fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden" }}>
-            {data?.photo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={data.photo_url} alt={data.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-            ) : initials(data?.name ?? "", data?.phone ?? "")}
+      {isLoading || !data ? (
+        <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:24 }}>
+          <div style={{ width:56, height:56, borderRadius:"50%", background:"var(--surface)", flexShrink:0, animation:"pulse 1.5s infinite" }} />
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            <div style={{ height:18, width:160, background:"var(--surface)", borderRadius:4, animation:"pulse 1.5s infinite" }} />
+            <div style={{ height:12, width:110, background:"var(--surface)", borderRadius:4, animation:"pulse 1.5s infinite" }} />
           </div>
-          <div style={{ minWidth:0 }}>
-            <h1 style={{ color:"var(--text)", fontSize:20, fontWeight:700, margin:0 }}>{data?.name ?? t("defaultName")}</h1>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:4 }}>
-              {data?.specializations?.length ? data.specializations.map((s) => (
-                <span key={s} style={{ fontSize:11, background:"var(--bg)", border:"1px solid var(--border)", color:"var(--text2)", padding:"2px 8px", borderRadius:20 }}>{s}</span>
-              )) : <span style={{ color:"var(--text3)", fontSize:12 }}>{data?.phone}</span>}
+          <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
+        </div>
+      ) : (
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, flexWrap:"wrap", gap:12 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:16, minWidth:0 }}>
+            <div style={{ width:56, height:56, borderRadius:"50%", background:"var(--gold-dim)", color:"var(--gold)", fontWeight:700, fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, overflow:"hidden" }}>
+              {data.photo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={data.photo_url} alt={data.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+              ) : initials(data.name ?? "", data.phone ?? "")}
+            </div>
+            <div style={{ minWidth:0 }}>
+              <h1 style={{ color:"var(--text)", fontSize:20, fontWeight:700, margin:0 }}>{data.name ?? t("defaultName")}</h1>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:4 }}>
+                {data.specializations?.length ? data.specializations.map((s) => (
+                  <span key={s} style={{ fontSize:11, background:"var(--bg)", border:"1px solid var(--border)", color:"var(--text2)", padding:"2px 8px", borderRadius:20 }}>{s}</span>
+                )) : <span style={{ color:"var(--text3)", fontSize:12 }}>{data.phone}</span>}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Credentials */}
       <div style={{ ...cardS, padding:20, marginBottom:16 }}>
