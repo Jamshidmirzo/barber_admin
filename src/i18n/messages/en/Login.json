@@ -2,6 +2,7 @@
   "tagline": "Barbershop management dashboard",
   "orContinueWith": "or continue with",
   "continueWithKakao": "Continue with Kakao",
+  "continueWithTelegram": "Continue with Telegram",
   "login": {
     "title": "Welcome back",
     "subtitle": "Sign in to continue",
@@ -37,6 +38,8 @@
     "loginFailed": "Incorrect phone number or password",
     "registerFailed": "Registration failed",
     "kakaoFailed": "Kakao sign-in failed",
-    "kakaoPopupBlocked": "Your browser blocked the sign-in popup. Allow popups for this site and try again"
+    "kakaoPopupBlocked": "Your browser blocked the sign-in popup. Allow popups for this site and try again",
+    "telegramFailed": "Telegram sign-in failed",
+    "telegramPopupBlocked": "Your browser blocked the sign-in popup. Allow popups for this site and try again"
   }
 }

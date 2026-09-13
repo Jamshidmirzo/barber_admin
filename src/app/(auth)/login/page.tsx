@@ -3,12 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { Eye, EyeOff, MessageCircle } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { Eye, EyeOff, MessageCircle, Send } from "lucide-react";
 import api, { parseApiError } from "@/lib/api";
 
 const KAKAO_YELLOW = "#FEE500";
 const KAKAO_INK = "#191919";
+const TELEGRAM_BLUE = "#26A5E4";
+
+// /auth/telegram/web-login only accepts these — anything else falls back to
+// Russian, same default the backend's widget page uses.
+const TELEGRAM_WIDGET_LANGS = new Set(["ru", "uz", "en", "ko"]);
 
 const inp: React.CSSProperties = {
   width:"100%", background:"var(--surface)", color:"var(--text)",
@@ -65,6 +70,7 @@ function isValidPhone(phone: string, cc: CountryCode): boolean {
 
 export default function LoginPage() {
   const t = useTranslations("Login");
+  const locale = useLocale();
   const router = useRouter();
   const qc = useQueryClient();
   const [phone, setPhone] = useState("+998");
@@ -146,6 +152,64 @@ export default function LoginPage() {
       cleanup();
       if (data.type === "kakao-login-error") {
         setError(data.message || t("errors.kakaoFailed"));
+        return;
+      }
+      if (!data.tokens?.access_token) {
+        setError(t("errors.serverResponseInvalid"));
+        return;
+      }
+      saveTokens({ access_token: data.tokens.access_token, refresh_token: data.tokens.refresh_token });
+    }
+
+    const closedPoll = setInterval(() => {
+      if (popup.closed) cleanup();
+    }, 500);
+
+    window.addEventListener("message", onMessage);
+  }
+
+  function handleTelegramLogin() {
+    setError("");
+    const baseUrl = api.defaults.baseURL || "";
+    const absoluteBase = baseUrl.startsWith("http") ? baseUrl : `${window.location.origin}${baseUrl}`;
+    const widgetLang = TELEGRAM_WIDGET_LANGS.has(locale) ? locale : "ru";
+    // role=master + country=UZ are fixed, not user-editable: Telegram is how
+    // the Uzbek market reaches us (mirrors the backend's own
+    // PROVIDER_DEFAULT_COUNTRY mapping) — a salon owner signing up here must
+    // always land as an Uzbek master (Yandex map, no business-registration
+    // number, UZS currency), the same way the Kakao button above always
+    // implies Korea. This is forced explicitly rather than left to the
+    // backend's IP/locale fallback so it can never drift with a VPN or a
+    // browser set to a Korean locale.
+    const url = `${absoluteBase}/auth/telegram/web-login?role=master&country=UZ&lang=${widgetLang}&origin=${encodeURIComponent(window.location.origin)}`;
+
+    const popup = window.open(url, "telegram-login", "width=480,height=640");
+    if (!popup) {
+      setError(t("errors.telegramPopupBlocked"));
+      return;
+    }
+    setLoading(true);
+
+    function cleanup() {
+      window.removeEventListener("message", onMessage);
+      clearInterval(closedPoll);
+      setLoading(false);
+    }
+
+    function onMessage(event: MessageEvent) {
+      // Same window-reference check as the Kakao handler above, for the
+      // same reason: the popup's origin varies by env, but its window
+      // reference doesn't.
+      if (event.source !== popup) return;
+      const data = event.data as
+        | { type: "telegram-login"; tokens?: { access_token?: string; refresh_token?: string }; is_new_user?: boolean }
+        | { type: "telegram-login-error"; message?: string }
+        | undefined;
+      if (!data || (data.type !== "telegram-login" && data.type !== "telegram-login-error")) return;
+
+      cleanup();
+      if (data.type === "telegram-login-error") {
+        setError(data.message || t("errors.telegramFailed"));
         return;
       }
       if (!data.tokens?.access_token) {
@@ -270,10 +334,24 @@ export default function LoginPage() {
               background: KAKAO_YELLOW, color: KAKAO_INK, border:"none", borderRadius:11,
               fontWeight:600, fontSize:14, fontFamily:"inherit",
               cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1,
+              marginBottom:10,
             }}
           >
             <MessageCircle size={18} />
             {t("continueWithKakao")}
+          </button>
+
+          <button
+            type="button" onClick={handleTelegramLogin} disabled={loading}
+            style={{
+              width:"100%", height:48, display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+              background: TELEGRAM_BLUE, color: "#fff", border:"none", borderRadius:11,
+              fontWeight:600, fontSize:14, fontFamily:"inherit",
+              cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1,
+            }}
+          >
+            <Send size={18} />
+            {t("continueWithTelegram")}
           </button>
         </div>
       </div>
