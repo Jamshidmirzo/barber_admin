@@ -11,8 +11,9 @@ const KAKAO_YELLOW = "#FEE500";
 const KAKAO_INK = "#191919";
 const TELEGRAM_BLUE = "#26A5E4";
 
-// /auth/telegram/web-login only accepts these — anything else falls back to
-// Russian, same default the backend's widget page uses.
+// The widget host (hayrli.app/api/auth/telegram, in the operhair_landing
+// repo — a separate Vercel project from this one) only accepts these;
+// anything else falls back to Russian.
 const TELEGRAM_WIDGET_LANGS = new Set(["ru", "uz", "en", "ko"]);
 
 const inp: React.CSSProperties = {
@@ -170,18 +171,17 @@ export default function LoginPage() {
 
   function handleTelegramLogin() {
     setError("");
-    const baseUrl = api.defaults.baseURL || "";
-    const absoluteBase = baseUrl.startsWith("http") ? baseUrl : `${window.location.origin}${baseUrl}`;
     const widgetLang = TELEGRAM_WIDGET_LANGS.has(locale) ? locale : "ru";
-    // role=master + country=UZ are fixed, not user-editable: Telegram is how
-    // the Uzbek market reaches us (mirrors the backend's own
-    // PROVIDER_DEFAULT_COUNTRY mapping) — a salon owner signing up here must
-    // always land as an Uzbek master (Yandex map, no business-registration
-    // number, UZS currency), the same way the Kakao button above always
-    // implies Korea. This is forced explicitly rather than left to the
-    // backend's IP/locale fallback so it can never drift with a VPN or a
-    // browser set to a Korean locale.
-    const url = `${absoluteBase}/auth/telegram/web-login?role=master&country=UZ&lang=${widgetLang}&origin=${encodeURIComponent(window.location.origin)}`;
+    const origin = window.location.origin;
+    // Telegram checks the *embedding page's* origin against the single
+    // domain registered for the bot with BotFather (hayrli.app) — it cannot
+    // render on this dashboard's own origin, or on api.hayrli.app. The
+    // widget has to live on hayrli.app itself (operhair_landing repo);
+    // mode=web + origin= is that page's existing popup contract, already
+    // used by this exact dashboard (see ALLOWED_WEB_ORIGINS there) — it
+    // just relays the raw Telegram payload back via postMessage rather than
+    // completing the login itself, so we still call /auth/telegram here.
+    const url = `https://hayrli.app/api/auth/telegram?mode=web&origin=${encodeURIComponent(origin)}&lang=${widgetLang}`;
 
     const popup = window.open(url, "telegram-login", "width=480,height=640");
     if (!popup) {
@@ -190,37 +190,59 @@ export default function LoginPage() {
     }
     setLoading(true);
 
-    function cleanup() {
+    // Detaches the listener/poll without touching `loading` — the popup
+    // closes itself right after posting the payload, well before the
+    // /auth/telegram exchange below finishes, so the spinner has to outlive
+    // this detach.
+    function detach() {
       window.removeEventListener("message", onMessage);
       clearInterval(closedPoll);
-      setLoading(false);
     }
 
-    function onMessage(event: MessageEvent) {
+    async function onMessage(event: MessageEvent) {
       // Same window-reference check as the Kakao handler above, for the
       // same reason: the popup's origin varies by env, but its window
       // reference doesn't.
       if (event.source !== popup) return;
       const data = event.data as
-        | { type: "telegram-login"; tokens?: { access_token?: string; refresh_token?: string }; is_new_user?: boolean }
-        | { type: "telegram-login-error"; message?: string }
+        | { source: "hayrli-telegram-auth"; user?: Record<string, unknown> }
         | undefined;
-      if (!data || (data.type !== "telegram-login" && data.type !== "telegram-login-error")) return;
+      if (!data || data.source !== "hayrli-telegram-auth" || !data.user) return;
 
-      cleanup();
-      if (data.type === "telegram-login-error") {
-        setError(data.message || t("errors.telegramFailed"));
-        return;
+      detach();
+      try {
+        // role=master + country=UZ are fixed, not user-editable: Telegram is
+        // how the Uzbek market reaches us (mirrors the backend's own
+        // PROVIDER_DEFAULT_COUNTRY mapping) — a salon owner signing up here
+        // must always land as an Uzbek master (Yandex map, no
+        // business-registration number, UZS currency), the same way the
+        // Kakao button above always implies Korea. Forced explicitly rather
+        // than left to the backend's IP/locale fallback so it can never
+        // drift with a VPN or a browser set to a Korean locale.
+        // The widget script hands `onTelegramAuth` a JS number for `id`
+        // (same object the mobile flow's JSON.stringify(user) also reads
+        // from), but the backend's TelegramLoginRequest.id is a str — send
+        // it as one or pydantic rejects the request outright.
+        const res = await api.post("/auth/telegram", {
+          ...data.user,
+          id: String(data.user.id),
+          role: "master",
+          country: "UZ",
+        });
+        const tokens = res.data?.tokens;
+        if (tokens?.access_token) saveTokens(tokens);
+        else setError(t("errors.serverResponseInvalid"));
+      } catch (err) {
+        setError(parseApiError(err, t("errors.telegramFailed")));
+        setLoading(false);
       }
-      if (!data.tokens?.access_token) {
-        setError(t("errors.serverResponseInvalid"));
-        return;
-      }
-      saveTokens({ access_token: data.tokens.access_token, refresh_token: data.tokens.refresh_token });
     }
 
     const closedPoll = setInterval(() => {
-      if (popup.closed) cleanup();
+      if (popup.closed) {
+        detach();
+        setLoading(false);
+      }
     }, 500);
 
     window.addEventListener("message", onMessage);
