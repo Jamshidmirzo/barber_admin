@@ -9,8 +9,9 @@ import api, { parseApiError } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useSalonContextQuery } from "@/hooks/useSalon";
 import { useProfileQuery } from "@/hooks/useProfile";
-import KakaoMapPicker, { type PickedPlace } from "@/components/KakaoMapPicker";
+import KakaoMapPicker from "@/components/KakaoMapPicker";
 import YandexMapPicker from "@/components/YandexMapPicker";
+import { isCoordsOnly, type PickedPlace } from "@/lib/geo";
 
 type PlaceResult = PickedPlace;
 
@@ -32,7 +33,13 @@ function deriveCity(place: PickedPlace, korea: boolean): string | null {
   // Yandex-formatted addresses are comma-separated and often lead with the
   // country name before the city ("Узбекистан, Ташкент, ...").
   const parts = source.split(",").map((p) => p.trim()).filter(Boolean);
-  return parts.find((p) => !/узбекистан|uzbekistan/i.test(p)) ?? parts[0] ?? null;
+  // A pick made while the geocoder was down carries its coordinates as the
+  // address ("41.311081, 69.240562"), which splits into two numbers — neither
+  // of which is a city. Better no city than "41.311081".
+  const city = parts.find(
+    (p) => !/узбекистан|uzbekistan/i.test(p) && !/^-?\d+(\.\d+)?$/.test(p)
+  );
+  return city ?? null;
 }
 
 const inp: React.CSSProperties = {
@@ -72,6 +79,21 @@ export default function OnboardingPage() {
   const [geocodeError, setGeocodeError] = useState("");
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Uzbekistan has no server-side geocoder (the backend's places endpoints are
+  // Kakao-only), so the address is typed by the owner while the map supplies
+  // the coordinates.
+  const [uzAddress, setUzAddress] = useState("");
+
+  // Prefill from a pick Yandex did manage to resolve, so a working key behaves
+  // as before and the text stays correctable; a coordinates-only pick leaves
+  // the field empty for the owner to fill in.
+  function handleUzPick(place: PlaceResult) {
+    setSelectedPlace(place);
+    if (isCoordsOnly(place)) return;
+    const resolved = place.road_address_name || place.address_name;
+    setUzAddress((prev) => prev || resolved);
+  }
+
   useEffect(() => {
     if (!isKorea || manualMode || selectedPlace) return;
     if (searchTimer.current) clearTimeout(searchTimer.current);
@@ -106,13 +128,19 @@ export default function OnboardingPage() {
     e.preventDefault();
     if (!canSubmit) return;
     setError(""); setSubmitting(true);
-    const city = selectedPlace ? deriveCity(selectedPlace, isKorea) : null;
+    const effectiveAddress = isUzbek && uzAddress.trim()
+      ? uzAddress.trim()
+      : (selectedPlace?.road_address_name || selectedPlace?.address_name || "");
+    const placeForSubmit = selectedPlace
+      ? { ...selectedPlace, address_name: effectiveAddress, road_address_name: null }
+      : null;
+    const city = placeForSubmit ? deriveCity(placeForSubmit, isKorea) : null;
     try {
       await api.post("/salons", {
         name: name.trim(),
         ...(isKorea ? { business_registration_number: brn.replace(/[\s-]/g, "") } : {}),
         ...(selectedPlace ? {
-          address: selectedPlace.road_address_name || selectedPlace.address_name,
+          address: effectiveAddress,
           latitude: selectedPlace.latitude,
           longitude: selectedPlace.longitude,
         } : {}),
@@ -277,7 +305,21 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              <YandexMapPicker selected={selectedPlace} onPick={setSelectedPlace} />
+              <YandexMapPicker selected={selectedPlace} onPick={handleUzPick} />
+
+              <div style={{ marginTop:14 }}>
+                <label style={{ display:"block", color:"var(--text2)", fontSize:13, marginBottom:8 }}>{t("locationUz.manualLabel")}</label>
+                <input
+                  type="text" value={uzAddress}
+                  onChange={(e) => setUzAddress(e.target.value)}
+                  placeholder={t("locationUz.manualPlaceholder")}
+                  maxLength={500}
+                  style={inp}
+                />
+                <p style={{ color:"var(--text3)", fontSize:11.5, margin:"6px 0 0" }}>
+                  {t("locationUz.manualHint")}
+                </p>
+              </div>
             </div>
           )}
 

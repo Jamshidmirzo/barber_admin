@@ -11,6 +11,7 @@
     "locateFailed": "Could not determine your location",
     "missingKey": "Map unavailable: NEXT_PUBLIC_YANDEX_JS_KEY is not set",
     "noResults": "No results found",
-    "geocodeFailed": "Could not find that address"
+    "addressLookupFailed": "Could not resolve the address — the point was saved with its coordinates. Check the Yandex Maps API key (Geocoder).",
+    "geocoderUnavailable": "Address search is unavailable: the Yandex geocoder is rejecting requests. Check the API key."
   }
 }

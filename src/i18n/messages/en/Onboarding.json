@@ -22,7 +22,10 @@
   },
   "locationUz": {
     "label": "Pick your salon's location on the map",
-    "change": "Change"
+    "change": "Change",
+    "manualLabel": "Salon address",
+    "manualPlaceholder": "e.g. Tashkent, Amir Temur St, 15",
+    "manualHint": "Optional. Fill it in if the address wasn't detected automatically."
   },
   "errors": {
     "geocode": "Could not determine the address",

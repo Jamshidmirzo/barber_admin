@@ -11,6 +11,7 @@
     "locateFailed": "Joylashuvni aniqlab bo'lmadi",
     "missingKey": "Xarita mavjud emas: NEXT_PUBLIC_YANDEX_JS_KEY sozlanmagan",
     "noResults": "Hech narsa topilmadi",
-    "geocodeFailed": "Bu manzilni topib bo'lmadi"
+    "addressLookupFailed": "Manzil aniqlanmadi — nuqta koordinatalari bo'yicha saqlandi. Yandex Xaritalar API kalitini (Geocoder) tekshiring.",
+    "geocoderUnavailable": "Manzil bo'yicha qidiruv ishlamayapti: Yandex geokoderi so'rovlarni rad etmoqda. API kalitini tekshiring."
   }
 }

@@ -7,6 +7,7 @@
     "sdkLoadFailed": "Failed to load the Kakao Map SDK",
     "geolocationUnavailable": "Geolocation is not available in this browser",
     "locateFailed": "Could not determine your location",
-    "missingKey": "Map unavailable: NEXT_PUBLIC_KAKAO_JS_KEY is not set"
+    "missingKey": "Map unavailable: NEXT_PUBLIC_KAKAO_JS_KEY is not set",
+    "addressLookupFailed": "Could not resolve the address — the point was saved with its coordinates."
   }
 }

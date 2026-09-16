@@ -7,6 +7,7 @@
     "sdkLoadFailed": "Не удалось загрузить Kakao Map SDK",
     "geolocationUnavailable": "Геолокация недоступна в этом браузере",
     "locateFailed": "Не удалось определить местоположение",
-    "missingKey": "Карта недоступна: не задан NEXT_PUBLIC_KAKAO_JS_KEY"
+    "missingKey": "Карта недоступна: не задан NEXT_PUBLIC_KAKAO_JS_KEY",
+    "addressLookupFailed": "Адрес не определился — точка сохранена по координатам."
   }
 }

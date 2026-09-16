@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import { useTranslations } from "next-intl";
 import { Locate, Loader2 } from "lucide-react";
+import { buildPickedPlace, type PickedPlace, type ResolvedAddress } from "@/lib/geo";
 
 // Kakao Maps JS SDK doesn't ship official TS types — minimal shapes for the
 // subset of the API this component actually uses.
@@ -52,17 +53,6 @@ declare global {
   }
 }
 
-export interface PickedPlace {
-  place_name: string;
-  address_name: string;
-  road_address_name: string | null;
-  phone: string | null;
-  latitude: number;
-  longitude: number;
-  /** City/region, when the geocoder gave us a structured one (not always available). */
-  city?: string | null;
-}
-
 interface KakaoMapPickerProps {
   /** Currently selected location (from search results, geocode fallback, or a previous map pick). */
   selected: PickedPlace | null;
@@ -86,26 +76,37 @@ export default function KakaoMapPicker({ selected, onPick }: KakaoMapPickerProps
   const [sdkReady, setSdkReady] = useState(false);
   const [locating, setLocating] = useState(false);
   const [mapError, setMapError] = useState("");
+  const [geocodeNotice, setGeocodeNotice] = useState("");
 
   useEffect(() => { onPickRef.current = onPick; }, [onPick]);
 
+  // The pick is committed on every path, including failure: the coordinates
+  // came from the map and are valid on their own, so a geocoder that is
+  // unavailable or has no address for this point must not cost the user
+  // their selection.
+  function commit(lat: number, lng: number, resolved: ResolvedAddress | null) {
+    onPickRef.current(buildPickedPlace(lat, lng, resolved, t("selectedPointFallback")));
+  }
+
   function reverseGeocode(lat: number, lng: number) {
+    setGeocodeNotice("");
     const geocoder = geocoderRef.current;
-    if (!geocoder) return;
+    if (!geocoder) {
+      setGeocodeNotice(t("errors.addressLookupFailed"));
+      commit(lat, lng, null);
+      return;
+    }
     geocoder.coord2Address(lng, lat, (result, status) => {
-      if (status !== window.kakao?.maps?.services?.Status?.OK || !result?.[0]) return;
-      const doc = result[0];
-      const road = doc.road_address?.address_name;
-      const jibun = doc.address?.address_name;
-      const city = doc.address?.region_1depth_name || doc.road_address?.region_1depth_name || null;
-      onPickRef.current({
-        place_name: road || jibun || t("selectedPointFallback"),
-        address_name: jibun || road || "",
-        road_address_name: road || null,
-        phone: null,
-        latitude: lat,
-        longitude: lng,
-        city,
+      const doc = status === window.kakao?.maps?.services?.Status?.OK ? result?.[0] : undefined;
+      if (!doc) {
+        setGeocodeNotice(t("errors.addressLookupFailed"));
+        commit(lat, lng, null);
+        return;
+      }
+      commit(lat, lng, {
+        address: doc.address?.address_name,
+        roadAddress: doc.road_address?.address_name,
+        city: doc.address?.region_1depth_name || doc.road_address?.region_1depth_name || null,
       });
     });
   }
@@ -240,6 +241,7 @@ export default function KakaoMapPicker({ selected, onPick }: KakaoMapPickerProps
       <p style={{ color:"var(--text3)", fontSize:11.5, margin:"6px 0 0" }}>
         {t("helperText")}
       </p>
+      {geocodeNotice && <p style={{ color:"var(--text3)", fontSize:11, margin:"6px 0 0" }}>{geocodeNotice}</p>}
       {mapError && <p style={{ color:"var(--red)", fontSize:11, margin:"6px 0 0" }}>{mapError}</p>}
     </div>
   );
