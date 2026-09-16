@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import { useTranslations } from "next-intl";
 import { Locate, Loader2, Search } from "lucide-react";
-import type { PickedPlace } from "@/components/KakaoMapPicker";
+import { buildPickedPlace, type PickedPlace, type ResolvedAddress } from "@/lib/geo";
 
 // Yandex Maps JS API 2.1 doesn't ship official TS types — minimal shapes for
 // the subset of the API this component actually uses. Coordinates are
@@ -72,41 +72,51 @@ export default function YandexMapPicker({ selected, onPick }: YandexMapPickerPro
   const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [geocodeNotice, setGeocodeNotice] = useState("");
 
   useEffect(() => { onPickRef.current = onPick; }, [onPick]);
 
-  function reverseGeocode(lat: number, lng: number) {
-    // Commit the coordinates immediately so a click/drag pick always
-    // registers — the geocoder (address lookup) is a separate, less
-    // reliable network call and shouldn't be able to block picking a point.
-    const fallback: PickedPlace = {
-      place_name: t("selectedPointFallback"),
-      address_name: "",
-      road_address_name: null,
-      phone: null,
-      latitude: lat,
-      longitude: lng,
-      city: null,
-    };
-    onPickRef.current(fallback);
+  // The pick is committed on every path, including failure: the coordinates
+  // came from the map and are valid on their own, so a geocoder that is
+  // unavailable (an unscoped API key makes every call 503) must not cost the
+  // user their selection.
+  function commit(lat: number, lng: number, resolved: ResolvedAddress | null) {
+    onPickRef.current(buildPickedPlace(lat, lng, resolved, t("selectedPointFallback")));
+  }
 
+  function reverseGeocode(lat: number, lng: number) {
+    setGeocodeNotice("");
     const ymaps = window.ymaps;
-    if (!ymaps) return;
-    ymaps
-      .geocode([lat, lng])
-      .then((res) => {
-        const geoObject = res.geoObjects.get(0);
-        if (!geoObject) return;
-        const address = geoObject.getAddressLine();
-        if (!address) return;
-        onPickRef.current({
-          ...fallback,
-          place_name: address,
-          address_name: address,
-          city: geoObject.getLocalities()[0] ?? null,
+    if (!ymaps) {
+      setGeocodeNotice(t("errors.addressLookupFailed"));
+      commit(lat, lng, null);
+      return;
+    }
+    // `geocode` can throw synchronously as well as reject, so the call itself
+    // is inside the guard, not just its promise.
+    try {
+      ymaps
+        .geocode([lat, lng])
+        .then((res) => {
+          const geoObject = res.geoObjects.get(0) ?? null;
+          if (!geoObject) {
+            setGeocodeNotice(t("errors.addressLookupFailed"));
+            commit(lat, lng, null);
+            return;
+          }
+          commit(lat, lng, {
+            address: geoObject.getAddressLine(),
+            city: geoObject.getLocalities()[0] ?? null,
+          });
+        })
+        .catch(() => {
+          setGeocodeNotice(t("errors.addressLookupFailed"));
+          commit(lat, lng, null);
         });
-      })
-      .catch(() => {});
+    } catch {
+      setGeocodeNotice(t("errors.addressLookupFailed"));
+      commit(lat, lng, null);
+    }
   }
 
   function movePlacemark(lat: number, lng: number, pan = true) {
@@ -209,21 +219,20 @@ export default function YandexMapPicker({ selected, onPick }: YandexMapPickerPro
     try {
       const res = await ymaps.geocode(query);
       const geoObject = res.geoObjects.get(0);
+      // A rejected call and an empty result mean different things: the first
+      // is the geocoder refusing us (usually a bad/unscoped API key), the
+      // second is a query that genuinely matches nothing. Saying "address not
+      // found" for both sends people off hunting for a typo that isn't there.
       if (!geoObject) { setSearchError(t("errors.noResults")); return; }
       const [lat, lng] = geoObject.geometry.getCoordinates();
-      const address = geoObject.getAddressLine();
       movePlacemark(lat, lng, true);
-      onPickRef.current({
-        place_name: address || t("selectedPointFallback"),
-        address_name: address || "",
-        road_address_name: null,
-        phone: null,
-        latitude: lat,
-        longitude: lng,
+      setGeocodeNotice("");
+      commit(lat, lng, {
+        address: geoObject.getAddressLine(),
         city: geoObject.getLocalities()[0] ?? null,
       });
     } catch {
-      setSearchError(t("errors.geocodeFailed"));
+      setSearchError(t("errors.geocoderUnavailable"));
     } finally {
       setSearching(false);
     }
@@ -291,6 +300,7 @@ export default function YandexMapPicker({ selected, onPick }: YandexMapPickerPro
       <p style={{ color:"var(--text3)", fontSize:11.5, margin:"6px 0 0" }}>
         {t("helperText")}
       </p>
+      {geocodeNotice && <p style={{ color:"var(--text3)", fontSize:11, margin:"6px 0 0" }}>{geocodeNotice}</p>}
       {mapError && <p style={{ color:"var(--red)", fontSize:11, margin:"6px 0 0" }}>{mapError}</p>}
     </div>
   );

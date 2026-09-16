@@ -22,7 +22,10 @@
   },
   "locationUz": {
     "label": "Saloningiz joylashuvini xaritada belgilang",
-    "change": "O'zgartirish"
+    "change": "O'zgartirish",
+    "manualLabel": "Salon manzili",
+    "manualPlaceholder": "Masalan: Toshkent, Amir Temur ko'chasi, 15",
+    "manualHint": "Ixtiyoriy. Agar manzil avtomatik aniqlanmagan bo'lsa, qo'lda kiriting."
   },
   "errors": {
     "geocode": "Manzilni aniqlab bo'lmadi",
