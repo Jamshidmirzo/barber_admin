@@ -26,7 +26,18 @@ jobs:
             # not a dev checkout — the branch is the source of truth.
             git fetch origin main
             git reset --hard origin/main
-            npm install --legacy-peer-deps
+            # `npm ci` respects the lockfile — `npm install --legacy-peer-deps`
+            # silently accepted new minors of next/react-query/axios on every
+            # deploy (see AUDIT §Починить/deploy.yml).
+            npm ci
+            # In Next 16 `next build` no longer runs ESLint, and there is no
+            # `next lint` command, so both checks have to run explicitly.
+            npm run lint
+            npx tsc --noEmit
             npm run build
             pm2 restart barber_admin || pm2 start npm --name barber_admin -- start
             pm2 save
+            # `pm2 restart` returns 0 even for an app that crash-loops on
+            # boot — hit /api/health to confirm the process is actually
+            # serving requests before we call the deploy successful.
+            sleep 5 && curl -f http://localhost:3000/api/health || exit 1
