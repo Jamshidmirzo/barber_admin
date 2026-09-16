@@ -19,14 +19,21 @@ const NAV_GROUPS = [
     items: [
       { href: "/dashboard",      itemKey: "overview",     icon: LayoutDashboard, managerOnly: true,  masterOnly: false },
       { href: "/schedule",       itemKey: "schedule",     icon: Clock,      managerOnly: false, masterOnly: false },
-      { href: "/promotions",     itemKey: "promotions",   icon: Tag,        managerOnly: false, masterOnly: true  },
+      // Both managers (own OwnerView with team roster + validate tool) and
+      // masters (own MasterView with promocode CRUD) render this page; the
+      // route mounts /promotions for everyone and the component switches
+      // internally on role, so no `*Only` gate here.
+      { href: "/promotions",     itemKey: "promotions",   icon: Tag,        managerOnly: false, masterOnly: false },
     ],
   },
   {
     groupKey: "clientele",
     items: [
       { href: "/clients",        itemKey: "clients",      icon: UserRound,  managerOnly: false, masterOnly: false },
-      { href: "/services",       itemKey: "services",     icon: Scissors,   managerOnly: false, masterOnly: true  },
+      // Services are self-managed by whoever is logged in — owners and
+      // admins have their own price list too (they can also be the person
+      // cutting), so the page has to be reachable regardless of role.
+      { href: "/services",       itemKey: "services",     icon: Scissors,   managerOnly: false, masterOnly: false },
       { href: "/barbers",        itemKey: "barbers",      icon: Users,      managerOnly: true,  masterOnly: false },
     ],
   },
