@@ -29,10 +29,24 @@ api.interceptors.request.use((config) => {
 
 // Track whether a refresh is already in flight to avoid cascading refresh calls.
 let isRefreshing = false;
-let refreshQueue: Array<(token: string) => void> = [];
+// Queue entries hold both resolvers so we can reject parked requests when a
+// refresh permanently fails, instead of leaving React Query stuck loading.
+interface QueueEntry {
+  resolve: (token: string) => void;
+  reject: (reason: unknown) => void;
+}
+let refreshQueue: QueueEntry[] = [];
 
 function processQueue(newToken: string) {
-  refreshQueue.forEach((resolve) => resolve(newToken));
+  refreshQueue.forEach(({ resolve }) => resolve(newToken));
+  refreshQueue = [];
+}
+
+function rejectQueue(reason: unknown) {
+  // Reject every parked request so React Query components can exit the
+  // isLoading state — the outer axios rejection would otherwise never fire
+  // for these because their promises were only linked to the queue.
+  refreshQueue.forEach(({ reject }) => reject(reason));
   refreshQueue = [];
 }
 
@@ -63,10 +77,13 @@ api.interceptors.response.use(
       }
 
       if (isRefreshing) {
-        // Queue the request until the ongoing refresh resolves.
-        return new Promise<string>((resolve) => {
-          refreshQueue.push(resolve);
+        // Queue the request until the ongoing refresh resolves. Set `_retry`
+        // BEFORE replaying so the queued request cannot itself trigger a
+        // second refresh cycle if the new token is also 401.
+        return new Promise<string>((resolve, reject) => {
+          refreshQueue.push({ resolve, reject });
         }).then((newToken) => {
+          originalConfig._retry = true;
           originalConfig.headers.Authorization = `Bearer ${newToken}`;
           return api(originalConfig);
         });
@@ -97,8 +114,8 @@ api.interceptors.response.use(
         processQueue(newAccessToken);
         originalConfig.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalConfig);
-      } catch {
-        refreshQueue = [];
+      } catch (refreshErr) {
+        rejectQueue(refreshErr instanceof Error ? refreshErr : new Error("refresh failed"));
         clearSession();
         return Promise.reject(err);
       } finally {
