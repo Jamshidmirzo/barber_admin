@@ -29,6 +29,10 @@
     "break": "휴게 시간:",
     "dayOff": "휴무"
   },
+  "viewToggle": {
+    "team": "팀",
+    "own": "내 시간"
+  },
   "days": {
     "mon": "월요일",
     "tue": "화요일",

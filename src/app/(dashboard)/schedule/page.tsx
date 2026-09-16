@@ -24,8 +24,48 @@ function fmtMoney(v: number, suffix: string) { return (v/1_000_000).toFixed(1).r
 
 export default function SchedulePage() {
   const { role } = useSalon();
-  if (isManager(role)) return <TeamScheduleGrid />;
+  // Managers who don't also cut still only need the team grid. But owners
+  // and admins who work chairs need to edit their own hours too, so they
+  // get a top-of-page toggle to swap between the team view and the
+  // personal WorkdaysEditor. Masters just see the editor.
+  if (isManager(role)) return <ManagerScheduleView />;
   return <WorkdaysEditor />;
+}
+
+function ManagerScheduleView() {
+  const t = useTranslations("Schedule");
+  const [view, setView] = useState<"team" | "own">("team");
+  return (
+    <div>
+      <div style={{ padding: "20px 32px 0", display: "flex", gap: 8 }}>
+        <button
+          onClick={() => setView("team")}
+          style={{
+            padding: "7px 14px", borderRadius: "var(--radius)", border: "none",
+            cursor: "pointer", fontSize: 13, fontWeight: 600,
+            background: view === "team" ? "var(--gold)" : "var(--card)",
+            color: view === "team" ? "#0a0a0b" : "var(--text2)",
+            transition: "background 0.15s, color 0.15s",
+          }}
+        >
+          {t("viewToggle.team")}
+        </button>
+        <button
+          onClick={() => setView("own")}
+          style={{
+            padding: "7px 14px", borderRadius: "var(--radius)", border: "none",
+            cursor: "pointer", fontSize: 13, fontWeight: 600,
+            background: view === "own" ? "var(--gold)" : "var(--card)",
+            color: view === "own" ? "#0a0a0b" : "var(--text2)",
+            transition: "background 0.15s, color 0.15s",
+          }}
+        >
+          {t("viewToggle.own")}
+        </button>
+      </div>
+      {view === "team" ? <TeamScheduleGrid /> : <WorkdaysEditor />}
+    </div>
+  );
 }
 
 // ─── types ──────────────────────────────────────────────────────────────────

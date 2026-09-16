@@ -29,6 +29,10 @@
     "break": "Break:",
     "dayOff": "Day off"
   },
+  "viewToggle": {
+    "team": "Team",
+    "own": "My hours"
+  },
   "days": {
     "mon": "Monday",
     "tue": "Tuesday",
