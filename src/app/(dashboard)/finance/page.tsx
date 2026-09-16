@@ -24,9 +24,12 @@ interface WeeklyStats {
   compared_to_previous_week: { appointments_delta_pct: number | null; revenue_delta_pct: number | null };
 }
 
-function fmt(n: number, currency: string, locale: string) {
-  if (n >= 1_000_000) return (n / 1_000_000).toLocaleString(locale, { maximumFractionDigits: 1 }) + "M " + currency;
-  return n.toLocaleString(locale) + " " + currency;
+function fmt(n: number | null | undefined, currency: string, locale: string) {
+  // `.toLocaleString()` blows up on null — cheap guard here beats
+  // scattering `?? 0` at every call site.
+  const v = n ?? 0;
+  if (v >= 1_000_000) return (v / 1_000_000).toLocaleString(locale, { maximumFractionDigits: 1 }) + "M " + currency;
+  return v.toLocaleString(locale) + " " + currency;
 }
 
 const PERIODS: { key: Period }[] = [
@@ -62,7 +65,11 @@ export default function FinancePage() {
     [stats],
   );
 
-  const revDelta = stats?.compared_to_previous_week.revenue_delta_pct ?? null;
+  // Backend recently rescoped weekly-stats to salon-level; on older
+  // responses `compared_to_previous_week` can be missing entirely, so
+  // chain through it defensively — this is where the audit's null-crash
+  // originated (see AUDIT §Починить/финансы).
+  const revDelta = stats?.compared_to_previous_week?.revenue_delta_pct ?? null;
 
   return (
     <div style={{ padding:"32px 36px" }}>

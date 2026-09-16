@@ -80,10 +80,14 @@ function isStatusKey(status: string): status is StatusKey {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function fmtRevenue(n: number, units: { million: string; thousand: string }, locale: string): string {
-  if (n >= 1_000_000) return (n / 1_000_000).toLocaleString(locale, { maximumFractionDigits: 1 }) + " " + units.million;
-  if (n >= 1_000)     return (n / 1_000).toLocaleString(locale, { maximumFractionDigits: 0 }) + " " + units.thousand;
-  return n.toLocaleString(locale);
+function fmtRevenue(n: number | null | undefined, units: { million: string; thousand: string }, locale: string): string {
+  // The API can send nulls for revenue fields when the salon has no data
+  // yet; treating them as 0 keeps `.toLocaleString()` from throwing on
+  // primitives that TypeScript thinks are safe.
+  const v = n ?? 0;
+  if (v >= 1_000_000) return (v / 1_000_000).toLocaleString(locale, { maximumFractionDigits: 1 }) + " " + units.million;
+  if (v >= 1_000)     return (v / 1_000).toLocaleString(locale, { maximumFractionDigits: 0 }) + " " + units.thousand;
+  return v.toLocaleString(locale);
 }
 
 function initials(name: string): string {

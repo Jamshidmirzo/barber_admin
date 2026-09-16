@@ -28,6 +28,15 @@ interface MasterContentStats {
 }
 interface BarberServiceItem { id: string; name: string; price: number; duration_min: number; category: string; is_active: boolean; }
 
+// Mirrors services/page.tsx — the backend `service.category` enum can drift
+// with new categories being added, so guard the translation lookup instead
+// of blowing up with `MISSING_KEY` in the UI.
+const KNOWN_CATEGORIES = ["haircut", "coloring", "styling", "care", "beard", "other"] as const;
+type KnownCategory = (typeof KNOWN_CATEGORIES)[number];
+function isKnownCategory(value: string): value is KnownCategory {
+  return (KNOWN_CATEGORIES as readonly string[]).includes(value);
+}
+
 type PeriodKey = "7" | "30" | "90" | "custom";
 
 function fmt(n: number, currency: string, locale: string) { return n.toLocaleString(locale) + " " + currency; }
@@ -205,7 +214,7 @@ export default function BarberDetailPage() {
                 <div style={{ minWidth:0 }}>
                   <p style={{ color:"var(--text)", fontSize:13, fontWeight:500, margin:0 }}>{s.name}</p>
                   <p style={{ color:"var(--text3)", fontSize:11, margin:"2px 0 0" }}>
-                    {tServices(`categories.${s.category}`)} · {tServices("durationValue", { minutes: s.duration_min, unit: tServices("minutesUnit") })}
+                    {isKnownCategory(s.category) ? tServices(`categories.${s.category}`) : s.category} · {tServices("durationValue", { minutes: s.duration_min, unit: tServices("minutesUnit") })}
                   </p>
                 </div>
                 <span style={{ color:"var(--gold)", fontWeight:600, fontSize:13, whiteSpace:"nowrap" }}>

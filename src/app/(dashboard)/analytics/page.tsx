@@ -10,6 +10,7 @@ import {
 import { TrendingUp, TrendingDown } from "lucide-react";
 import api from "@/lib/api";
 import { useSalon } from "@/hooks/useSalon";
+import { useIntlLocale } from "@/lib/locale";
 import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
 
 interface HeatCell { day: string; hour: number; appointments: number; revenue: number; }
@@ -44,7 +45,9 @@ function dayLabel(t: Translator, day: string | null | undefined, full: boolean) 
   return known ? t(`days.${full ? "full" : "short"}.${day}`) : day;
 }
 
-function fmt(n: number, currency: string) { return n.toLocaleString("ru") + " " + currency; }
+function fmt(n: number | null | undefined, currency: string, locale: string) {
+  return (n ?? 0).toLocaleString(locale) + " " + currency;
+}
 function hh(h: number) { return `${String(h).padStart(2,"0")}:00`; }
 
 const cardStyle: React.CSSProperties = {
@@ -116,6 +119,7 @@ export default function AnalyticsPage() {
 function HeatmapSection({ q }: { q: { data?: HeatmapResponse; isLoading: boolean } }) {
   const t = useTranslations("Analytics");
   const currency = currencyForCountry(useAdminCountry());
+  const locale = useIntlLocale();
   const cells = q.data?.heatmap ?? [];
   const map = useMemo(() => {
     const m = new Map<string, HeatCell>();
@@ -178,7 +182,7 @@ function HeatmapSection({ q }: { q: { data?: HeatmapResponse; isLoading: boolean
                     return (
                       <td key={h}>
                         <div
-                          title={t("heatmap.cellTooltip", { day: dayLabel(t, d, false), hour: hh(h), count: app, revenue: fmt(c?.revenue ?? 0, currency) })}
+                          title={t("heatmap.cellTooltip", { day: dayLabel(t, d, false), hour: hh(h), count: app, revenue: fmt(c?.revenue ?? 0, currency, locale) })}
                           style={{
                             width:34, height:34, borderRadius:7,
                             background: bg(app),
@@ -209,6 +213,7 @@ function HeatmapSection({ q }: { q: { data?: HeatmapResponse; isLoading: boolean
 function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: boolean }; heatmap?: HeatmapResponse }) {
   const t = useTranslations("Analytics");
   const currency = currencyForCountry(useAdminCountry());
+  const locale = useIntlLocale();
   const data = q.data;
   const dowData = (data?.revenue_by_day_of_week ?? []).map((d) => ({ ...d, day_label: dayLabel(t, d.day, false) }));
   const growth = data?.growth_vs_prev_period ?? 0;
@@ -224,7 +229,7 @@ function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: 
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:20 }}>
         <div style={cardStyle}>
           <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>{t("kpi.avgCheck")}</p>
-          <p style={{ fontFamily:"'Playfair Display',serif", color:"var(--text)", fontSize:26, fontWeight:600, margin:0 }}>{data ? fmt(data.avg_check, currency) : "—"}</p>
+          <p style={{ fontFamily:"'Playfair Display',serif", color:"var(--text)", fontSize:26, fontWeight:600, margin:0 }}>{data ? fmt(data.avg_check, currency, locale) : "—"}</p>
           <p style={{ fontSize:12, color: up ? "var(--green)" : "var(--text3)", fontWeight:600, margin:"8px 0 0" }}>
             {data ? `${up ? "+" : ""}${growth}%` : ""} <span style={{ color:"var(--text3)", fontWeight:400 }}>{t("kpi.avgCheckCaption")}</span>
           </p>
@@ -266,7 +271,7 @@ function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: 
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                   <XAxis dataKey="week" tick={{ fill:"var(--text3)", fontSize:11 }} stroke="var(--border)" minTickGap={20} />
                   <YAxis tickFormatter={(v) => v >= 1000 ? `${Math.round(v/1000)}k` : String(v)} tick={{ fill:"var(--text3)", fontSize:11 }} stroke="var(--border)" width={40} />
-                  <Tooltip {...chartTooltip} formatter={(v) => [fmt(Number(v), currency), t("charts.revenueLabel")] as [string, string]} />
+                  <Tooltip {...chartTooltip} formatter={(v) => [fmt(Number(v), currency, locale), t("charts.revenueLabel")] as [string, string]} />
                   <Line type="monotone" dataKey="revenue" stroke="var(--gold)" strokeWidth={2} dot={false} activeDot={{ r:4, fill:"var(--gold)" }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -286,7 +291,7 @@ function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: 
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                   <XAxis dataKey="day_label" tick={{ fill:"var(--text3)", fontSize:11 }} stroke="var(--border)" />
                   <YAxis tickFormatter={(v) => v >= 1000 ? `${Math.round(v/1000)}k` : String(v)} tick={{ fill:"var(--text3)", fontSize:11 }} stroke="var(--border)" width={40} />
-                  <Tooltip {...chartTooltip} cursor={{ fill:"rgba(255,255,255,0.04)" }} formatter={(v) => [fmt(Number(v), currency), t("charts.avgRevenueLabel")] as [string, string]} />
+                  <Tooltip {...chartTooltip} cursor={{ fill:"rgba(255,255,255,0.04)" }} formatter={(v) => [fmt(Number(v), currency, locale), t("charts.avgRevenueLabel")] as [string, string]} />
                   <Bar dataKey="avg_revenue" fill="var(--gold)" radius={[6,6,0,0]} fillOpacity={0.9} />
                 </BarChart>
               </ResponsiveContainer>
