@@ -163,7 +163,7 @@ export default function FinancePage() {
                           height: `${Math.max(pct * 136, d.count > 0 ? 8 : 2)}px`,
                         }} />
                         <div style={{ fontSize:9.5, color:"var(--text3)" }}>
-                          {new Date(d.date).toLocaleDateString("ru", { weekday:"short" })}
+                          {new Date(d.date).toLocaleDateString(locale, { weekday:"short" })}
                         </div>
                       </div>
                     );

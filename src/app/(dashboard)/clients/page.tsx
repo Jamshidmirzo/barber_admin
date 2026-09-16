@@ -11,7 +11,7 @@ import { useIntlLocale } from "@/lib/locale";
 import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
 
 function fmtMoney(n: number, currency: string, locale: string) { return n.toLocaleString(locale) + " " + currency; }
-function fmtDate(iso: string | null) { if (!iso) return "—"; return new Date(iso).toLocaleDateString("ru", { day:"numeric", month:"short", year:"numeric" }); }
+function fmtDate(iso: string | null, locale: string) { if (!iso) return "—"; return new Date(iso).toLocaleDateString(locale, { day:"numeric", month:"short", year:"numeric" }); }
 function initials(name: string) { return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2); }
 
 const inp: React.CSSProperties = {
@@ -283,6 +283,7 @@ function PersonalClients() {
   const t = useTranslations("Clients");
   const tCommon = useTranslations("Common");
   const qc = useQueryClient();
+  const locale = useIntlLocale();
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [showCreate, setShowCreate] = useState(false);
@@ -350,7 +351,7 @@ function PersonalClients() {
               </div>
               <div style={{ textAlign:"right", flexShrink:0 }}>
                 <p style={{ color:"var(--text2)", fontSize:13, margin:0 }}>{t("visitsCount", { count:c.visit_count })}</p>
-                <p style={{ color:"var(--text3)", fontSize:12, margin:0 }}>{fmtDate(c.last_visit_at)}</p>
+                <p style={{ color:"var(--text3)", fontSize:12, margin:0 }}>{fmtDate(c.last_visit_at, locale)}</p>
               </div>
             </div>
           ))}

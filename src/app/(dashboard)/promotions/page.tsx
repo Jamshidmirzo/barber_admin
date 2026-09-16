@@ -6,6 +6,7 @@ import { Tag, Plus, Trash2, Copy, Check, X, ToggleLeft, ToggleRight, Search, Inf
 import { useTranslations } from "next-intl";
 import api, { parseApiError } from "@/lib/api";
 import { useSalon, isManager } from "@/hooks/useSalon";
+import { useIntlLocale } from "@/lib/locale";
 
 interface Promocode {
   id: string;
@@ -34,8 +35,8 @@ interface TeamMember {
   is_active: boolean;
 }
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("ru", { day:"numeric", month:"short", year:"numeric" });
+function fmtDate(iso: string, locale: string) {
+  return new Date(iso).toLocaleDateString(locale, { day:"numeric", month:"short", year:"numeric" });
 }
 
 function fullName(m: Pick<TeamMember, "name" | "last_name" | "phone">) {
@@ -64,6 +65,7 @@ export default function PromotionsPage() {
 function MasterView() {
   const t = useTranslations("Promotions");
   const qc = useQueryClient();
+  const locale = useIntlLocale();
   const [showForm, setShowForm] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [form, setForm] = useState({ code:"", discount_pct:"10", max_uses:"", expires_at:"" });
@@ -184,7 +186,7 @@ function MasterView() {
                 <div style={{ display:"flex", gap:12, flexWrap:"wrap", fontSize:12 }}>
                   <span style={{ color:"var(--gold)", fontWeight:600 }}>−{p.discount_pct}%</span>
                   <span style={{ color:"var(--text2)" }}>{p.max_uses ? t("master.usesWithMax", { current:p.current_uses, max:p.max_uses }) : t("master.usesNoMax", { current:p.current_uses })}</span>
-                  {p.expires_at ? <span style={{ color:"var(--text2)" }}>{t("master.untilDate", { date:fmtDate(p.expires_at) })}</span> : <span style={{ color:"var(--text3)" }}>{t("master.unlimited")}</span>}
+                  {p.expires_at ? <span style={{ color:"var(--text2)" }}>{t("master.untilDate", { date:fmtDate(p.expires_at, locale) })}</span> : <span style={{ color:"var(--text3)" }}>{t("master.unlimited")}</span>}
                 </div>
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>

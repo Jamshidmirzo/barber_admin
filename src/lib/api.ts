@@ -132,6 +132,11 @@ api.interceptors.response.use(
  * `{ error: { code, message } }`, а FastAPI-валидация — в `{ detail: ... }`.
  * Хелпер достаёт человекочитаемое сообщение из любой из этих форм.
  */
+// TODO(i18n): the default fallback is hardcoded Russian. Making it
+// locale-aware requires plumbing next-intl's `t()` in here (or the
+// nearest caller passing a translated string), which is more surgery
+// than the audit-wave scope allows. Every call site can already pass
+// its own translated fallback.
 export function parseApiError(err: unknown, fallback = "Произошла ошибка"): string {
   const data = (err as { response?: { data?: unknown } })?.response?.data as
     | {

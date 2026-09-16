@@ -23,7 +23,7 @@ interface ClientDetail {
 }
 
 function fmtMoney(n: number, currency: string, locale: string) { return n.toLocaleString(locale) + " " + currency; }
-function fmtDateTime(iso: string) { return new Date(iso).toLocaleString("ru", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }); }
+function fmtDateTime(iso: string, locale: string) { return new Date(iso).toLocaleString(locale, { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }); }
 function initials(name: string) { return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2); }
 function daysSince(iso: string | null): number | null { if (!iso) return null; return Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000); }
 
@@ -130,7 +130,7 @@ export default function ClientDetailPage() {
             <tbody>
               {data.visits_history.map((v) => (
                 <tr key={v.appointment_id} style={{ borderBottom:"1px solid var(--border)" }}>
-                  <td style={{ padding:"12px 20px", color:"var(--text2)" }}>{fmtDateTime(v.date)}</td>
+                  <td style={{ padding:"12px 20px", color:"var(--text2)" }}>{fmtDateTime(v.date, locale)}</td>
                   <td style={{ padding:"12px 20px", color:"var(--text2)" }}>{v.barber_name}</td>
                   <td style={{ padding:"12px 20px", color:"var(--text3)" }}>{v.service_name ?? "—"}</td>
                   <td style={{ padding:"12px 20px", textAlign:"right", color:"var(--gold)", fontWeight:600 }}>{fmtMoney(v.amount, currency, locale)}</td>

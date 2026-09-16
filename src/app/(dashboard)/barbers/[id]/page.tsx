@@ -387,11 +387,12 @@ function SummaryCell({ label, value, small=false, border=false }: { label: strin
 }
 
 function ContentCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
+  const locale = useIntlLocale();
   return (
     <div style={{ background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"10px 12px", display:"flex", alignItems:"center", gap:10 }}>
       <span style={{ color:"var(--text3)", flexShrink:0 }}>{icon}</span>
       <div style={{ minWidth:0 }}>
-        <p style={{ color:"var(--text)", fontWeight:600, fontSize:13, margin:0 }}>{value.toLocaleString("ru")}</p>
+        <p style={{ color:"var(--text)", fontWeight:600, fontSize:13, margin:0 }}>{(value ?? 0).toLocaleString(locale)}</p>
         <p style={{ color:"var(--text3)", fontSize:11, margin:0 }}>{label}</p>
       </div>
     </div>
