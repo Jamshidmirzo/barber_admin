@@ -2,8 +2,19 @@ import axios from "axios";
 import type { InternalAxiosRequestConfig } from "axios";
 import { localeCookieName } from "@/i18n/config";
 
+// `NEXT_PUBLIC_*` is inlined at build time. The previous fallback
+// (`http://localhost:8001/api/v1`) would ship in the production bundle if
+// `.env.production` ever went missing, silently pointing every browser at
+// the user's own machine. Fail the build/boot loud instead.
+const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
+if (!baseURL) {
+  throw new Error(
+    "NEXT_PUBLIC_API_BASE_URL is required — set it in .env.production or the CI environment before building",
+  );
+}
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8001/api/v1",
+  baseURL,
   timeout: 15000,
 });
 
