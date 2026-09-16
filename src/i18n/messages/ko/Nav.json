@@ -19,6 +19,7 @@
   "logout": "로그아웃",
   "language": "언어",
   "owner": "사장님",
+  "admin": "관리자",
   "master": "디자이너",
   "loadError": {
     "title": "매장 정보를 불러오지 못했습니다",

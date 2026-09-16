@@ -222,7 +222,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   {data.salon.name}
                 </span>
                 <span style={{ display:"block", fontSize:11, color:"var(--text3)" }}>
-                  {canManage ? t("owner") : t("master")}
+                  {data.role === "admin" ? t("admin") : data.role === "owner" ? t("owner") : t("master")}
                 </span>
               </span>
             </Link>

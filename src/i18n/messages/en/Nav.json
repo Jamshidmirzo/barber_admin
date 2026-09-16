@@ -19,6 +19,7 @@
   "logout": "Log out",
   "language": "Language",
   "owner": "Owner",
+  "admin": "Admin",
   "master": "Barber",
   "loadError": {
     "title": "Failed to load salon",
