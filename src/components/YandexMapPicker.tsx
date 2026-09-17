@@ -76,6 +76,20 @@ export default function YandexMapPicker({ selected, onPick }: YandexMapPickerPro
   useEffect(() => { onPickRef.current = onPick; }, [onPick]);
 
   function reverseGeocode(lat: number, lng: number) {
+    // Commit the coordinates immediately so a click/drag pick always
+    // registers — the geocoder (address lookup) is a separate, less
+    // reliable network call and shouldn't be able to block picking a point.
+    const fallback: PickedPlace = {
+      place_name: t("selectedPointFallback"),
+      address_name: "",
+      road_address_name: null,
+      phone: null,
+      latitude: lat,
+      longitude: lng,
+      city: null,
+    };
+    onPickRef.current(fallback);
+
     const ymaps = window.ymaps;
     if (!ymaps) return;
     ymaps
@@ -84,13 +98,11 @@ export default function YandexMapPicker({ selected, onPick }: YandexMapPickerPro
         const geoObject = res.geoObjects.get(0);
         if (!geoObject) return;
         const address = geoObject.getAddressLine();
+        if (!address) return;
         onPickRef.current({
-          place_name: address || t("selectedPointFallback"),
-          address_name: address || "",
-          road_address_name: null,
-          phone: null,
-          latitude: lat,
-          longitude: lng,
+          ...fallback,
+          place_name: address,
+          address_name: address,
           city: geoObject.getLocalities()[0] ?? null,
         });
       })
