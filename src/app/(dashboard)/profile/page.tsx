@@ -33,7 +33,7 @@ export default function ProfilePage() {
   const specLabel = (id: string) => specLabelFor(specById.get(id), id);
   const { salon } = useSalon();
   const qc = useQueryClient();
-  const [form, setForm] = useState({ name: "", last_name: "", city: "", bio: "" });
+  const [form, setForm] = useState({ name: "", last_name: "", bio: "" });
   const [specializations, setSpecializations] = useState<string[]>([]);
   const [specQuery, setSpecQuery] = useState("");
   const [saved, setSaved] = useState(false);
@@ -45,7 +45,6 @@ export default function ProfilePage() {
     setForm({
       name: data.name ?? "",
       last_name: data.last_name ?? "",
-      city: data.city ?? "",
       bio: data.bio ?? "",
     });
     setSpecializations(data.specializations);
@@ -73,7 +72,6 @@ export default function ProfilePage() {
     mutationFn: () => api.put("/profile", {
       name: form.name.trim() || null,
       last_name: form.last_name.trim() || null,
-      city: form.city.trim() || null,
       bio: form.bio.trim() || null,
       specializations,
     }),
@@ -159,20 +157,14 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
-          <div>
-            <label style={label}>{t("fields.phone")}</label>
-            <input
-              value={isKakaoPlaceholderPhone ? "" : phone}
-              placeholder={isKakaoPlaceholderPhone ? t("placeholders.phone") : undefined}
-              disabled
-              style={{ ...inp, opacity: 0.5, cursor: "not-allowed" }}
-            />
-          </div>
-          <div>
-            <label style={label}>{t("fields.city")}</label>
-            <input value={form.city} onChange={(e) => set("city", e.target.value)} placeholder={t("placeholders.city")} style={inp} />
-          </div>
+        <div style={{ marginBottom: 14 }}>
+          <label style={label}>{t("fields.phone")}</label>
+          <input
+            value={isKakaoPlaceholderPhone ? "" : phone}
+            placeholder={isKakaoPlaceholderPhone ? t("placeholders.phone") : undefined}
+            disabled
+            style={{ ...inp, opacity: 0.5, cursor: "not-allowed" }}
+          />
         </div>
 
         <div style={{ marginBottom: 14 }}>

@@ -4,14 +4,12 @@
     "firstName": "First name",
     "lastName": "Last name",
     "phone": "Phone",
-    "city": "City",
     "specializations": "Specializations",
     "bio": "About"
   },
   "placeholders": {
     "firstName": "First name",
     "lastName": "Last name",
-    "city": "Tashkent",
     "specializationsSearch": "Search specializations…",
     "bio": "Tell us about your barbershop…",
     "phone": "Not provided"

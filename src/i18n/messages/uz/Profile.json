@@ -4,14 +4,12 @@
     "firstName": "Ism",
     "lastName": "Familiya",
     "phone": "Telefon",
-    "city": "Shahar",
     "specializations": "Mutaxassisliklar",
     "bio": "O'zingiz haqingizda"
   },
   "placeholders": {
     "firstName": "Ism",
     "lastName": "Familiya",
-    "city": "Toshkent",
     "specializationsSearch": "Mutaxassisliklarni qidirish…",
     "bio": "Barbershopingiz haqida yozing…",
     "phone": "Kiritilmagan"

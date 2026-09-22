@@ -4,14 +4,12 @@
     "firstName": "Имя",
     "lastName": "Фамилия",
     "phone": "Телефон",
-    "city": "Город",
     "specializations": "Специализации",
     "bio": "О себе"
   },
   "placeholders": {
     "firstName": "Имя",
     "lastName": "Фамилия",
-    "city": "Ташкент",
     "specializationsSearch": "Поиск специализаций…",
     "bio": "Расскажите о своём барбершопе…",
     "phone": "Не указан"

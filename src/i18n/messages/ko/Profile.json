@@ -4,14 +4,12 @@
     "firstName": "이름",
     "lastName": "성",
     "phone": "전화번호",
-    "city": "도시",
     "specializations": "전문 분야",
     "bio": "자기소개"
   },
   "placeholders": {
     "firstName": "이름",
     "lastName": "성",
-    "city": "타슈켄트",
     "specializationsSearch": "전문 분야 검색…",
     "bio": "바버샵에 대해 소개해주세요…",
     "phone": "입력되지 않음"
