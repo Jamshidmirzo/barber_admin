@@ -4,6 +4,13 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
+  // Production (crm.hayrli.app) runs this as `node server.js` under a
+  // systemd unit (hayrli-web.service) with a trimmed node_modules — the
+  // standalone output shape. This was never actually committed here; the
+  // server's current build was produced from an uncommitted local tweak,
+  // which is why a plain `npm run build` doesn't reproduce what's deployed.
+  output: "standalone",
+
   // Hide the framework fingerprint. Small win, but the audit called it
   // out and there is zero downside to disabling.
   poweredByHeader: false,
