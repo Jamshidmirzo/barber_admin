@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import {
   Users, Scissors, UserRound, Clock,
   TrendingUp, Settings, LogOut,
-  BarChart3, Tag, Sun, Moon, LayoutDashboard,
+  BarChart3, Sun, Moon, LayoutDashboard,
 } from "lucide-react";
 import { useAuth, logout } from "@/hooks/useAuth";
 import { SalonProvider, isManager, useSalonContextQuery } from "@/hooks/useSalon";
@@ -19,11 +19,6 @@ const NAV_GROUPS = [
     items: [
       { href: "/dashboard",      itemKey: "overview",     icon: LayoutDashboard, managerOnly: true,  masterOnly: false },
       { href: "/schedule",       itemKey: "schedule",     icon: Clock,      managerOnly: false, masterOnly: false },
-      // Both managers (own OwnerView with team roster + validate tool) and
-      // masters (own MasterView with promocode CRUD) render this page; the
-      // route mounts /promotions for everyone and the component switches
-      // internally on role, so no `*Only` gate here.
-      { href: "/promotions",     itemKey: "promotions",   icon: Tag,        managerOnly: false, masterOnly: false },
     ],
   },
   {

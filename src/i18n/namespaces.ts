@@ -10,7 +10,6 @@ export const NAMESPACES = [
   "ClientDetail",
   "Services",
   "Schedule",
-  "Promotions",
   "Finance",
   "Analytics",
   "Profile",
