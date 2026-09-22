@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Clock, Save, ChevronLeft, ChevronRight } from "lucide-react";
@@ -109,10 +109,8 @@ function TeamScheduleGrid() {
     return data.barbers.filter(b => b.master_id === barberFilter);
   }, [data, barberFilter]);
 
-  const weekLabel = useMemo(() => {
-    const end = addDays(weekStart, 6);
-    return `${weekStart.getDate()} ${t(`months.${MONTH_KEYS[weekStart.getMonth()]}`)} – ${end.getDate()} ${t(`months.${MONTH_KEYS[end.getMonth()]}`)}`;
-  }, [weekStart, t]);
+  const weekEnd = addDays(weekStart, 6);
+  const weekLabel = `${weekStart.getDate()} ${t(`months.${MONTH_KEYS[weekStart.getMonth()]}`)} – ${weekEnd.getDate()} ${t(`months.${MONTH_KEYS[weekEnd.getMonth()]}`)}`;
 
   // weekly aggregates for KPI cards
   const weeklyStats = useMemo(() => {
@@ -410,10 +408,14 @@ function WorkdaysEditor() {
     queryFn: () => api.get("/schedule/workdays").then(r => r.data),
   });
 
-  useEffect(() => {
-    if (!data || data.length === 0) return;
+  // Adjusting state on a query change, not synchronizing with an external
+  // system — done during render (React's documented pattern) rather than
+  // in an effect, so `days` stays user-editable after this initial sync.
+  const [syncedData, setSyncedData] = useState(data);
+  if (data && data.length > 0 && data !== syncedData) {
+    setSyncedData(data);
     setDays(DEFAULT_DAYS.map(def => data.find(d => d.day_of_week === def.day_of_week) ?? def));
-  }, [data]);
+  }
 
   const saveMutation = useMutation({
     mutationFn: () => api.put("/schedule/workdays", { workdays: days }),

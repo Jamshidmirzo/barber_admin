@@ -22,6 +22,11 @@ export function LanguageSwitcher() {
   }, []);
 
   function select(next: Locale) {
+    // User-triggered side effect in an event handler, not a render-phase
+    // mutation — react-compiler's immutability check flags any write onto
+    // `document` regardless of context, but this is the correct place for
+    // it (React's own guidance: effects are for sync, not user actions).
+    // eslint-disable-next-line react-hooks/immutability
     document.cookie = `${localeCookieName}=${next}; path=/; max-age=31536000; SameSite=Lax`;
     setOpen(false);
     router.refresh();

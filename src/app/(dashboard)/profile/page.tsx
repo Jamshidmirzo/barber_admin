@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Save, Building2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -40,15 +40,20 @@ export default function ProfilePage() {
 
   const { data, isLoading } = useProfileQuery();
 
-  useEffect(() => {
-    if (!data) return;
+  // Adjusting state on a prop/query change, not synchronizing with an
+  // external system — done during render (React's documented pattern for
+  // this) rather than in an effect, so the form still stays user-editable
+  // after this initial sync instead of being clobbered on every refetch.
+  const [syncedData, setSyncedData] = useState(data);
+  if (data && data !== syncedData) {
+    setSyncedData(data);
     setForm({
       name: data.name ?? "",
       last_name: data.last_name ?? "",
       bio: data.bio ?? "",
     });
     setSpecializations(data.specializations);
-  }, [data]);
+  }
 
   const specMatches = useMemo(() => {
     const q = specQuery.trim().toLowerCase();
