@@ -31,5 +31,17 @@
     "salonName": "Salon nomi",
     "address": "Manzil",
     "brn": "Biznes ro'yxatga olish raqami"
+  },
+  "dangerZone": {
+    "title": "Xavfli hudud",
+    "ownerWarning": "Akkauntni o'chirish «{name}» salonini, barcha xodimlarni va bog'liq tarixni (yozuvlar, sharhlar, xizmatlar) butunlay o'chiradi. Bu amalni bekor qilib bo'lmaydi.",
+    "staffWarning": "Akkaunt butun tarixingiz (yozuvlar, sharhlar) bilan birga butunlay o'chiriladi. Bu amalni bekor qilib bo'lmaydi.",
+    "deleteButton": "Akkauntni o'chirish",
+    "modalTitle": "Akkauntni o'chirasizmi?",
+    "confirmLabel": "Tasdiqlash uchun «{phrase}» so'zini kiriting",
+    "cancelButton": "Bekor qilish",
+    "confirmButton": "Butunlay o'chirish",
+    "deletingButton": "O'chirilmoqda…",
+    "errorMessage": "Akkauntni o'chirib bo'lmadi. Qaytadan urinib ko'ring."
   }
 }

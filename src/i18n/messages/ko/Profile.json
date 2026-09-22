@@ -31,5 +31,17 @@
     "salonName": "매장 이름",
     "address": "주소",
     "brn": "사업자등록번호"
+  },
+  "dangerZone": {
+    "title": "위험 구역",
+    "ownerWarning": "계정을 삭제하면 \"{name}\" 매장과 모든 직원, 관련 기록(예약, 리뷰, 서비스)이 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
+    "staffWarning": "계정과 모든 기록(예약, 리뷰)이 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
+    "deleteButton": "계정 삭제",
+    "modalTitle": "계정을 삭제하시겠습니까?",
+    "confirmLabel": "확인하려면 \"{phrase}\"을(를) 입력하세요",
+    "cancelButton": "취소",
+    "confirmButton": "영구 삭제",
+    "deletingButton": "삭제 중…",
+    "errorMessage": "계정을 삭제하지 못했습니다. 다시 시도해 주세요."
   }
 }

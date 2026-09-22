@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, Building2, X } from "lucide-react";
+import { Save, Building2, X, AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import api from "@/lib/api";
+import { logout } from "@/hooks/useAuth";
 import { useSalon } from "@/hooks/useSalon";
 import { useProfileQuery, type Profile } from "@/hooks/useProfile";
 import { useSpecializationsQuery, useSpecializationLabel } from "@/hooks/useSpecializations";
@@ -31,12 +32,14 @@ export default function ProfilePage() {
   // Falls back to the raw id for values saved before this catalog existed,
   // or before /specializations has loaded — instead of throwing.
   const specLabel = (id: string) => specLabelFor(specById.get(id), id);
-  const { salon } = useSalon();
+  const { salon, role } = useSalon();
   const qc = useQueryClient();
   const [form, setForm] = useState({ name: "", last_name: "", bio: "" });
   const [specializations, setSpecializations] = useState<string[]>([]);
   const [specQuery, setSpecQuery] = useState("");
   const [saved, setSaved] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   const { data, isLoading } = useProfileQuery();
 
@@ -92,6 +95,16 @@ export default function ProfilePage() {
   function set(k: keyof typeof form, v: string) {
     setForm((prev) => ({ ...prev, [k]: v }));
   }
+
+  // Owner: this account owns the salon, so deleting it cascades away the
+  // whole business (server-side, see profile_service.delete_account) — the
+  // salon name is the confirm phrase so that blast radius is unmistakable.
+  // Non-owner staff only take their own account down with them.
+  const deleteConfirmPhrase = role === "owner" ? salon.name : t("dangerZone.deleteButton");
+  const deleteAccountMutation = useMutation({
+    mutationFn: () => api.delete("/profile"),
+    onSuccess: () => logout(),
+  });
 
   if (isLoading) {
     return (
@@ -317,6 +330,103 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {/* Danger zone — self-service account deletion (DELETE /profile) */}
+      <div style={{ background: "var(--card)", border: "1px solid rgba(224,90,90,0.35)", borderRadius: "var(--radius-lg)", padding: 26, maxWidth: 620, marginTop: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <AlertTriangle size={16} style={{ color: "var(--red)" }} />
+          <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 17, fontWeight: 600, color: "var(--text)" }}>
+            {t("dangerZone.title")}
+          </span>
+        </div>
+        <p style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.6, margin: "0 0 18px" }}>
+          {role === "owner"
+            ? t("dangerZone.ownerWarning", { name: salon.name })
+            : t("dangerZone.staffWarning")}
+        </p>
+        <button
+          onClick={() => { setDeleteConfirmText(""); setShowDeleteModal(true); }}
+          style={{
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "11px 22px", background: "transparent", color: "var(--red)",
+            border: "1px solid var(--red)", borderRadius: "var(--radius)",
+            cursor: "pointer", fontWeight: 700, fontSize: 13,
+          }}
+        >
+          {t("dangerZone.deleteButton")}
+        </button>
+      </div>
+
+      {showDeleteModal && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 20,
+        }}>
+          <div style={{
+            background: "var(--surface)", border: "1px solid var(--border)",
+            borderRadius: "var(--radius-lg)", width: "100%", maxWidth: 440, padding: 28,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <h2 style={{ color: "var(--red)", fontSize: 17, fontWeight: 600, margin: 0 }}>{t("dangerZone.modalTitle")}</h2>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleteAccountMutation.isPending}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text2)" }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.6, margin: "0 0 18px" }}>
+              {role === "owner"
+                ? t("dangerZone.ownerWarning", { name: salon.name })
+                : t("dangerZone.staffWarning")}
+            </p>
+
+            <label style={label}>{t("dangerZone.confirmLabel", { phrase: deleteConfirmPhrase })}</label>
+            <input
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              disabled={deleteAccountMutation.isPending}
+              style={inp}
+              autoFocus
+            />
+
+            {deleteAccountMutation.isError && (
+              <p style={{ color: "var(--red)", fontSize: 12, marginTop: 10 }}>
+                {t("dangerZone.errorMessage")}
+              </p>
+            )}
+
+            <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleteAccountMutation.isPending}
+                style={{
+                  flex: 1, padding: "11px 0", background: "transparent", color: "var(--text2)",
+                  border: "1px solid var(--border)", borderRadius: "var(--radius)",
+                  cursor: "pointer", fontWeight: 600, fontSize: 13,
+                }}
+              >
+                {t("dangerZone.cancelButton")}
+              </button>
+              <button
+                onClick={() => deleteAccountMutation.mutate()}
+                disabled={deleteConfirmText !== deleteConfirmPhrase || deleteAccountMutation.isPending}
+                style={{
+                  flex: 1, padding: "11px 0", background: "var(--red)", color: "#fff",
+                  border: "none", borderRadius: "var(--radius)",
+                  cursor: deleteConfirmText !== deleteConfirmPhrase ? "not-allowed" : "pointer",
+                  fontWeight: 700, fontSize: 13,
+                  opacity: deleteConfirmText !== deleteConfirmPhrase || deleteAccountMutation.isPending ? 0.5 : 1,
+                }}
+              >
+                {deleteAccountMutation.isPending ? t("dangerZone.deletingButton") : t("dangerZone.confirmButton")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

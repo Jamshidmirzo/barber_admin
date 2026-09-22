@@ -31,5 +31,17 @@
     "salonName": "Salon name",
     "address": "Address",
     "brn": "Business registration number"
+  },
+  "dangerZone": {
+    "title": "Danger Zone",
+    "ownerWarning": "Deleting your account permanently deletes the salon \"{name}\", every team member, and all related history (appointments, reviews, services). This cannot be undone.",
+    "staffWarning": "Your account will be permanently deleted along with your history (appointments, reviews). This cannot be undone.",
+    "deleteButton": "Delete Account",
+    "modalTitle": "Delete your account?",
+    "confirmLabel": "Type \"{phrase}\" to confirm",
+    "cancelButton": "Cancel",
+    "confirmButton": "Delete permanently",
+    "deletingButton": "Deleting…",
+    "errorMessage": "Failed to delete account. Please try again."
   }
 }
