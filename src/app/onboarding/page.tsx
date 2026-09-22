@@ -149,15 +149,25 @@ export default function OnboardingPage() {
 
       // The salon's city doesn't automatically carry over to the owner's own
       // profile (separate records) — save it there too so the Profile screen
-      // is pre-filled instead of asking the user to type it again.
+      // is pre-filled instead of asking the user to type it again. Fire and
+      // forget: non-critical (salon creation already succeeded), and there's
+      // no reason to make the owner sit on this screen for a second network
+      // round trip they don't need to wait for.
       if (city) {
-        try {
-          await api.put("/profile", { city });
-          qc.setQueryData(["profile"], (prev: { city?: string | null } | undefined) => (prev ? { ...prev, city } : prev));
-        } catch { /* non-critical — salon creation already succeeded */ }
+        api.put("/profile", { city })
+          .then(() => {
+            qc.setQueryData(["profile"], (prev: { city?: string | null } | undefined) => (prev ? { ...prev, city } : prev));
+          })
+          .catch(() => { /* non-critical — salon creation already succeeded */ });
       }
 
-      await qc.invalidateQueries({ queryKey:["salon-context"] });
+      // Navigate immediately instead of awaiting the refetch this triggers —
+      // the dashboard layout already shows its own loading spinner while
+      // salon-context is in flight, so there's nothing to gain by blocking
+      // this screen on it first. Awaiting here used to hold the owner on
+      // the onboarding form for an extra full round trip after their salon
+      // was already created, which read as "nothing happened yet".
+      qc.invalidateQueries({ queryKey:["salon-context"] });
       router.replace("/barbers");
     } catch (err) { setError(parseApiError(err, t("errors.submit"))); setSubmitting(false); }
   }
