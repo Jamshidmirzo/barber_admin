@@ -12,6 +12,7 @@ import {
 import { useAuth, logout } from "@/hooks/useAuth";
 import { SalonProvider, isManager, useSalonContextQuery } from "@/hooks/useSalon";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { HayrliMark } from "@/components/HayrliLogo";
 
 const NAV_GROUPS = [
   {
@@ -162,7 +163,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={data.salon.avatar_url} alt={data.salon.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                 ) : (
-                  <span style={{ fontFamily:"'Playfair Display',serif", fontSize:19, fontWeight:700, color:"#0a0a0b" }}>H</span>
+                  <HayrliMark style={{ width:20, height:19, color:"#0a0a0b" }} />
                 )}
               </div>
               <div style={{ minWidth:0 }}>

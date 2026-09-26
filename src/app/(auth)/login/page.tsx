@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { Eye, EyeOff, MessageCircle, Send } from "lucide-react";
 import api, { parseApiError } from "@/lib/api";
+import { HayrliMark } from "@/components/HayrliLogo";
 
 const KAKAO_YELLOW = "#FEE500";
 const KAKAO_INK = "#191919";
@@ -264,7 +265,7 @@ export default function LoginPage() {
             border:"1px solid rgba(201,164,92,0.20)", background:"rgba(201,164,92,0.12)",
             marginBottom:20,
           }}>
-            <span style={{ fontFamily:"'Playfair Display',serif", fontSize:30, fontWeight:700, color:"var(--gold)", lineHeight:1 }}>H</span>
+            <HayrliMark style={{ width:32, height:30, color:"var(--gold)" }} />
           </div>
           <div style={{ fontFamily:"'Playfair Display',serif", fontSize:28, fontWeight:700, letterSpacing:".14em", color:"var(--text)" }}>
             HÁYRLI
