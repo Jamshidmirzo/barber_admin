@@ -1,43 +1,116 @@
 name: Deploy to Droplet
 
+# Rewritten from scratch (see AUDIT §deploy.yml) — the previous version
+# assumed the droplet runs `pm2 start npm -- start` off a live git checkout.
+# In reality:
+#   - the droplet has no pm2 installed at all, and /opt/hayrli-web is NOT a
+#     git repo — every prior run of the old workflow failed at the SSH step
+#     before any of that mismatch even mattered;
+#   - the app runs as a systemd unit (hayrli-web.service, see
+#     /etc/systemd/system/hayrli-web.service) executing `node server.js`
+#     under user `hayrli`, which is the Next.js `output: "standalone"`
+#     bundle (next.config.ts) — a trimmed node_modules + server.js, with
+#     .next/static and public/ copied in alongside it by hand (Next does
+#     not include either in the standalone output).
+# This version builds that exact bundle on the runner (Linux x64, matching
+# the droplet — building on a contributor's Mac instead, as a one-off
+# manual deploy did on 2026-09-26, ships Next's platform-specific native
+# deps, e.g. sharp, for the wrong OS) and ships it via the same
+# stage-then-sudo-promote rsync pattern the backend repo's deploy.yml uses.
 on:
   push:
     branches: [main]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Matches the droplet's installed node (v22.23.1, ExecStart=
+          # /usr/bin/node server.js in hayrli-web.service) — native deps
+          # bundled into the standalone output should be built for the
+          # same major to avoid any ABI mismatch at runtime.
+          node-version: "22"
+          cache: npm
+
+      # `npm ci` respects the lockfile — `npm install --legacy-peer-deps`
+      # silently accepted new minors of next/react-query/axios on every
+      # deploy (see AUDIT §Починить/deploy.yml).
+      - run: npm ci
+
+      # In Next 16 `next build` no longer runs ESLint, and there is no
+      # `next lint` command, so both checks have to run explicitly.
+      - run: npm run lint
+      - run: npx tsc --noEmit
+
+      # Produces .next/standalone (output: "standalone" in next.config.ts).
+      - run: npm run build
+
+      # Next's standalone output deliberately excludes .next/static and
+      # public/ — both have to be copied in by hand or the deployed server
+      # 404s on every asset and image.
+      - name: Assemble the standalone bundle
+        run: |
+          cp -r .next/static .next/standalone/.next/static
+          cp -r public .next/standalone/public
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DROPLET_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.DROPLET_HOST }}" >> ~/.ssh/known_hosts
+
+      # /opt/hayrli-web is owned by hayrli:hayrli, but this rsync runs as
+      # the deploy user (DROPLET_USER) — writing there directly is a
+      # permission error, and chown can't run first since it needs to run
+      # AFTER these files land. So this stages into a path DROPLET_USER
+      # actually owns; the SSH step below does the privileged copy from
+      # staging into APP_DIR via sudo. Same two-step shape as this app's
+      # backend repo's deploy.yml.
+      - name: Sync standalone bundle to staging on server
+        run: |
+          RSYNC_SSH="ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts"
+          STAGING="/home/${{ secrets.DROPLET_USER }}/deploy-staging-web"
+
+          ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
+            "${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_HOST }}" \
+            "mkdir -p $STAGING"
+
+          rsync -avz --delete -e "$RSYNC_SSH" \
+            .next/standalone/ "${{ secrets.DROPLET_USER }}@${{ secrets.DROPLET_HOST }}:$STAGING/"
+
+      - name: Promote staging to /opt, restart service
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          # Bumped from the default 10m — Next.js 16 + Turbopack compile is
-          # ~5 min and TypeScript check adds another ~5 min on the droplet's
-          # 2-vCPU box, so the previous cap killed builds mid-typecheck.
-          command_timeout: 30m
+          command_timeout: 10m
           script: |
             set -e
-            cd ${{ secrets.APP_DIR }}
-            # Drop any local edits (previous `npm install` leaves package-lock
-            # diffs on disk that block `git pull`). This is a deploy target,
-            # not a dev checkout — the branch is the source of truth.
-            git fetch origin main
-            git reset --hard origin/main
-            # `npm ci` respects the lockfile — `npm install --legacy-peer-deps`
-            # silently accepted new minors of next/react-query/axios on every
-            # deploy (see AUDIT §Починить/deploy.yml).
-            npm ci
-            # In Next 16 `next build` no longer runs ESLint, and there is no
-            # `next lint` command, so both checks have to run explicitly.
-            npm run lint
-            npx tsc --noEmit
-            npm run build
-            pm2 restart barber_admin || pm2 start npm --name barber_admin -- start
-            pm2 save
-            # `pm2 restart` returns 0 even for an app that crash-loops on
-            # boot — hit /api/health to confirm the process is actually
-            # serving requests before we call the deploy successful.
-            sleep 5 && curl -f http://localhost:3000/api/health || exit 1
+            STAGING=/home/${{ secrets.DROPLET_USER }}/deploy-staging-web
+
+            # --exclude=.env.production: that file lives only on the server
+            # (never checked into this repo) and holds this environment's
+            # own config — a deploy must never overwrite or delete it.
+            sudo rsync -av --delete --exclude=.env.production "$STAGING/" ${{ secrets.APP_DIR }}/
+
+            # Files just landed owned by DROPLET_USER (sudo rsync as root
+            # writes them root-owned) — hand them to the service account
+            # before the restart below, or the process can't read its own
+            # working directory.
+            sudo chown -R hayrli:hayrli ${{ secrets.APP_DIR }}
+
+            sudo systemctl restart hayrli-web
+            sleep 3
+            # `systemctl restart` returns 0 even for a unit that immediately
+            # crash-loops — confirm it's actually up, then confirm it's
+            # actually serving requests, before calling the deploy successful.
+            sudo systemctl is-active hayrli-web
+            curl -f http://127.0.0.1:3000/api/health
+
+            rm -rf "$STAGING"
