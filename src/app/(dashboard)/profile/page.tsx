@@ -108,7 +108,7 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: "32px 36px" }}>
+      <div className="page-pad" style={{ padding: "32px 36px" }}>
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: 28, maxWidth: 620, animation: "pulse 1.5s infinite" }}>
           <div style={{ width: 72, height: 72, borderRadius: "50%", background: "var(--border)", marginBottom: 20 }} />
           <div style={{ height: 18, background: "var(--border)", borderRadius: 4, width: 160, marginBottom: 10 }} />
@@ -133,7 +133,7 @@ export default function ProfilePage() {
     : isKakaoPlaceholderPhone ? "K" : phone.slice(-2);
 
   return (
-    <div style={{ padding: "32px 36px" }}>
+    <div className="page-pad" style={{ padding: "32px 36px" }}>
       <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: "var(--text)", margin: "0 0 28px" }}>
         {t("title")}
       </h1>
@@ -164,7 +164,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Form */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+        <div className="grid-form-2" style={{ marginBottom: 14 }}>
           <div>
             <label style={label}>{t("fields.firstName")}</label>
             <input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder={t("placeholders.firstName")} style={inp} />
@@ -312,7 +312,7 @@ export default function ProfilePage() {
           </span>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: data.country === "kr" ? 14 : 0 }}>
+        <div className="grid-form-2" style={{ marginBottom: data.country === "kr" ? 14 : 0 }}>
           <div>
             <label style={label}>{t("business.salonName")}</label>
             <input value={salon.name} disabled style={{ ...inp, opacity: 0.5, cursor: "not-allowed" }} />
@@ -362,7 +362,7 @@ export default function ProfilePage() {
           position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)",
           display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 20,
         }}>
-          <div style={{
+          <div className="modal-card" style={{
             background: "var(--surface)", border: "1px solid var(--border)",
             borderRadius: "var(--radius-lg)", width: "100%", maxWidth: 440, padding: 28,
           }}>

@@ -173,7 +173,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div style={{ padding: "32px 36px" }}>
+    <div className="page-pad" style={{ padding: "32px 36px" }}>
 
       {/* Pulse animation */}
       <style>{`
@@ -196,12 +196,7 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI row */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(4, 1fr)",
-        gap: 16,
-        marginBottom: 16,
-      }}>
+      <div className="grid-kpi-4" style={{ marginBottom: 16 }}>
         {kpis.map((k) => (
           <div key={k.label} style={{
             background: "var(--card)",
@@ -247,12 +242,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Middle row: bar chart + top barbers */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "1.55fr 1fr",
-        gap: 16,
-        marginBottom: 16,
-      }}>
+      <div className="grid-split-2" style={{ marginBottom: 16 }}>
 
         {/* Week revenue bar chart */}
         <div style={{

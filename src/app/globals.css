@@ -56,3 +56,46 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
 
 select option { background: var(--surface); color: var(--text); }
+
+/* ---------- Responsive helpers ----------
+ * Classes below let the largely-inline-styled CRM adapt to phones.
+ * A rule inside @media only wins over an inline `style` when the inline
+ * property is absent — call-sites in this file MUST move any property
+ * that changes on mobile out of `style={{}}` and rely on the class.
+ */
+
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+.grid-kpi-4    { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.grid-split-2  { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+.grid-form-2   { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-barbers  { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+
+.only-on-mobile { display: none; }
+.hide-on-mobile { display: initial; }
+
+@media (max-width: 767px) {
+  .shell-sidebar { display: none !important; }
+  .shell-main    { width: 100% !important; padding: 16px !important; }
+
+  .grid-kpi-4    { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .grid-split-2  { grid-template-columns: 1fr; gap: 16px; }
+  .grid-form-2   { grid-template-columns: 1fr; gap: 12px; }
+  .grid-barbers  { grid-template-columns: 1fr; gap: 12px; }
+
+  .modal-card {
+    max-width: calc(100vw - 24px) !important;
+    max-height: 90vh;
+    padding: 16px !important;
+    overflow-y: auto;
+  }
+
+  .only-on-mobile { display: flex; }
+  .hide-on-mobile { display: none !important; }
+
+  .page-pad { padding: 16px !important; }
+}
+
+@media (max-width: 479px) {
+  .grid-kpi-4 { grid-template-columns: 1fr; }
+}

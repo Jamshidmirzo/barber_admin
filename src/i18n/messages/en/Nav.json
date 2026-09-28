@@ -20,6 +20,7 @@
   "owner": "Owner",
   "admin": "Admin",
   "master": "Barber",
+  "openMenu": "Open menu",
   "loadError": {
     "title": "Failed to load salon",
     "subtitle": "Check your connection and refresh the page."

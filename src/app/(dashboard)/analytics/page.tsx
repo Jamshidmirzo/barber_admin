@@ -79,7 +79,7 @@ export default function AnalyticsPage() {
   });
 
   return (
-    <div style={{ padding:"32px 36px" }}>
+    <div className="page-pad" style={{ padding:"32px 36px" }}>
 
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28, flexWrap:"wrap", gap:16 }}>
@@ -226,7 +226,7 @@ function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: 
   return (
     <>
       {/* KPI cards — 4 in a row matching design */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:20 }}>
+      <div className="grid-kpi-4" style={{ marginBottom:20 }}>
         <div style={cardStyle}>
           <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>{t("kpi.avgCheck")}</p>
           <p style={{ fontFamily:"'Playfair Display',serif", color:"var(--text)", fontSize:26, fontWeight:600, margin:0 }}>{data ? fmt(data.avg_check, currency, locale) : "—"}</p>
@@ -258,7 +258,7 @@ function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: 
         </div>
       </div>
 
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:20, marginBottom:20 }}>
+      <div className="grid-split-2" style={{ marginBottom:20 }}>
         {/* Line chart */}
         <div style={cardStyle}>
           <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:"0 0 18px" }}>{t("charts.revenueByWeekTitle")}</p>

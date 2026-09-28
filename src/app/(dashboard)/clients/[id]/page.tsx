@@ -9,6 +9,7 @@ import api from "@/lib/api";
 import { useSalon } from "@/hooks/useSalon";
 import { useIntlLocale } from "@/lib/locale";
 import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface VisitHistoryItem {
   appointment_id: string; date: string; barber_name: string;
@@ -32,6 +33,7 @@ export default function ClientDetailPage() {
   const { salon } = useSalon();
   const locale = useIntlLocale();
   const currency = currencyForCountry(useAdminCountry());
+  const isMobile = useIsMobile();
   const params = useParams<{ id: string }>();
   const clientId = params.id;
 
@@ -44,7 +46,7 @@ export default function ClientDetailPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding:"32px 36px" }}>
+      <div className="page-pad" style={{ padding:"32px 36px" }}>
         <div style={{ height:20, width:100, background:"var(--surface)", borderRadius:4, marginBottom:24, animation:"pulse 1.5s infinite" }} />
         <div style={{ ...cardS, height:120, animation:"pulse 1.5s infinite" }} />
         <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
@@ -54,7 +56,7 @@ export default function ClientDetailPage() {
 
   if (isError || !data) {
     return (
-      <div style={{ padding:"32px 36px" }}>
+      <div className="page-pad" style={{ padding:"32px 36px" }}>
         <BackLink />
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"80px 0" }}>
           <UserRound size={36} style={{ color:"var(--text3)", marginBottom:12 }} />
@@ -69,7 +71,7 @@ export default function ClientDetailPage() {
   const idleColor = idle === null ? "" : idle > 60 ? "var(--red)" : idle > 30 ? "var(--gold)" : "var(--green)";
 
   return (
-    <div style={{ padding:"32px 36px", maxWidth:900 }}>
+    <div className="page-pad" style={{ padding:"32px 36px", maxWidth:900 }}>
       <BackLink />
 
       {/* Header card */}
@@ -106,7 +108,7 @@ export default function ClientDetailPage() {
       </div>
 
       {/* KPI */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:12, marginBottom:16 }}>
+      <div className="grid-form-2" style={{ marginBottom:16 }}>
         <KpiCard icon={<Calendar size={14} />} label={t("kpi.visits")} value={String(data.total_visits)} />
         <KpiCard icon={<Wallet size={14} />} label={t("kpi.revenue")} value={fmtMoney(data.total_spent, currency, locale)} />
       </div>
@@ -118,6 +120,19 @@ export default function ClientDetailPage() {
         </div>
         {data.visits_history.length === 0 ? (
           <p style={{ color:"var(--text3)", fontSize:13, padding:"32px 20px", textAlign:"center" }}>{t("history.empty")}</p>
+        ) : isMobile ? (
+          <div style={{ display:"flex", flexDirection:"column" }}>
+            {data.visits_history.map((v) => (
+              <div key={v.appointment_id} style={{ padding:"12px 16px", borderBottom:"1px solid var(--border)" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", gap:12, marginBottom:4 }}>
+                  <span style={{ color:"var(--text)", fontSize:13, fontWeight:600 }}>{fmtDateTime(v.date, locale)}</span>
+                  <span style={{ color:"var(--gold)", fontSize:13, fontWeight:700, whiteSpace:"nowrap" }}>{fmtMoney(v.amount, currency, locale)}</span>
+                </div>
+                <div style={{ color:"var(--text2)", fontSize:12 }}>{v.barber_name}</div>
+                {v.service_name && <div style={{ color:"var(--text3)", fontSize:12 }}>{v.service_name}</div>}
+              </div>
+            ))}
+          </div>
         ) : (
           <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
             <thead>

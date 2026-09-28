@@ -20,6 +20,7 @@
   "owner": "Egasi",
   "admin": "Admin",
   "master": "Usta",
+  "openMenu": "Menyuni ochish",
   "loadError": {
     "title": "Salonni yuklab bo'lmadi",
     "subtitle": "Ulanishni tekshiring va sahifani yangilang."

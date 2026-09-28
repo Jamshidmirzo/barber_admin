@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Clock, Save, ChevronLeft, ChevronRight } from "lucide-react";
 import api from "@/lib/api";
 import { useSalon, isManager } from "@/hooks/useSalon";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 
@@ -91,6 +92,7 @@ interface DetailTarget { barberName: string; dayKey: DayKey; date: Date; slots: 
 function TeamScheduleGrid() {
   const t = useTranslations("Schedule");
   const { salon } = useSalon();
+  const isMobile = useIsMobile();
   const [anchor, setAnchor] = useState(() => fmtDateISO(new Date()));
   const [barberFilter, setBarberFilter] = useState("all");
   const [detail, setDetail] = useState<DetailTarget | null>(null);
@@ -131,7 +133,7 @@ function TeamScheduleGrid() {
   };
 
   return (
-    <div style={{ padding: "28px 32px" }}>
+    <div className="page-pad" style={{ padding: "28px 32px" }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: "var(--text)", margin: 0 }}>
@@ -184,6 +186,51 @@ function TeamScheduleGrid() {
       ) : barbers.length === 0 ? (
         <div style={{ ...card, padding: 40, textAlign: "center", color: "var(--text2)", fontSize: 14 }}>
           {t("team.emptyMasters")}
+        </div>
+      ) : isMobile ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {barbers.map((b) => (
+            <div key={b.master_id} style={{ ...card, padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                <Avatar name={b.name} url={b.avatar_url} />
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {b.name}
+                </span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 6 }}>
+                {DAY_KEYS.map((key, i) => {
+                  const day = b.days[key];
+                  const isWorking = !!day?.working_hours;
+                  const count = day?.stats.booked ?? 0;
+                  const clickable = isWorking && count > 0;
+                  const cellBg = isWorking && count > 0 ? "var(--gold-dim)" : "transparent";
+                  const cellBorder = isWorking ? (count > 0 ? "1px solid rgba(201,164,92,0.32)" : "1px solid var(--border)") : "1px dashed var(--text3)";
+                  const cellColor = isWorking && count > 0 ? "var(--gold)" : "var(--text3)";
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      disabled={!clickable}
+                      onClick={() => clickable && setDetail({ barberName: b.name, dayKey: key, date: weekDates[i], slots: day.slots })}
+                      style={{
+                        display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                        padding: "6px 2px", borderRadius: 8, background: cellBg, border: cellBorder,
+                        color: cellColor, fontFamily: "inherit",
+                        cursor: clickable ? "pointer" : "default",
+                      }}
+                    >
+                      <span style={{ fontSize: 9.5, fontWeight: 500, color: "var(--text3)", textTransform: "uppercase" }}>
+                        {t(`daysShort.${key}`)}
+                      </span>
+                      <span style={{ fontSize: 13, fontWeight: 700 }}>
+                        {isWorking ? (count > 0 ? count : "—") : "·"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div style={{ ...card, overflow: "hidden" }}>
@@ -257,7 +304,7 @@ function TeamScheduleGrid() {
       )}
 
       {/* KPI cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginTop: 16 }}>
+      <div className="grid-kpi-4" style={{ marginTop: 16 }}>
         <KpiCard label={t("team.kpiBookings")} value={String(weeklyStats.totalBooked)} />
         <KpiCard label={t("team.kpiRevenue")} value={weeklyStats.totalRevenue > 0 ? fmtMoney(weeklyStats.totalRevenue, t("team.million")) : "—"} gold />
         <KpiCard label={t("team.kpiAvgLoad")} value={`${weeklyStats.avgLoad}%`} />
@@ -296,6 +343,7 @@ function DetailModal({ target, onClose }: { target: DetailTarget; onClose: () =>
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        className="modal-card"
         style={{ width: "100%", maxWidth: 420, maxHeight: "80vh", overflowY: "auto", background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: 22 }}
       >
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4 }}>
@@ -432,8 +480,8 @@ function WorkdaysEditor() {
   };
 
   return (
-    <div style={{ padding: "32px 36px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+    <div className="page-pad" style={{ padding: "32px 36px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
           <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: "var(--text)", margin: 0 }}>
             {t("editor.title")}

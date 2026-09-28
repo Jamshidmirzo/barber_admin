@@ -6,13 +6,15 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   Users, Scissors, UserRound, Clock,
-  TrendingUp, Settings, LogOut,
+  TrendingUp, LogOut,
   BarChart3, Sun, Moon, LayoutDashboard,
 } from "lucide-react";
 import { useAuth, logout } from "@/hooks/useAuth";
 import { SalonProvider, isManager, useSalonContextQuery } from "@/hooks/useSalon";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { HayrliMark } from "@/components/HayrliLogo";
+import { MobileDrawer } from "@/components/MobileDrawer";
+import { MobileTopbar } from "@/components/MobileTopbar";
 
 const NAV_GROUPS = [
   {
@@ -47,7 +49,8 @@ const NAV_GROUPS = [
 const nav = NAV_GROUPS.flatMap(g => g.items);
 
 const S = {
-  root: { display:"flex", height:"100vh", background:"var(--bg)" } as React.CSSProperties,
+  root: { display:"flex", flexDirection:"column", height:"100vh", background:"var(--bg)" } as React.CSSProperties,
+  frame: { display:"flex", flex:1, minHeight:0, background:"var(--bg)" } as React.CSSProperties,
   aside: {
     width: "var(--sidebar-w)", minWidth: "var(--sidebar-w)",
     background: "var(--bg2)", borderRight: "1px solid var(--border)",
@@ -93,6 +96,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const { data, isLoading, isError, error } = useSalonContextQuery();
   const [dark, setDark] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("light", !dark);
@@ -150,92 +154,106 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const canManage = isManager(data.role);
 
+  const sidebarBody = (
+    <>
+      {/* Logo */}
+      <div style={S.logo}>
+        <div style={S.logoRow}>
+          <div style={S.logoIcon}>
+            {data.salon.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={data.salon.avatar_url} alt={data.salon.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+            ) : (
+              <HayrliMark style={{ width:20, height:19, color:"#0a0a0b" }} />
+            )}
+          </div>
+          <div style={{ minWidth:0 }}>
+            <p style={{ color:"var(--text)", fontWeight:600, fontSize:13, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }} title={data.salon.name}>
+              {data.salon.name}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Nav links */}
+      <nav style={S.nav}>
+        {NAV_GROUPS.filter(g => !g.managerOnly || canManage).map((group) => {
+          const groupItems = group.items.filter(item => {
+            if (item.managerOnly && !canManage) return false;
+            if (item.masterOnly && canManage) return false;
+            return true;
+          });
+          if (groupItems.length === 0) return null;
+          return (
+            <div key={group.groupKey} style={{ marginBottom: 4 }}>
+              <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: ".14em", color: "var(--text3)", padding: "12px 10px 5px", fontWeight: 600 }}>
+                {t(`groups.${group.groupKey}`)}
+              </div>
+              {groupItems.map(({ href, itemKey, icon: Icon }) => {
+                const active = pathname === href || pathname.startsWith(href + "/");
+                return <NavLink key={href} href={href} active={active} icon={Icon} label={t(`items.${itemKey}`)} onNavigate={() => setDrawerOpen(false)} />;
+              })}
+            </div>
+          );
+        })}
+      </nav>
+
+      {/* Bottom */}
+      <div style={S.bottom}>
+        <div style={{ display: "flex", gap: 4, marginBottom: 4 }}>
+          <NavBtn onClick={() => setDark((d) => !d)} title={dark ? t("lightTheme") : t("darkTheme")}>
+            {dark ? <Sun size={14} /> : <Moon size={14} />}
+          </NavBtn>
+          <LanguageSwitcher />
+          <LogoutBtn />
+        </div>
+        <Link
+          href="/profile"
+          onClick={() => setDrawerOpen(false)}
+          style={{ display:"flex", alignItems:"center", gap:11, padding:"8px", border:"1px solid var(--border)", background:"var(--surface)", borderRadius:12, cursor:"pointer", textDecoration:"none" }}
+        >
+          <span style={{ width:34, height:34, flexShrink:0, borderRadius:9, background:"var(--gold-dim)", border:"1px solid var(--gold-dim2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"var(--gold)" }}>
+            {(data.salon.name || "?")[0].toUpperCase()}
+          </span>
+          <span style={{ flex:1, minWidth:0 }}>
+            <span style={{ display:"block", fontWeight:600, fontSize:13, color:"var(--text)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+              {data.salon.name}
+            </span>
+            <span style={{ display:"block", fontSize:11, color:"var(--text3)" }}>
+              {data.role === "admin" ? t("admin") : data.role === "owner" ? t("owner") : t("master")}
+            </span>
+          </span>
+        </Link>
+      </div>
+    </>
+  );
+
   return (
     <SalonProvider value={data}>
       <div style={S.root}>
+        <MobileTopbar onOpen={() => setDrawerOpen(true)} salonName={data.salon.name} />
+        <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+          {sidebarBody}
+        </MobileDrawer>
 
-        <aside style={S.aside}>
-          {/* Logo */}
-          <div style={S.logo}>
-            <div style={S.logoRow}>
-              <div style={S.logoIcon}>
-                {data.salon.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={data.salon.avatar_url} alt={data.salon.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                ) : (
-                  <HayrliMark style={{ width:20, height:19, color:"#0a0a0b" }} />
-                )}
-              </div>
-              <div style={{ minWidth:0 }}>
-                <p style={{ color:"var(--text)", fontWeight:600, fontSize:13, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }} title={data.salon.name}>
-                  {data.salon.name}
-                </p>
-              </div>
-            </div>
-          </div>
+        <div style={S.frame}>
+          <aside className="shell-sidebar" style={S.aside}>
+            {sidebarBody}
+          </aside>
 
-          {/* Nav links */}
-          <nav style={S.nav}>
-            {NAV_GROUPS.filter(g => !g.managerOnly || canManage).map((group) => {
-              const groupItems = group.items.filter(item => {
-                if (item.managerOnly && !canManage) return false;
-                if (item.masterOnly && canManage) return false;
-                return true;
-              });
-              if (groupItems.length === 0) return null;
-              return (
-                <div key={group.groupKey} style={{ marginBottom: 4 }}>
-                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: ".14em", color: "var(--text3)", padding: "12px 10px 5px", fontWeight: 600 }}>
-                    {t(`groups.${group.groupKey}`)}
-                  </div>
-                  {groupItems.map(({ href, itemKey, icon: Icon }) => {
-                    const active = pathname === href || pathname.startsWith(href + "/");
-                    return <NavLink key={href} href={href} active={active} icon={Icon} label={t(`items.${itemKey}`)} />;
-                  })}
-                </div>
-              );
-            })}
-          </nav>
-
-          {/* Bottom */}
-          <div style={S.bottom}>
-            <div style={{ display: "flex", gap: 4, marginBottom: 4 }}>
-              <NavBtn onClick={() => setDark((d) => !d)} title={dark ? t("lightTheme") : t("darkTheme")}>
-                {dark ? <Sun size={14} /> : <Moon size={14} />}
-              </NavBtn>
-              <LanguageSwitcher />
-              <LogoutBtn />
-            </div>
-            <Link
-              href="/profile"
-              style={{ display:"flex", alignItems:"center", gap:11, padding:"8px", border:"1px solid var(--border)", background:"var(--surface)", borderRadius:12, cursor:"pointer", textDecoration:"none" }}
-            >
-              <span style={{ width:34, height:34, flexShrink:0, borderRadius:9, background:"var(--gold-dim)", border:"1px solid var(--gold-dim2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"var(--gold)" }}>
-                {(data.salon.name || "?")[0].toUpperCase()}
-              </span>
-              <span style={{ flex:1, minWidth:0 }}>
-                <span style={{ display:"block", fontWeight:600, fontSize:13, color:"var(--text)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-                  {data.salon.name}
-                </span>
-                <span style={{ display:"block", fontSize:11, color:"var(--text3)" }}>
-                  {data.role === "admin" ? t("admin") : data.role === "owner" ? t("owner") : t("master")}
-                </span>
-              </span>
-            </Link>
-          </div>
-        </aside>
-
-        <main style={S.main}>{children}</main>
+          <main className="shell-main" style={S.main}>{children}</main>
+        </div>
       </div>
     </SalonProvider>
   );
 }
 
-function NavLink({ href, active, icon: Icon, label }: { href: string; active: boolean; icon: React.ElementType; label: string }) {
+function NavLink({ href, active, icon: Icon, label, onNavigate }: { href: string; active: boolean; icon: React.ElementType; label: string; onNavigate?: () => void }) {
   const [hov, setHov] = useState(false);
   return (
     <Link
       href={href}
+      onClick={onNavigate}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{

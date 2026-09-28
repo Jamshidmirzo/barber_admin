@@ -9,6 +9,7 @@ import api, { parseApiError } from "@/lib/api";
 import { useSalon, isManager } from "@/hooks/useSalon";
 import { useIntlLocale } from "@/lib/locale";
 import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 function fmtMoney(n: number, currency: string, locale: string) { return n.toLocaleString(locale) + " " + currency; }
 function fmtDate(iso: string | null, locale: string) { if (!iso) return "—"; return new Date(iso).toLocaleDateString(locale, { day:"numeric", month:"short", year:"numeric" }); }
@@ -84,6 +85,7 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
   const router = useRouter();
   const locale = useIntlLocale();
   const currency = currencyForCountry(useAdminCountry());
+  const isMobile = useIsMobile();
   const [tab, setTab] = useState<Tab>("list");
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -132,9 +134,9 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
   const cardS: React.CSSProperties = { background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)" };
 
   return (
-    <div style={{ padding:"32px 36px" }}>
+    <div className="page-pad" style={{ padding:"32px 36px" }}>
       {/* Header */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, flexWrap:"wrap", gap:12 }}>
         <div>
           <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>{t("title")}</h1>
           <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>{t("crm.subtitle", { count:total })}</p>
@@ -172,8 +174,28 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
             <CrmSkeleton />
           ) : items.length === 0 ? (
             <EmptyState text={debounced ? t("emptyState.notFound") : t("emptyState.noClients")} />
+          ) : isMobile ? (
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {items.map((c) => (
+                <div key={c.id} onClick={() => router.push(`/clients/${c.id}`)} style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:14, display:"flex", alignItems:"center", gap:12, cursor:"pointer" }}>
+                  <div style={{ width:40, height:40, borderRadius:"50%", background:"var(--gold-dim)", color:"var(--gold)", fontWeight:700, fontSize:12, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{initials(c.name)}</div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:2 }}>
+                      <span style={{ color:"var(--text)", fontWeight:600, fontSize:14, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{c.name}</span>
+                      <TierBadge tier={c.loyalty} />
+                    </div>
+                    <p style={{ color:"var(--text3)", fontSize:12, margin:0 }}>{c.phone}</p>
+                  </div>
+                  <div style={{ textAlign:"right", flexShrink:0 }}>
+                    <p style={{ color:"var(--text)", fontWeight:600, fontSize:13, margin:0 }}>{t("visitsCount", { count:c.total_visits })}</p>
+                    <p style={{ color:"var(--text3)", fontSize:11, margin:0 }}>{fmtMoney(c.total_spent, currency, locale)}</p>
+                  </div>
+                  <ChevronRight size={16} style={{ color:"var(--text3)", flexShrink:0 }} />
+                </div>
+              ))}
+            </div>
           ) : (
-            <div style={cardS}>
+            <div className="table-scroll" style={cardS}>
               <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
                 <thead>
                   <tr style={{ borderBottom:"1px solid var(--border)" }}>
@@ -319,8 +341,8 @@ function PersonalClients() {
   const items = data?.items ?? [];
 
   return (
-    <div style={{ padding:"32px 36px" }}>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
+    <div className="page-pad" style={{ padding:"32px 36px" }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, flexWrap:"wrap", gap:12 }}>
         <div>
           <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>{t("title")}</h1>
           <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>{t("personal.subtitle", { count:data?.total ?? 0 })}</p>
@@ -381,7 +403,7 @@ function PersonalClients() {
 function ModalBox({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:50, padding:16 }}>
-      <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", width:"100%", maxWidth:420, padding:24 }}>
+      <div className="modal-card" style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", width:"100%", maxWidth:420, padding:24 }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
           <h2 style={{ color:"var(--text)", fontWeight:600, fontSize:16, margin:0 }}>{title}</h2>
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:"var(--text3)", display:"flex" }}><X size={16} /></button>

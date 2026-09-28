@@ -98,7 +98,7 @@ export default function BarbersPage() {
   }
 
   return (
-    <div style={{ padding:"32px 36px" }}>
+    <div className="page-pad" style={{ padding:"32px 36px" }}>
 
       {/* Header */}
       <div style={{ marginBottom:28 }}>
@@ -175,7 +175,7 @@ export default function BarbersPage() {
 
       {/* Skeleton */}
       {isLoading && (
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:16 }}>
+        <div className="grid-barbers">
           {[1,2,3].map((i) => (
             <div key={i} style={{
               background:"var(--surface)", border:"1px solid var(--border)",
@@ -210,7 +210,7 @@ export default function BarbersPage() {
 
       {/* Grid */}
       {!isLoading && data && data.items.length > 0 && (
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:16 }}>
+        <div className="grid-barbers">
           {data.items.filter((b) => {
             if (!filterQ) return true;
             const q = filterQ.toLowerCase();
@@ -292,7 +292,7 @@ export default function BarbersPage() {
           position:"fixed", inset:0, background:"rgba(0,0,0,0.7)",
           display:"flex", alignItems:"center", justifyContent:"center", zIndex:50, padding:20,
         }}>
-          <div style={{
+          <div className="modal-card" style={{
             background:"var(--surface)", border:"1px solid var(--border)",
             borderRadius:"var(--radius-lg)", width:"100%", maxWidth:440, padding:28,
           }}>
@@ -304,7 +304,7 @@ export default function BarbersPage() {
             </div>
 
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+              <div className="grid-form-2">
                 {(["name","last_name"] as const).map((f) => (
                   <div key={f}>
                     <label style={{ display:"block", fontSize:12, color:"var(--text2)", marginBottom:5, fontWeight:500 }}>

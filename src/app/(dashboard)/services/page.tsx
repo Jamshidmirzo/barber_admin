@@ -113,7 +113,7 @@ export default function ServicesPage() {
   }
 
   return (
-    <div style={{ padding: "32px 36px" }}>
+    <div className="page-pad" style={{ padding: "32px 36px" }}>
       <style>{`
         @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.5 } }
         @keyframes fadeUp { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }
@@ -172,7 +172,7 @@ export default function ServicesPage() {
 
         {/* Skeleton */}
         {servicesLoading && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 14 }}>
+          <div className="grid-barbers" style={{ gap: 14 }}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div
                 key={i}
@@ -233,7 +233,7 @@ export default function ServicesPage() {
 
         {/* Cards grid */}
         {!servicesLoading && filtered.length > 0 && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 14 }}>
+          <div className="grid-barbers" style={{ gap: 14 }}>
             {filtered.map((s) => (
               <ServiceCard
                 key={s.id}
@@ -259,7 +259,7 @@ export default function ServicesPage() {
           }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
         >
-          <div style={{
+          <div className="modal-card" style={{
             background: "var(--card, var(--surface))",
             border: "1px solid var(--border)",
             borderRadius: 18,
@@ -312,7 +312,7 @@ export default function ServicesPage() {
               </div>
 
               {/* Price + Duration row */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div className="grid-form-2">
                 <div>
                   <label style={{ display: "block", fontSize: 12, color: "var(--text2)", marginBottom: 5, fontWeight: 500 }}>
                     {t("form.priceLabel", { currency })}

@@ -72,8 +72,8 @@ export default function FinancePage() {
   const revDelta = stats?.compared_to_previous_week?.revenue_delta_pct ?? null;
 
   return (
-    <div style={{ padding:"32px 36px" }}>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28 }}>
+    <div className="page-pad" style={{ padding:"32px 36px" }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28, flexWrap:"wrap", gap:12 }}>
         <div>
           <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>
             {t("title")}
@@ -93,14 +93,14 @@ export default function FinancePage() {
       </div>
 
       {isLoading ? (
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:16 }}>
+        <div className="grid-kpi-4" style={{ marginBottom:16 }}>
           {[1,2,3,4].map((i) => <div key={i} style={{ ...card, height:100, animation:"pulse 1.5s infinite" }} />)}
           <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
         </div>
       ) : stats ? (
         <>
           {/* 4 KPI cards */}
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:16 }}>
+          <div className="grid-kpi-4" style={{ marginBottom:16 }}>
             {/* Revenue — gold gradient */}
             <div style={{
               background:"linear-gradient(150deg,rgba(201,164,92,0.12),transparent 60%),var(--card)",
@@ -144,7 +144,7 @@ export default function FinancePage() {
           </div>
 
           {/* Chart + Top services side by side */}
-          <div style={{ display:"grid", gridTemplateColumns:"1.5fr 1fr", gap:16 }}>
+          <div className="grid-split-2">
             {/* Bar chart */}
             <div style={{ ...card, padding:22 }}>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, marginBottom:18 }}>
