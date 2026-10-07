@@ -18,6 +18,14 @@
   --sidebar-w: 248px;
   --radius: 12px;
   --radius-lg: 16px;
+  /* Hayrli v2 — pill shape and sheet-top radius, mirrored across the
+     three Flutter apps' AppRadius so a chip in Pro and a chip in the
+     CRM render the same. */
+  --radius-pill: 9999px;
+  --radius-sheet: 28px;
+  /* Bronze — darker than --gold, passes WCAG AA for ACCENT TEXT on
+     light surfaces. Use --gold-ink for text, keep --gold for fills. */
+  --gold-ink: #c9a45c;
 }
 
 html.light {
@@ -29,6 +37,7 @@ html.light {
   --gold: #9a7326;
   --gold-dim: rgba(154,115,38,0.12);
   --gold-dim2: rgba(154,115,38,0.20);
+  --gold-ink: #8B6E3C;
   --text: #1a1a17;
   --text2: #6b6860;
   --text3: #a0a09a;
