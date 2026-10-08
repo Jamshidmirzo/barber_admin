@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Clock, Scissors, X } from "lucide-react";
+import { Plus, Clock, Scissors, Star, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import api, { parseApiError } from "@/lib/api";
 import { useIntlLocale } from "@/lib/locale";
 import { useAdminCountry, currencyForCountry } from "@/hooks/useAdminCountry";
+import { useProfileQuery } from "@/hooks/useProfile";
 
 interface ServiceItem {
   id: string;
@@ -14,6 +15,16 @@ interface ServiceItem {
   price: number;
   duration_min: number;
   category: string;
+}
+
+// Phase-4 — per-service aggregate from GET /masters/{id}/services (new
+// shape with ratings). Fetched separately from the primary /services
+// list so an older backend without the new endpoint still shows the
+// page, just without the ★ column.
+interface ServiceWithRating {
+  service_id: string;
+  rating_avg: number | null;
+  rating_count: number;
 }
 
 // Mirrors the backend's ServiceCategory enum (app/domain/entities/service.py).
@@ -65,6 +76,23 @@ export default function ServicesPage() {
   });
 
   const services = allServices ?? [];
+
+  // Phase-4 ratings — fetch the per-service aggregate from the new
+  // /masters/{id}/services endpoint. Non-blocking: null/error means the
+  // ★ column just doesn't show (older backend compatibility).
+  const { data: profile } = useProfileQuery();
+  const { data: ratings } = useQuery<ServiceWithRating[]>({
+    queryKey: ["service-ratings", profile?.id],
+    queryFn: () =>
+      api.get(`/masters/${profile!.id}/services`).then((r) => r.data),
+    enabled: Boolean(profile?.id),
+    retry: false,
+  });
+  const ratingBySvc = useMemo(() => {
+    const m = new Map<string, ServiceWithRating>();
+    (ratings ?? []).forEach((r) => m.set(r.service_id, r));
+    return m;
+  }, [ratings]);
 
   // Create service mutation
   const createMutation = useMutation({
@@ -238,6 +266,7 @@ export default function ServicesPage() {
               <ServiceCard
                 key={s.id}
                 service={s}
+                rating={ratingBySvc.get(s.id)}
                 onDelete={() => deleteMutation.mutate(s.id)}
                 deleting={deleteMutation.isPending}
               />
@@ -405,11 +434,15 @@ export default function ServicesPage() {
 
 interface ServiceCardProps {
   service: ServiceItem;
+  // Phase-4 per-service rating — undefined when the backend hasn't
+  // shipped the new aggregate endpoint OR when a service has no
+  // reviews yet. Both cases fall through to no ★ row.
+  rating?: ServiceWithRating;
   onDelete: () => void;
   deleting: boolean;
 }
 
-function ServiceCard({ service, onDelete, deleting }: ServiceCardProps) {
+function ServiceCard({ service, rating, onDelete, deleting }: ServiceCardProps) {
   const t = useTranslations("Services");
   const tCommon = useTranslations("Common");
   const locale = useIntlLocale();
@@ -459,6 +492,19 @@ function ServiceCard({ service, onDelete, deleting }: ServiceCardProps) {
           }}>
             {service.name}
           </div>
+          {rating && rating.rating_count > 0 && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: 4,
+              marginTop: 6, fontSize: 12, color: "var(--gold-ink)",
+              fontFamily: "'Manrope',sans-serif", fontWeight: 600,
+            }}>
+              <Star size={12} fill="currentColor" strokeWidth={0} />
+              <span>{rating.rating_avg?.toFixed(1) ?? "—"}</span>
+              <span style={{ color: "var(--text2)", fontWeight: 500 }}>
+                · {rating.rating_count}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Scissors icon or delete confirm */}
