@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   Users, Scissors, UserRound, Clock,
-  TrendingUp, LogOut,
+  TrendingUp, LogOut, Images,
   BarChart3, Sun, Moon, LayoutDashboard,
 } from "lucide-react";
 import { useAuth, logout } from "@/hooks/useAuth";
@@ -32,6 +32,7 @@ const NAV_GROUPS = [
       // admins have their own price list too (they can also be the person
       // cutting), so the page has to be reachable regardless of role.
       { href: "/services",       itemKey: "services",     icon: Scissors,   managerOnly: false, masterOnly: false },
+      { href: "/portfolio",      itemKey: "portfolio",    icon: Images,     managerOnly: false, masterOnly: false },
       { href: "/barbers",        itemKey: "barbers",      icon: Users,      managerOnly: true,  masterOnly: false },
     ],
   },
