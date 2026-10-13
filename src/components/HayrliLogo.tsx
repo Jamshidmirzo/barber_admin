@@ -41,7 +41,7 @@ export function HayrliWordmark({
       style={{ display: "inline-flex", alignItems: "center", color, ...style }}
     >
       <HayrliMark style={{ width: fontSize * 1.13, height: fontSize * 1.06, marginRight: fontSize * -0.06, flexShrink: 0 }} />
-      <span style={{ fontFamily: "var(--font-manrope), 'Manrope', sans-serif", fontWeight: 800, fontSize, letterSpacing: "-0.035em", lineHeight: 1 }}>
+      <span style={{ fontFamily: "var(--font-sans), 'Manrope', sans-serif", fontWeight: 800, fontSize, letterSpacing: "-0.035em", lineHeight: 1 }}>
         ayrli
       </span>
     </span>

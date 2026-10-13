@@ -17,7 +17,7 @@ function initials(name: string) { return name.split(" ").map((w) => w[0]).join("
 const inp: React.CSSProperties = {
   background:"var(--bg)", color:"var(--text)", border:"1px solid var(--border)",
   borderRadius:"var(--radius)", padding:"9px 14px", fontSize:13, outline:"none",
-  fontFamily:"'Manrope',sans-serif",
+  fontFamily:"var(--font-sans)",
 };
 
 export default function ClientsPage() {
@@ -76,7 +76,7 @@ function CrmClients({ salonId }: { salonId: string }) {
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
         <div>
-          <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>{t("title")}</h1>
+          <h1 style={{ fontFamily:"var(--font-display)", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>{t("title")}</h1>
           <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>{t("crm.subtitle", { count:total })}</p>
         </div>
         <button onClick={handleExport} disabled={exporting} style={{ display:"flex", alignItems:"center", gap:6, background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", color:"var(--text2)", padding:"9px 16px", fontSize:13, fontWeight:500, cursor:exporting ? "not-allowed" : "pointer", opacity:exporting ? 0.6 : 1 }}>
@@ -215,10 +215,10 @@ function PersonalClients() {
     <div style={{ padding:"32px 36px" }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
         <div>
-          <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>{t("title")}</h1>
+          <h1 style={{ fontFamily:"var(--font-display)", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>{t("title")}</h1>
           <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>{t("personal.subtitle", { count:data?.total ?? 0 })}</p>
         </div>
-        <button onClick={() => { setShowCreate(true); resetForm(); }} style={{ display:"flex", alignItems:"center", gap:6, background:"var(--gold)", color:"#0a0a0b", border:"none", borderRadius:"var(--radius)", padding:"9px 16px", fontSize:13, fontWeight:700, cursor:"pointer" }}>
+        <button onClick={() => { setShowCreate(true); resetForm(); }} style={{ display:"flex", alignItems:"center", gap:6, background:"var(--gold)", color:"var(--on-gold)", border:"none", borderRadius:"var(--radius)", padding:"9px 16px", fontSize:13, fontWeight:700, cursor:"pointer" }}>
           <Plus size={14} /> {tCommon("add")}
         </button>
       </div>
@@ -285,7 +285,7 @@ function ModalBox({ title, onClose, children }: { title: string; onClose: () => 
   );
 }
 
-const fldInp: React.CSSProperties = { width:"100%", background:"var(--bg)", color:"var(--text)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"9px 14px", fontSize:13, outline:"none", boxSizing:"border-box", fontFamily:"'Manrope',sans-serif" };
+const fldInp: React.CSSProperties = { width:"100%", background:"var(--bg)", color:"var(--text)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:"9px 14px", fontSize:13, outline:"none", boxSizing:"border-box", fontFamily:"var(--font-sans)" };
 
 function ClientForm({ form, setForm, formErr, onSubmit, onCancel, loading, submitLabel }: {
   form: { name: string; phone: string; notes: string };
@@ -309,7 +309,7 @@ function ClientForm({ form, setForm, formErr, onSubmit, onCancel, loading, submi
       {formErr && <p style={{ color:"var(--red)", fontSize:12, background:"rgba(224,90,90,0.08)", borderRadius:"var(--radius)", padding:"8px 12px", margin:0 }}>{formErr}</p>}
       <div style={{ display:"flex", gap:10 }}>
         <button onClick={onCancel} style={{ flex:1, background:"var(--bg)", border:"1px solid var(--border)", borderRadius:"var(--radius)", color:"var(--text2)", fontSize:13, padding:"9px", cursor:"pointer" }}>{tCommon("cancel")}</button>
-        <button onClick={onSubmit} disabled={loading || !form.name || !form.phone} style={{ flex:1, background:"var(--gold)", color:"#0a0a0b", border:"none", borderRadius:"var(--radius)", fontSize:13, fontWeight:700, padding:"9px", cursor:(loading || !form.name || !form.phone) ? "not-allowed" : "pointer", opacity:(loading || !form.name || !form.phone) ? 0.5 : 1 }}>
+        <button onClick={onSubmit} disabled={loading || !form.name || !form.phone} style={{ flex:1, background:"var(--gold)", color:"var(--on-gold)", border:"none", borderRadius:"var(--radius)", fontSize:13, fontWeight:700, padding:"9px", cursor:(loading || !form.name || !form.phone) ? "not-allowed" : "pointer", opacity:(loading || !form.name || !form.phone) ? 0.5 : 1 }}>
           {loading ? t("personal.form.submitting") : submitLabel}
         </button>
       </div>

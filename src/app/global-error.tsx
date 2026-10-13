@@ -17,15 +17,15 @@ export default function GlobalError({
   return (
     <html lang="en">
       <head>
-        <title>Ошибка — BarberAdmin</title>
+        <title>Ошибка — Hayrli CRM</title>
       </head>
       <body
         style={{
           margin: 0,
           minHeight: "100vh",
-          background: "#0a0a0b",
-          color: "#e6e6e6",
-          fontFamily: "system-ui, -apple-system, 'Manrope', sans-serif",
+          background: "#0F0F0F",
+          color: "#FFFFFF",
+          fontFamily: "Inter, system-ui, -apple-system, sans-serif",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -39,7 +39,7 @@ export default function GlobalError({
               fontWeight: 600,
               margin: 0,
               marginBottom: 8,
-              color: "#e6e6e6",
+              color: "#FFFFFF",
             }}
           >
             Приложение не может продолжить работу
@@ -49,7 +49,7 @@ export default function GlobalError({
               margin: 0,
               marginBottom: 22,
               fontSize: 14,
-              color: "#a0a0a0",
+              color: "#B3B3B3",
               lineHeight: 1.5,
             }}
           >
@@ -67,8 +67,8 @@ export default function GlobalError({
           <button
             onClick={() => unstable_retry()}
             style={{
-              background: "#c9a45c",
-              color: "#0a0a0b",
+              background: "#D9B877",
+              color: "#0F0F0F",
               border: "none",
               borderRadius: 10,
               padding: "10px 22px",

@@ -96,7 +96,7 @@ function TeamScheduleGrid() {
     <div style={{ padding: "28px 32px" }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: "var(--text)", margin: 0 }}>
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 600, color: "var(--text)", margin: 0 }}>
           {t("team.title")}
         </h1>
         <p style={{ color: "var(--text2)", fontSize: 13, marginTop: 4, marginBottom: 0 }}>
@@ -185,7 +185,7 @@ function TeamScheduleGrid() {
                 if (isWorking) {
                   if (count > 0) {
                     cellBg = "var(--gold-dim)";
-                    cellBorder = "1px solid rgba(201,164,92,0.32)";
+                    cellBorder = "1px solid color-mix(in srgb, var(--gold) 32%, transparent)";
                     cellColor = "var(--gold)";
                     cellLabel = t("team.cellBooked", { count });
                   } else {
@@ -228,7 +228,7 @@ function TeamScheduleGrid() {
       {/* Legend */}
       <div style={{ display: "flex", gap: 16, marginTop: 16, fontSize: 12, color: "var(--text2)" }}>
         <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
-          <span style={{ width: 14, height: 14, borderRadius: 4, background: "var(--gold-dim)", border: "1px solid rgba(201,164,92,0.32)", display: "inline-block" }} />
+          <span style={{ width: 14, height: 14, borderRadius: 4, background: "var(--gold-dim)", border: "1px solid color-mix(in srgb, var(--gold) 32%, transparent)", display: "inline-block" }} />
           {t("team.legendBooked")}
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
@@ -262,7 +262,7 @@ function DetailModal({ target, onClose }: { target: DetailTarget; onClose: () =>
       >
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4 }}>
           <div>
-            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 17, fontWeight: 600, color: "var(--text)" }}>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 600, color: "var(--text)" }}>
               {target.barberName}
             </div>
             <div style={{ fontSize: 12.5, color: "var(--text2)", marginTop: 2 }}>
@@ -285,7 +285,7 @@ function DetailModal({ target, onClose }: { target: DetailTarget; onClose: () =>
           ) : (
             booked.map((s) => (
               <div key={s.slot_id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 12px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10 }}>
-                <div style={{ fontFamily: "'Playfair Display',serif", fontWeight: 600, fontSize: 13.5, color: "var(--text)", width: 92, flex: "none" }}>
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13.5, color: "var(--text)", width: 92, flex: "none" }}>
                   {s.starts_at}–{s.ends_at}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -310,7 +310,7 @@ function DetailModal({ target, onClose }: { target: DetailTarget; onClose: () =>
 function Avatar({ name, url }: { name: string; url: string | null }) {
   const initials = name.split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase();
   return (
-    <span style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, background: "var(--gold-dim)", border: "1px solid rgba(201,164,92,0.32)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "var(--gold)", overflow: "hidden" }}>
+    <span style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, background: "var(--gold-dim)", border: "1px solid color-mix(in srgb, var(--gold) 32%, transparent)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "var(--gold)", overflow: "hidden" }}>
       {url
         // eslint-disable-next-line @next/next/no-img-element
         ? <img src={url} alt={name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -323,7 +323,7 @@ function FilterChip({ active, onClick, children }: { active: boolean; onClick: (
   return (
     <button
       onClick={onClick}
-      style={{ padding: "5px 12px", borderRadius: "var(--radius)", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, background: active ? "var(--gold)" : "var(--card)", color: active ? "#0a0a0b" : "var(--text2)", transition: "background 0.15s, color 0.15s" }}
+      style={{ padding: "5px 12px", borderRadius: "var(--radius)", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, background: active ? "var(--gold)" : "var(--card)", color: active ? "var(--on-gold)" : "var(--text2)", transition: "background 0.15s, color 0.15s" }}
     >
       {children}
     </button>
@@ -334,7 +334,7 @@ function KpiCard({ label, value, gold }: { label: string; value: string; gold?: 
   return (
     <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 15, padding: 20 }}>
       <div style={{ fontSize: 12, color: "var(--text2)", marginBottom: 10 }}>{label}</div>
-      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: gold ? "var(--gold)" : "var(--text)" }}>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 600, color: gold ? "var(--gold)" : "var(--text)" }}>
         {value}
       </div>
     </div>

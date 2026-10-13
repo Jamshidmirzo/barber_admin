@@ -134,7 +134,7 @@ export default function ProfilePage() {
 
   return (
     <div style={{ padding: "32px 36px" }}>
-      <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: "var(--text)", margin: "0 0 28px" }}>
+      <h1 style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 600, color: "var(--text)", margin: "0 0 28px" }}>
         {t("title")}
       </h1>
 
@@ -154,7 +154,7 @@ export default function ProfilePage() {
               : initials}
           </div>
           <div>
-            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 600, color: "var(--text)" }}>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 600, color: "var(--text)" }}>
               {fullName}
             </div>
             <div style={{ fontSize: 13, color: "var(--text2)", marginTop: 3 }}>
@@ -286,7 +286,7 @@ export default function ProfilePage() {
           disabled={saveMutation.isPending}
           style={{
             display: "flex", alignItems: "center", gap: 8,
-            padding: "12px 26px", background: "var(--gold)", color: "#171205",
+            padding: "12px 26px", background: "var(--gold)", color: "var(--on-gold)",
             border: "none", borderRadius: "var(--radius)",
             cursor: "pointer", fontWeight: 700, fontSize: 13,
             opacity: saveMutation.isPending ? 0.6 : 1,
@@ -307,7 +307,7 @@ export default function ProfilePage() {
       <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: 26, maxWidth: 620, marginTop: 20 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
           <Building2 size={16} style={{ color: "var(--gold)" }} />
-          <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 17, fontWeight: 600, color: "var(--text)" }}>
+          <span style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 600, color: "var(--text)" }}>
             {t("business.title")}
           </span>
         </div>
@@ -335,7 +335,7 @@ export default function ProfilePage() {
       <div style={{ background: "var(--card)", border: "1px solid rgba(224,90,90,0.35)", borderRadius: "var(--radius-lg)", padding: 26, maxWidth: 620, marginTop: 20 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
           <AlertTriangle size={16} style={{ color: "var(--red)" }} />
-          <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 17, fontWeight: 600, color: "var(--text)" }}>
+          <span style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 600, color: "var(--text)" }}>
             {t("dangerZone.title")}
           </span>
         </div>

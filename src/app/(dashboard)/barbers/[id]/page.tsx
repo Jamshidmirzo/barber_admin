@@ -175,7 +175,7 @@ export default function BarberDetailPage() {
                 </p>
                 <p style={{ display:"flex", alignItems:"center", gap:7, color:"var(--text)", fontFamily:"monospace", fontSize:13, margin:0 }}>
                   <KeyRound size={13} style={{ color:"var(--text3)", flexShrink:0 }} />
-                  {creds?.password ?? <span style={{ color:"var(--text3)", fontFamily:"'Manrope',sans-serif" }}>{t("credentials.unavailable")}</span>}
+                  {creds?.password ?? <span style={{ color:"var(--text3)", fontFamily:"var(--font-sans)" }}>{t("credentials.unavailable")}</span>}
                 </p>
               </div>
               {creds?.password && (
@@ -245,7 +245,7 @@ export default function BarberDetailPage() {
       <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:24, flexWrap:"wrap" }}>
         <div style={{ display:"flex", background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:4, gap:4 }}>
           {periods.map((p) => (
-            <button key={p.key} onClick={() => setPeriod(p.key)} style={{ padding:"6px 12px", borderRadius:8, border:"none", cursor:"pointer", fontSize:13, fontWeight:500, background: period===p.key ? "var(--gold)" : "transparent", color: period===p.key ? "#0a0a0b" : "var(--text2)" }}>
+            <button key={p.key} onClick={() => setPeriod(p.key)} style={{ padding:"6px 12px", borderRadius:8, border:"none", cursor:"pointer", fontSize:13, fontWeight:500, background: period===p.key ? "var(--gold)" : "transparent", color: period===p.key ? "var(--on-gold)" : "var(--text2)" }}>
               {p.label}
             </button>
           ))}

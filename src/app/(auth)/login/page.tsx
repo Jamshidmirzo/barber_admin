@@ -253,7 +253,7 @@ export default function LoginPage() {
     <div style={{
       minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center",
       background:"var(--bg)",
-      backgroundImage:"radial-gradient(ellipse 80% 50% at 50% -10%, rgba(201,164,92,0.08) 0%, transparent 70%)",
+      backgroundImage:"radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--gold) 8%, transparent) 0%, transparent 70%)",
     }}>
       <div style={{ width:"100%", maxWidth:400, padding:"0 20px" }}>
 
@@ -262,12 +262,12 @@ export default function LoginPage() {
           <div style={{
             display:"inline-flex", alignItems:"center", justifyContent:"center",
             width:60, height:60, borderRadius:16,
-            border:"1px solid rgba(201,164,92,0.20)", background:"rgba(201,164,92,0.12)",
+            border:"1px solid color-mix(in srgb, var(--gold) 20%, transparent)", background:"color-mix(in srgb, var(--gold) 12%, transparent)",
             marginBottom:20,
           }}>
             <HayrliMark style={{ width:32, height:30, color:"var(--gold)" }} />
           </div>
-          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:28, fontWeight:700, letterSpacing:".14em", color:"var(--text)" }}>
+          <div style={{ fontFamily:"var(--font-display)", fontSize:28, fontWeight:700, letterSpacing:".14em", color:"var(--text)" }}>
             HÁYRLI
           </div>
           <div style={{ color:"var(--text2)", fontSize:13, marginTop:6, letterSpacing:".02em" }}>
@@ -281,7 +281,7 @@ export default function LoginPage() {
           borderRadius:18, padding:28,
           boxShadow:"0 24px 48px rgba(0,0,0,0.18)",
         }}>
-          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:19, fontWeight:600, marginBottom:2 }}>{t("login.title")}</div>
+          <div style={{ fontFamily:"var(--font-display)", fontSize:19, fontWeight:600, marginBottom:2 }}>{t("login.title")}</div>
           <div style={{ color:"var(--text2)", fontSize:12.5, marginBottom:22 }}>{t("login.subtitle")}</div>
 
           <form onSubmit={handleLogin} style={{ display:"flex", flexDirection:"column", gap:0 }}>
@@ -335,7 +335,7 @@ export default function LoginPage() {
             )}
 
             <button type="submit" disabled={loading} style={{
-              width:"100%", padding:13, background:"var(--gold)", color:"#171205",
+              width:"100%", padding:13, background:"var(--gold)", color:"var(--on-gold)",
               border:"none", borderRadius:11, fontWeight:700, fontSize:14,
               cursor: loading ? "not-allowed" : "pointer", letterSpacing:".01em",
               opacity: loading ? 0.6 : 1, fontFamily:"inherit",

@@ -75,7 +75,7 @@ export default function FinancePage() {
     <div style={{ padding:"32px 36px" }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28 }}>
         <div>
-          <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>
+          <h1 style={{ fontFamily:"var(--font-display)", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>
             {t("title")}
           </h1>
           <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>{t("subtitle")}</p>
@@ -85,7 +85,7 @@ export default function FinancePage() {
             <button key={p.key} onClick={() => setPeriod(p.key)} style={{
               padding:"6px 14px", borderRadius:9, border:"none", cursor:"pointer",
               background: period === p.key ? "var(--gold)" : "transparent",
-              color: period === p.key ? "#0a0a0b" : "var(--text2)",
+              color: period === p.key ? "var(--on-gold)" : "var(--text2)",
               fontSize:12, fontWeight:600, transition:"background 0.15s, color 0.15s",
             }}>{t(`periods.${p.key}`)}</button>
           ))}
@@ -103,11 +103,11 @@ export default function FinancePage() {
           <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:16 }}>
             {/* Revenue — gold gradient */}
             <div style={{
-              background:"linear-gradient(150deg,rgba(201,164,92,0.12),transparent 60%),var(--card)",
-              border:"1px solid rgba(201,164,92,0.20)", borderRadius:16, padding:20,
+              background:"linear-gradient(150deg,color-mix(in srgb, var(--gold) 12%, transparent),transparent 60%),var(--card)",
+              border:"1px solid color-mix(in srgb, var(--gold) 20%, transparent)", borderRadius:16, padding:20,
             }}>
               <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>{t("kpi.revenue.label")}</div>
-              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:600, color:"var(--gold)" }}>
+              <div style={{ fontFamily:"var(--font-display)", fontSize:26, fontWeight:600, color:"var(--gold)" }}>
                 {fmt(stats.revenue_total_uzs, currency, locale)}
               </div>
               <div style={{ fontSize:12, color: revDelta != null && revDelta >= 0 ? "var(--green)" : "var(--red)", fontWeight:600, marginTop:8 }}>
@@ -118,7 +118,7 @@ export default function FinancePage() {
 
             <div style={card}>
               <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>{t("kpi.appointments.label")}</div>
-              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:600 }}>
+              <div style={{ fontFamily:"var(--font-display)", fontSize:26, fontWeight:600 }}>
                 {stats.appointments_total}
               </div>
               <div style={{ fontSize:12, color:"var(--text3)", marginTop:8 }}>
@@ -128,7 +128,7 @@ export default function FinancePage() {
 
             <div style={card}>
               <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>{t("kpi.newClients.label")}</div>
-              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:600 }}>
+              <div style={{ fontFamily:"var(--font-display)", fontSize:26, fontWeight:600 }}>
                 {stats.new_clients}
               </div>
               <div style={{ fontSize:12, color:"var(--text3)", marginTop:8 }}>{t("kpi.newClients.caption")}</div>
@@ -136,7 +136,7 @@ export default function FinancePage() {
 
             <div style={card}>
               <div style={{ fontSize:12, color:"var(--text2)", marginBottom:12 }}>{t("kpi.returning.label")}</div>
-              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:600 }}>
+              <div style={{ fontFamily:"var(--font-display)", fontSize:26, fontWeight:600 }}>
                 {stats.returning_clients}
               </div>
               <div style={{ fontSize:12, color:"var(--text3)", marginTop:8 }}>{t("kpi.returning.caption")}</div>
@@ -147,7 +147,7 @@ export default function FinancePage() {
           <div style={{ display:"grid", gridTemplateColumns:"1.5fr 1fr", gap:16 }}>
             {/* Bar chart */}
             <div style={{ ...card, padding:22 }}>
-              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, marginBottom:18 }}>
+              <div style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:600, marginBottom:18 }}>
                 {t("charts.byDay.title")}
               </div>
               {stats.appointments_by_day.length > 0 ? (
@@ -159,7 +159,7 @@ export default function FinancePage() {
                       <div key={d.date} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6, height:"100%", justifyContent:"flex-end" }}>
                         <div style={{
                           width:"100%", borderRadius:"4px 4px 1px 1px",
-                          background: isMax ? "var(--gold)" : "rgba(201,164,92,0.35)",
+                          background: isMax ? "var(--gold)" : "color-mix(in srgb, var(--gold) 35%, transparent)",
                           height: `${Math.max(pct * 136, d.count > 0 ? 8 : 2)}px`,
                         }} />
                         <div style={{ fontSize:9.5, color:"var(--text3)" }}>
@@ -178,7 +178,7 @@ export default function FinancePage() {
 
             {/* Top services */}
             <div style={{ ...card, padding:22 }}>
-              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, marginBottom:16 }}>
+              <div style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:600, marginBottom:16 }}>
                 {t("charts.topServices.title")}
               </div>
               {stats.top_services.length > 0 ? (
@@ -187,7 +187,7 @@ export default function FinancePage() {
                     <div key={s.service_name}>
                       <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:6 }}>
                         <span style={{ fontSize:13, fontWeight:600, color:"var(--text)" }}>{s.service_name}</span>
-                        <span style={{ fontFamily:"'Playfair Display',serif", fontSize:12.5, color:"var(--gold)", fontWeight:600 }}>
+                        <span style={{ fontFamily:"var(--font-display)", fontSize:12.5, color:"var(--gold)", fontWeight:600 }}>
                           {fmt(s.revenue, currency, locale)}
                         </span>
                       </div>

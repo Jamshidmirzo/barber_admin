@@ -48,14 +48,15 @@ interface OverviewData {
 
 // ── Status colors ────────────────────────────────────────────────────────────
 
+// Same status palette as the Hayrli Pro calendar (theme-aware, globals.css).
 const STATUS_COLOR: Record<string, string> = {
-  pending:    "#c2933a",
-  scheduled:  "#7d97b8",
-  confirmed:  "#5f9d6f",
-  inprogress: "#c9a45c",
-  completed:  "#8a8f86",
-  cancelled:  "#b56a54",
-  noshow:     "#8a6a6a",
+  pending:    "var(--gold)",
+  scheduled:  "var(--st-planned)",
+  confirmed:  "var(--st-confirmed)",
+  inprogress: "var(--st-in-progress)",
+  completed:  "var(--st-done)",
+  cancelled:  "var(--st-cancelled)",
+  noshow:     "var(--st-no-show)",
 };
 
 // Statuses with a known translation key in Dashboard.status.*; anything else
@@ -184,7 +185,7 @@ export default function DashboardPage() {
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <h1 style={{
-          fontFamily: "'Playfair Display', serif",
+          fontFamily: "var(--font-display)",
           fontSize: 24, fontWeight: 600,
           color: "var(--text)", margin: 0,
         }}>
@@ -229,7 +230,7 @@ export default function DashboardPage() {
             ) : (
               <>
                 <div style={{
-                  fontFamily: "'Playfair Display', serif",
+                  fontFamily: "var(--font-display)",
                   fontSize: 26, fontWeight: 600,
                   lineHeight: 1, letterSpacing: "-0.01em",
                   color: "var(--text)",
@@ -266,7 +267,7 @@ export default function DashboardPage() {
             justifyContent: "space-between", marginBottom: 18,
           }}>
             <div style={{
-              fontFamily: "'Playfair Display', serif",
+              fontFamily: "var(--font-display)",
               fontSize: 17, fontWeight: 600, color: "var(--text)",
             }}>
               {t("weekRevenue.title")}
@@ -333,7 +334,7 @@ export default function DashboardPage() {
           padding: 22,
         }}>
           <div style={{
-            fontFamily: "'Playfair Display', serif",
+            fontFamily: "var(--font-display)",
             fontSize: 17, fontWeight: 600,
             color: "var(--text)", marginBottom: 16,
           }}>
@@ -363,7 +364,7 @@ export default function DashboardPage() {
                     width: 36, height: 36, flex: "none",
                     borderRadius: 10,
                     background: "var(--gold-dim)",
-                    border: "1px solid rgba(201,164,92,0.25)",
+                    border: "1px solid color-mix(in srgb, var(--gold) 25%, transparent)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontWeight: 700, fontSize: 13,
                     fontFamily: "var(--sans, sans-serif)",
@@ -384,7 +385,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div style={{
-                    fontFamily: "'Playfair Display', serif",
+                    fontFamily: "var(--font-display)",
                     fontWeight: 600, fontSize: 14,
                     color: "var(--gold)",
                     whiteSpace: "nowrap",
@@ -410,7 +411,7 @@ export default function DashboardPage() {
           justifyContent: "space-between", marginBottom: 16,
         }}>
           <div style={{
-            fontFamily: "'Playfair Display', serif",
+            fontFamily: "var(--font-display)",
             fontSize: 17, fontWeight: 600, color: "var(--text)",
           }}>
             {t("upcoming.title")}
@@ -456,7 +457,7 @@ export default function DashboardPage() {
                 >
                   {/* Time */}
                   <div style={{
-                    fontFamily: "'Playfair Display', serif",
+                    fontFamily: "var(--font-display)",
                     fontWeight: 600, fontSize: 15,
                     width: 52, flex: "none",
                     color: "var(--text)",

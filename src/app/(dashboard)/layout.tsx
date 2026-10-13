@@ -85,13 +85,32 @@ function NavBtn({ onClick, children, title }: { onClick: () => void; children: R
   );
 }
 
+const THEME_KEY = "hayrli-crm-theme";
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations("Nav");
   useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { data, isLoading, isError, error } = useSalonContextQuery();
-  const [dark, setDark] = useState(true);
+  // Like the Hayrli apps: follow the system theme until the user picks one,
+  // then remember the pick. The sidebar (and this toggle) only renders after
+  // the salon query resolves on the client, so reading storage here can't
+  // cause a hydration mismatch.
+  const [dark, setDark] = useState(() => {
+    if (typeof window === "undefined") return true;
+    try {
+      const saved = window.localStorage.getItem(THEME_KEY);
+      if (saved === "dark" || saved === "light") return saved === "dark";
+    } catch { /* storage blocked — fall back to the system theme */ }
+    return !window.matchMedia("(prefers-color-scheme: light)").matches;
+  });
+  function toggleTheme() {
+    setDark((d) => {
+      try { window.localStorage.setItem(THEME_KEY, d ? "light" : "dark"); } catch { /* ignore */ }
+      return !d;
+    });
+  }
 
   useEffect(() => {
     document.documentElement.classList.toggle("light", !dark);
@@ -162,7 +181,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={data.salon.avatar_url} alt={data.salon.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                 ) : (
-                  <HayrliMark style={{ width:20, height:19, color:"#0a0a0b" }} />
+                  <HayrliMark style={{ width:20, height:19, color:"var(--on-gold)" }} />
                 )}
               </div>
               <div style={{ minWidth:0 }}>
@@ -199,7 +218,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Bottom */}
           <div style={S.bottom}>
             <div style={{ display: "flex", gap: 4, marginBottom: 4 }}>
-              <NavBtn onClick={() => setDark((d) => !d)} title={dark ? t("lightTheme") : t("darkTheme")}>
+              <NavBtn onClick={toggleTheme} title={dark ? t("lightTheme") : t("darkTheme")}>
                 {dark ? <Sun size={14} /> : <Moon size={14} />}
               </NavBtn>
               <LanguageSwitcher />

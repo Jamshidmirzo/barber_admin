@@ -1,40 +1,79 @@
 @import "tailwindcss";
 
+/* Hayrli design tokens — the same palette, type and radius scale as the
+   Hayrli and Hayrli Pro apps (Pro: lib/utils/app_colors.dart, app_radius.dart;
+   docs/design/design-system.md). Variable names are kept so every page picks
+   the new values up. Dark is the default; `html.light` is the light theme. */
 :root {
-  --bg: #0a0a0b;
-  --bg2: #0e0e10;
-  --surface: #141417;
-  --card: #141417;
-  --border: rgba(255,255,255,0.07);
-  --gold: #c9a45c;
-  --gold-dim: rgba(201,164,92,0.12);
-  --gold-dim2: rgba(201,164,92,0.20);
-  --text: #f3f1ea;
-  --text2: #9a9690;
-  --text3: #5a5852;
-  --red: #e05a5a;
-  --green: #4caf7d;
-  --blue: #5b8dee;
+  --bg: #0F0F0F;
+  --bg2: #141414;
+  --surface: #1A1A1A;
+  --card: #1A1A1A;
+  --surface-elevated: #242424;
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+  --gold: #D9B877;
+  --gold-hover: #C9A45C;
+  --gold-dim: rgba(217,184,119,0.14);
+  --gold-dim2: rgba(217,184,119,0.24);
+  --on-gold: #0F0F0F;
+  --text: #FFFFFF;
+  --text2: #B3B3B3;
+  --text3: #666666;
+  --red: #E5564E;
+  --green: #34C759;
+  --blue: #3B82F6;
+  --amber: #F59E0B;
+  /* Appointment status colours — Pro's AppStatusColorsTheme.dark. */
+  --st-planned: #60A5FA;
+  --st-confirmed: #34D399;
+  --st-in-progress: #FBBF24;
+  --st-done: #9CA3AF;
+  --st-cancelled: #F87171;
+  --st-no-show: #A78BFA;
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.30);
+  --shadow-pop: 0 8px 24px rgba(0,0,0,0.40);
   --sidebar-w: 248px;
-  --radius: 12px;
-  --radius-lg: 16px;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --font-sans: var(--font-inter), -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Hayrli uses one typeface; titles are Inter SemiBold, not a serif. */
+  --font-display: var(--font-sans);
+  color-scheme: dark;
 }
 
 html.light {
-  --bg: #eeeae1;
-  --bg2: #e3ded5;
-  --surface: #fffdf8;
-  --card: #fffdf8;
+  --bg: #FAFAF8;
+  --bg2: #F2F1EC;
+  --surface: #FFFFFF;
+  --card: #FFFFFF;
+  --surface-elevated: #FFFFFF;
   --border: rgba(0,0,0,0.08);
-  --gold: #9a7326;
+  --border-strong: rgba(0,0,0,0.14);
+  --gold: #9A7326;
+  --gold-hover: #7D5E1F;
   --gold-dim: rgba(154,115,38,0.12);
   --gold-dim2: rgba(154,115,38,0.20);
-  --text: #1a1a17;
-  --text2: #6b6860;
-  --text3: #a0a09a;
-  --red: #c0392b;
-  --green: #2e7d5a;
-  --blue: #2563eb;
+  --on-gold: #FFFFFF;
+  --text: #1A1A1A;
+  --text2: #6B6860;
+  --text3: #A0A09A;
+  --red: #E5564E;
+  --green: #2F9E4F;
+  --blue: #3B82F6;
+  --amber: #D97706;
+  /* Pro's AppStatusColorsTheme.light. */
+  --st-planned: #3B82F6;
+  --st-confirmed: #10B981;
+  --st-in-progress: #F59E0B;
+  --st-done: #6B7280;
+  --st-cancelled: #EF4444;
+  --st-no-show: #8B5CF6;
+  --shadow-card: 0 1px 2px rgba(11,11,16,0.04), 0 1px 1px rgba(11,11,16,0.02);
+  --shadow-pop: 0 8px 24px rgba(11,11,16,0.08), 0 2px 4px rgba(11,11,16,0.04);
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -44,15 +83,19 @@ body {
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-manrope), system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  /* Times and prices line up, as in the apps. */
+  font-variant-numeric: tabular-nums;
 }
+
+h1, h2, h3 { letter-spacing: -0.01em; }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
 
 select option { background: var(--surface); color: var(--text); }

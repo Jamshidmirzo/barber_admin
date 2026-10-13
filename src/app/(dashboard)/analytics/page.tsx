@@ -84,7 +84,7 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28, flexWrap:"wrap", gap:16 }}>
         <div>
-          <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>
+          <h1 style={{ fontFamily:"var(--font-display)", fontSize:24, fontWeight:600, color:"var(--text)", margin:0 }}>
             {t("title")}
           </h1>
           <p style={{ color:"var(--text2)", fontSize:13, marginTop:4 }}>{t("subtitle")}</p>
@@ -100,7 +100,7 @@ export default function AnalyticsPage() {
               style={{
                 padding:"6px 14px", borderRadius:9, border:"none", cursor:"pointer",
                 background: period === p.key ? "var(--gold)" : "transparent",
-                color: period === p.key ? "#0a0a0b" : "var(--text2)",
+                color: period === p.key ? "var(--on-gold)" : "var(--text2)",
                 fontSize:12, fontWeight:600, transition:"background 0.15s, color 0.15s",
               }}
             >
@@ -131,7 +131,7 @@ function HeatmapSection({ q }: { q: { data?: HeatmapResponse; isLoading: boolean
   function bg(app: number) {
     if (app <= 0) return "var(--bg2)";
     const alpha = 0.15 + (app / maxApp) * 0.85;
-    return `rgba(201,164,92,${alpha.toFixed(3)})`;
+    return `color-mix(in srgb, var(--gold) ${(alpha * 100).toFixed(1)}%, transparent)`;
   }
 
   return (
@@ -188,7 +188,7 @@ function HeatmapSection({ q }: { q: { data?: HeatmapResponse; isLoading: boolean
                             background: bg(app),
                             display:"flex", alignItems:"center", justifyContent:"center",
                             fontSize:11, fontWeight:600,
-                            color: app > 0 ? "#0a0a0b" : "var(--text3)",
+                            color: app > 0 ? "var(--on-gold)" : "var(--text3)",
                             cursor:"default",
                             transition:"transform 0.1s",
                           }}
@@ -229,14 +229,14 @@ function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: 
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:20 }}>
         <div style={cardStyle}>
           <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>{t("kpi.avgCheck")}</p>
-          <p style={{ fontFamily:"'Playfair Display',serif", color:"var(--text)", fontSize:26, fontWeight:600, margin:0 }}>{data ? fmt(data.avg_check, currency, locale) : "—"}</p>
+          <p style={{ fontFamily:"var(--font-display)", color:"var(--text)", fontSize:26, fontWeight:600, margin:0 }}>{data ? fmt(data.avg_check, currency, locale) : "—"}</p>
           <p style={{ fontSize:12, color: up ? "var(--green)" : "var(--text3)", fontWeight:600, margin:"8px 0 0" }}>
             {data ? `${up ? "+" : ""}${growth}%` : ""} <span style={{ color:"var(--text3)", fontWeight:400 }}>{t("kpi.avgCheckCaption")}</span>
           </p>
         </div>
         <div style={cardStyle}>
           <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>{t("kpi.revenueGrowth")}</p>
-          <p style={{ fontFamily:"'Playfair Display',serif", color: up ? "var(--gold)" : "var(--red)", fontSize:26, fontWeight:600, margin:0, display:"flex", alignItems:"center", gap:8 }}>
+          <p style={{ fontFamily:"var(--font-display)", color: up ? "var(--gold)" : "var(--red)", fontSize:26, fontWeight:600, margin:0, display:"flex", alignItems:"center", gap:8 }}>
             {up ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
             {data ? `${up ? "+" : ""}${growth}%` : "—"}
           </p>
@@ -244,14 +244,14 @@ function TrendsSection({ q, heatmap }: { q: { data?: TrendsResponse; isLoading: 
         </div>
         <div style={cardStyle}>
           <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>{t("kpi.peak")}</p>
-          <p style={{ fontFamily:"'Playfair Display',serif", color:"var(--text)", fontSize:20, fontWeight:600, margin:0 }}>
+          <p style={{ fontFamily:"var(--font-display)", color:"var(--text)", fontSize:20, fontWeight:600, margin:0 }}>
             {heatmap?.peak_day ? `${dayLabel(t, heatmap.peak_day, false)} ${heatmap.peak_hour != null ? hh(heatmap.peak_hour) : ""}` : "—"}
           </p>
           <p style={{ fontSize:12, color:"var(--text3)", margin:"8px 0 0" }}>{t("kpi.peakCaption")}</p>
         </div>
         <div style={cardStyle}>
           <p style={{ color:"var(--text2)", fontSize:12, margin:"0 0 12px" }}>{t("kpi.quiet")}</p>
-          <p style={{ fontFamily:"'Playfair Display',serif", color:"var(--text)", fontSize:20, fontWeight:600, margin:0 }}>
+          <p style={{ fontFamily:"var(--font-display)", color:"var(--text)", fontSize:20, fontWeight:600, margin:0 }}>
             {heatmap?.slowest_day ? `${dayLabel(t, heatmap.slowest_day, false)} ${heatmap.slowest_hour != null ? hh(heatmap.slowest_hour) : ""}` : "—"}
           </p>
           <p style={{ fontSize:12, color:"var(--text3)", margin:"8px 0 0" }}>{t("kpi.quietCaption")}</p>

@@ -45,7 +45,7 @@ function deriveCity(place: PickedPlace, korea: boolean): string | null {
 const inp: React.CSSProperties = {
   width:"100%", background:"rgba(255,255,255,0.04)", color:"var(--text)",
   border:"1px solid var(--border)", borderRadius:"var(--radius)",
-  padding:"12px 16px", fontSize:14, fontFamily:"'Manrope',sans-serif",
+  padding:"12px 16px", fontSize:14, fontFamily:"var(--font-sans)",
   outline:"none", boxSizing:"border-box",
 };
 
@@ -179,9 +179,9 @@ export default function OnboardingPage() {
         {/* Logo */}
         <div style={{ textAlign:"center", marginBottom:32 }}>
           <div style={{ width:64, height:64, borderRadius:20, background:"var(--gold)", display:"inline-flex", alignItems:"center", justifyContent:"center", marginBottom:16 }}>
-            <Scissors size={28} style={{ color:"#0a0a0b" }} />
+            <Scissors size={28} style={{ color:"var(--on-gold)" }} />
           </div>
-          <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:700, color:"var(--text)", margin:0 }}>{t("title")}</h1>
+          <h1 style={{ fontFamily:"var(--font-display)", fontSize:26, fontWeight:700, color:"var(--text)", margin:0 }}>{t("title")}</h1>
           <p style={{ color:"var(--text2)", fontSize:14, marginTop:8 }}>
             {t("subtitle")}
           </p>
@@ -241,7 +241,7 @@ export default function OnboardingPage() {
                     />
                     <button
                       type="button" onClick={handleGeocode} disabled={geocoding || manualAddress.trim().length < 3}
-                      style={{ padding:"0 16px", background:"var(--gold)", color:"#0a0a0b", border:"none", borderRadius:"var(--radius)", fontSize:13, fontWeight:600, cursor:"pointer", opacity: geocoding || manualAddress.trim().length < 3 ? 0.5 : 1, display:"flex", alignItems:"center", gap:6 }}
+                      style={{ padding:"0 16px", background:"var(--gold)", color:"var(--on-gold)", border:"none", borderRadius:"var(--radius)", fontSize:13, fontWeight:600, cursor:"pointer", opacity: geocoding || manualAddress.trim().length < 3 ? 0.5 : 1, display:"flex", alignItems:"center", gap:6 }}
                     >
                       {geocoding && <Loader2 size={13} style={{ animation:"spin 1s linear infinite" }} />}
                       {t("location.findButton")}
@@ -337,7 +337,7 @@ export default function OnboardingPage() {
             <p style={{ color:"var(--red)", fontSize:13, background:"rgba(224,90,90,0.08)", borderRadius:"var(--radius)", padding:"10px 14px", margin:0 }}>{error}</p>
           )}
 
-          <button type="submit" disabled={!canSubmit} style={{ width:"100%", background:"var(--gold)", color:"#0a0a0b", border:"none", borderRadius:"var(--radius)", padding:"13px", fontSize:14, fontWeight:700, cursor: canSubmit ? "pointer" : "not-allowed", opacity: canSubmit ? 1 : 0.45, display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+          <button type="submit" disabled={!canSubmit} style={{ width:"100%", background:"var(--gold)", color:"var(--on-gold)", border:"none", borderRadius:"var(--radius)", padding:"13px", fontSize:14, fontWeight:700, cursor: canSubmit ? "pointer" : "not-allowed", opacity: canSubmit ? 1 : 0.45, display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
             {submitting && <Loader2 size={15} style={{ animation:"spin 1s linear infinite" }} />}
             {submitting ? t("submit.submitting") : t("submit.button")}
           </button>

@@ -272,7 +272,7 @@ export default function YandexMapPicker({ selected, onPick }: YandexMapPickerPro
         </div>
         <button
           type="button" onClick={handleSearch} disabled={searching || searchQuery.trim().length < 3}
-          style={{ padding:"0 16px", background:"var(--gold)", color:"#0a0a0b", border:"none", borderRadius:"var(--radius)", fontSize:13, fontWeight:600, cursor:"pointer", opacity: searching || searchQuery.trim().length < 3 ? 0.5 : 1, display:"flex", alignItems:"center", gap:6 }}
+          style={{ padding:"0 16px", background:"var(--gold)", color:"var(--on-gold)", border:"none", borderRadius:"var(--radius)", fontSize:13, fontWeight:600, cursor:"pointer", opacity: searching || searchQuery.trim().length < 3 ? 0.5 : 1, display:"flex", alignItems:"center", gap:6 }}
         >
           {searching && <Loader2 size={13} style={{ animation:"spin 1s linear infinite" }} />}
           {t("searchButton")}

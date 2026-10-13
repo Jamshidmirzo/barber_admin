@@ -33,7 +33,7 @@ export default function RouteError({
     >
       <h2
         style={{
-          fontFamily: "'Playfair Display', serif",
+          fontFamily: "var(--font-display)",
           fontSize: 20,
           fontWeight: 600,
           color: "var(--text)",
@@ -59,14 +59,14 @@ export default function RouteError({
         onClick={() => unstable_retry()}
         style={{
           background: "var(--gold)",
-          color: "#0a0a0b",
+          color: "var(--on-gold)",
           border: "none",
           borderRadius: "var(--radius, 10px)",
           padding: "9px 20px",
           fontSize: 13,
           fontWeight: 700,
           cursor: "pointer",
-          fontFamily: "'Manrope', sans-serif",
+          fontFamily: "var(--font-sans)",
         }}
       >
         Повторить

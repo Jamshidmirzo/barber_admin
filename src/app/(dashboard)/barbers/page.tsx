@@ -45,7 +45,7 @@ function fmtMoney(n: number, currency: string, locale: string) {
 const inputStyle: React.CSSProperties = {
   width:"100%", background:"var(--bg)", color:"var(--text)",
   border:"1px solid var(--border)", borderRadius:"var(--radius)",
-  padding:"10px 14px", fontSize:13, fontFamily:"'Manrope',sans-serif",
+  padding:"10px 14px", fontSize:13, fontFamily:"var(--font-sans)",
   outline:"none",
 };
 
@@ -102,7 +102,7 @@ export default function BarbersPage() {
 
       {/* Header */}
       <div style={{ marginBottom:28 }}>
-        <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:600, color:"var(--text)", margin:"0 0 20px" }}>
+        <h1 style={{ fontFamily:"var(--font-display)", fontSize:24, fontWeight:600, color:"var(--text)", margin:"0 0 20px" }}>
           {t("title")}
         </h1>
         <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
@@ -123,7 +123,7 @@ export default function BarbersPage() {
           <button
             onClick={() => { setShowModal(true); setFormErr(""); setForm((p) => ({ ...p, phone: phoneCode })); }}
             style={{
-              display:"flex", alignItems:"center", gap:7, background:"var(--gold)", color:"#171205",
+              display:"flex", alignItems:"center", gap:7, background:"var(--gold)", color:"var(--on-gold)",
               border:"none", borderRadius:11, padding:"10px 16px",
               fontSize:13, fontWeight:700, cursor:"pointer",
             }}
@@ -227,14 +227,14 @@ export default function BarbersPage() {
                   borderRadius:16, padding:20, cursor:"pointer",
                   transition:"border-color 0.15s",
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(201,164,92,0.20)"; }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "color-mix(in srgb, var(--gold) 20%, transparent)"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; }}
               >
                 {/* Avatar + name + status */}
                 <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:18 }}>
                   <div style={{
                     width:48, height:48, flexShrink:0, borderRadius:13,
-                    background:"rgba(201,164,92,0.12)", border:"1px solid rgba(201,164,92,0.20)",
+                    background:"color-mix(in srgb, var(--gold) 12%, transparent)", border:"1px solid color-mix(in srgb, var(--gold) 20%, transparent)",
                     display:"flex", alignItems:"center", justifyContent:"center",
                     fontWeight:700, fontSize:17, color:"var(--gold)", overflow:"hidden",
                   }}>
@@ -244,7 +244,7 @@ export default function BarbersPage() {
                     ) : initials(b)}
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16.5, fontWeight:600, color:"var(--text)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    <div style={{ fontFamily:"var(--font-display)", fontSize:16.5, fontWeight:600, color:"var(--text)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                       {fullName(b)}
                     </div>
                     <div style={{ fontSize:12, color:"var(--text3)", marginTop:2 }}>{b.phone}</div>
@@ -262,19 +262,19 @@ export default function BarbersPage() {
                 {/* 3-stat row */}
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, paddingTop:16, borderTop:"1px solid var(--border)" }}>
                   <div>
-                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, color:"var(--gold)" }}>
+                    <div style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:600, color:"var(--gold)" }}>
                       {st ? (st.total_revenue >= 1_000_000 ? (st.total_revenue / 1_000_000).toFixed(1) + "M" : fmtMoney(st.total_revenue, currency, locale)) : "—"}
                     </div>
                     <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>{t("stats.revenue")}</div>
                   </div>
                   <div>
-                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600 }}>
+                    <div style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:600 }}>
                       {st?.total_appointments ?? "—"}
                     </div>
                     <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>{t("stats.appointments")}</div>
                   </div>
                   <div>
-                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600 }}>
+                    <div style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:600 }}>
                       {st ? Math.round(st.worked_hours) : "—"}{t("stats.hoursShort")}
                     </div>
                     <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>{t("stats.workedHours")}</div>
@@ -365,7 +365,7 @@ export default function BarbersPage() {
                   onClick={() => { setFormErr(""); createMutation.mutate(form); }}
                   disabled={createMutation.isPending || !form.phone || form.password.length < 6}
                   style={{
-                    flex:1, background:"var(--gold)", color:"#0a0a0b",
+                    flex:1, background:"var(--gold)", color:"var(--on-gold)",
                     border:"none", borderRadius:"var(--radius)", padding:"10px",
                     fontSize:13, fontWeight:700, cursor:"pointer",
                     opacity: (createMutation.isPending || !form.phone || form.password.length < 6) ? 0.5 : 1,
