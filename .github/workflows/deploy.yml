@@ -17,9 +17,13 @@ name: Deploy to Droplet
 # manual deploy did on 2026-09-26, ships Next's platform-specific native
 # deps, e.g. sharp, for the wrong OS) and ships it via the same
 # stage-then-sudo-promote rsync pattern the backend repo's deploy.yml uses.
+# Manual only (2026-10-13): crm.hayrli.app is served by a different, newer
+# dashboard app deployed to the same /opt/hayrli-web + hayrli-web.service
+# this workflow targets — an automatic deploy of this repo would overwrite
+# the live dashboard. Run it from the Actions tab only if this app is meant
+# to replace it.
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
