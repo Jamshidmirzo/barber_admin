@@ -28,7 +28,7 @@ interface MasterContentStats {
 }
 interface BarberServiceItem { id: string; name: string; price: number; duration_min: number; category: string; is_active: boolean; }
 
-// Mirrors services/page.tsx — the backend `service.category` enum can drift
+// The backend `service.category` enum can drift
 // with new categories being added, so guard the translation lookup instead
 // of blowing up with `MISSING_KEY` in the UI.
 const KNOWN_CATEGORIES = ["haircut", "coloring", "styling", "care", "beard", "other"] as const;
@@ -90,7 +90,7 @@ export default function BarberDetailPage() {
     queryFn: () => api.get(`/team/members/${id}/content-stats`).then((r) => r.data),
   });
 
-  // Read-only — services are self-managed by the barber (see /services);
+  // Read-only — services are self-managed by the barber in the Hayrli Pro app;
   // the owner/admin only views what the barber has set up here.
   const { data: barberServices, isLoading: servicesLoading } = useQuery<BarberServiceItem[]>({
     queryKey:["master", id, "services"],

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
-  Users, Scissors, UserRound, Clock,
+  Users, UserRound, Clock,
   TrendingUp, Settings, LogOut,
   BarChart3, Sun, Moon, LayoutDashboard,
 } from "lucide-react";
@@ -29,7 +29,6 @@ const NAV_GROUPS = [
       // Services are self-managed by whoever is logged in — owners and
       // admins have their own price list too (they can also be the person
       // cutting), so the page has to be reachable regardless of role.
-      { href: "/services",       itemKey: "services",     icon: Scissors,   managerOnly: false, masterOnly: false },
       { href: "/barbers",        itemKey: "barbers",      icon: Users,      managerOnly: true,  masterOnly: false },
     ],
   },
