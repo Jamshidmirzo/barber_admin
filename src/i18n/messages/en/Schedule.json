@@ -21,18 +21,6 @@
       "unknownService": "Service"
     }
   },
-  "editor": {
-    "title": "Schedule",
-    "subtitle": "Set up hours for each day of the week",
-    "saving": "Saving…",
-    "saved": "Saved!",
-    "break": "Break:",
-    "dayOff": "Day off"
-  },
-  "viewToggle": {
-    "team": "Team",
-    "own": "My hours"
-  },
   "days": {
     "mon": "Monday",
     "tue": "Tuesday",

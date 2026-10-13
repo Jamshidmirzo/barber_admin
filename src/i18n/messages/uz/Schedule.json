@@ -21,18 +21,6 @@
       "unknownService": "Xizmat"
     }
   },
-  "editor": {
-    "title": "Jadval",
-    "subtitle": "Har bir hafta kuni uchun ish vaqtini sozlang",
-    "saving": "Saqlanmoqda…",
-    "saved": "Saqlandi!",
-    "break": "Tanaffus:",
-    "dayOff": "Dam olish kuni"
-  },
-  "viewToggle": {
-    "team": "Jamoa",
-    "own": "Mening soatlarim"
-  },
   "days": {
     "mon": "Dushanba",
     "tue": "Seshanba",

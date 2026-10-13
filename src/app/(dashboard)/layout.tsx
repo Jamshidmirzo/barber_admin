@@ -19,7 +19,7 @@ const NAV_GROUPS = [
     groupKey: "main",
     items: [
       { href: "/dashboard",      itemKey: "overview",     icon: LayoutDashboard, managerOnly: true,  masterOnly: false },
-      { href: "/schedule",       itemKey: "schedule",     icon: Clock,      managerOnly: false, masterOnly: false },
+      { href: "/schedule",       itemKey: "schedule",     icon: Clock,      managerOnly: true,  masterOnly: false },
     ],
   },
   {
@@ -120,7 +120,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (i.masterOnly && manager) return true;
       return false;
     });
-    if (blocked) router.replace(manager ? "/dashboard" : "/schedule");
+    if (blocked) router.replace(manager ? "/dashboard" : "/clients");
   }, [role, pathname, router]);
 
   if (isLoading || (isError && (status === 404 || status === 401))) {

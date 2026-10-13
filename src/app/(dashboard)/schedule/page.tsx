@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { Clock, Save, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import api from "@/lib/api";
 import { useSalon, isManager } from "@/hooks/useSalon";
 
@@ -24,48 +24,10 @@ function fmtMoney(v: number, suffix: string) { return (v/1_000_000).toFixed(1).r
 
 export default function SchedulePage() {
   const { role } = useSalon();
-  // Managers who don't also cut still only need the team grid. But owners
-  // and admins who work chairs need to edit their own hours too, so they
-  // get a top-of-page toggle to swap between the team view and the
-  // personal WorkdaysEditor. Masters just see the editor.
-  if (isManager(role)) return <ManagerScheduleView />;
-  return <WorkdaysEditor />;
-}
-
-function ManagerScheduleView() {
-  const t = useTranslations("Schedule");
-  const [view, setView] = useState<"team" | "own">("team");
-  return (
-    <div>
-      <div style={{ padding: "20px 32px 0", display: "flex", gap: 8 }}>
-        <button
-          onClick={() => setView("team")}
-          style={{
-            padding: "7px 14px", borderRadius: "var(--radius)", border: "none",
-            cursor: "pointer", fontSize: 13, fontWeight: 600,
-            background: view === "team" ? "var(--gold)" : "var(--card)",
-            color: view === "team" ? "#0a0a0b" : "var(--text2)",
-            transition: "background 0.15s, color 0.15s",
-          }}
-        >
-          {t("viewToggle.team")}
-        </button>
-        <button
-          onClick={() => setView("own")}
-          style={{
-            padding: "7px 14px", borderRadius: "var(--radius)", border: "none",
-            cursor: "pointer", fontSize: 13, fontWeight: 600,
-            background: view === "own" ? "var(--gold)" : "var(--card)",
-            color: view === "own" ? "#0a0a0b" : "var(--text2)",
-            transition: "background 0.15s, color 0.15s",
-          }}
-        >
-          {t("viewToggle.own")}
-        </button>
-      </div>
-      {view === "team" ? <TeamScheduleGrid /> : <WorkdaysEditor />}
-    </div>
-  );
+  // Manager-only page (the layout redirects masters away): the team week
+  // grid. Barbers edit their own hours in the Hayrli Pro app.
+  if (!isManager(role)) return null;
+  return <TeamScheduleGrid />;
 }
 
 // ─── types ──────────────────────────────────────────────────────────────────
@@ -374,130 +336,6 @@ function KpiCard({ label, value, gold }: { label: string; value: string; gold?: 
       <div style={{ fontSize: 12, color: "var(--text2)", marginBottom: 10 }}>{label}</div>
       <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: gold ? "var(--gold)" : "var(--text)" }}>
         {value}
-      </div>
-    </div>
-  );
-}
-
-// ─── barber: working-hours editor ───────────────────────────────────────────
-
-interface Workday {
-  id?: string;
-  day_of_week: number;
-  start_time: string;
-  end_time: string;
-  break_start: string | null;
-  break_end: string | null;
-  is_working: boolean;
-}
-
-const DEFAULT_DAYS: Workday[] = Array.from({ length: 7 }, (_, i) => ({
-  day_of_week: i, start_time: "09:00", end_time: "18:00",
-  break_start: "13:00", break_end: "14:00", is_working: i < 6,
-}));
-
-function WorkdaysEditor() {
-  const t = useTranslations("Schedule");
-  const tCommon = useTranslations("Common");
-  const qc = useQueryClient();
-  const [days, setDays] = useState<Workday[]>(DEFAULT_DAYS);
-  const [saved, setSaved] = useState(false);
-
-  const { data, isLoading } = useQuery<Workday[]>({
-    queryKey: ["schedule", "workdays"],
-    queryFn: () => api.get("/schedule/workdays").then(r => r.data),
-  });
-
-  // Adjusting state on a query change, not synchronizing with an external
-  // system — done during render (React's documented pattern) rather than
-  // in an effect, so `days` stays user-editable after this initial sync.
-  const [syncedData, setSyncedData] = useState(data);
-  if (data && data.length > 0 && data !== syncedData) {
-    setSyncedData(data);
-    setDays(DEFAULT_DAYS.map(def => data.find(d => d.day_of_week === def.day_of_week) ?? def));
-  }
-
-  const saveMutation = useMutation({
-    mutationFn: () => api.put("/schedule/workdays", { workdays: days }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["schedule"] }); setSaved(true); setTimeout(() => setSaved(false), 2000); },
-  });
-
-  function update(idx: number, patch: Partial<Workday>) {
-    setDays(prev => prev.map((d, i) => i === idx ? { ...d, ...patch } : d));
-  }
-
-  const timeInput: React.CSSProperties = {
-    background: "var(--bg)", color: "var(--text)", border: "1px solid var(--border)",
-    borderRadius: "var(--radius)", padding: "6px 10px", fontSize: 13, outline: "none", fontFamily: "inherit",
-  };
-
-  return (
-    <div style={{ padding: "32px 36px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
-        <div>
-          <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: "var(--text)", margin: 0 }}>
-            {t("editor.title")}
-          </h1>
-          <p style={{ color: "var(--text2)", fontSize: 13, marginTop: 4, marginBottom: 0 }}>
-            {t("editor.subtitle")}
-          </p>
-        </div>
-        <button
-          onClick={() => saveMutation.mutate()}
-          disabled={saveMutation.isPending}
-          style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--gold)", color: "#0a0a0b", border: "none", borderRadius: "var(--radius)", padding: "9px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer", opacity: saveMutation.isPending ? 0.5 : 1 }}
-        >
-          <Save size={14} />
-          {saved ? t("editor.saved") : saveMutation.isPending ? t("editor.saving") : tCommon("save")}
-        </button>
-      </div>
-
-      <div style={{ maxWidth: 640, background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: 24 }}>
-        {isLoading ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {[1,2,3,4,5,6,7].map(i => (
-              <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, height: 58, animation: "pulse 1.5s infinite" }} />
-            ))}
-            <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {days.map((day, idx) => (
-              <div key={day.day_of_week} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12 }}>
-                <span style={{ width: 44, fontWeight: 600, fontSize: 13, color: "var(--text)", flexShrink: 0 }}>
-                  {t(`daysShort.${DAY_KEYS[day.day_of_week]}`)}
-                </span>
-
-                {/* Toggle */}
-                <button
-                  onClick={() => update(idx, { is_working: !day.is_working })}
-                  style={{ width: 44, height: 26, flexShrink: 0, border: "none", borderRadius: 20, cursor: "pointer", background: day.is_working ? "var(--gold)" : "var(--border)", position: "relative", transition: "background 0.2s" }}
-                >
-                  <span style={{ position: "absolute", top: 3, width: 20, height: 20, borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.3)", transition: "left 0.2s", left: day.is_working ? 21 : 3 }} />
-                </button>
-
-                {day.is_working ? (
-                  <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <Clock size={13} style={{ color: "var(--text3)", flexShrink: 0 }} />
-                      <input type="time" value={day.start_time} onChange={e => update(idx, { start_time: e.target.value })} style={timeInput} />
-                      <span style={{ color: "var(--text3)", fontSize: 12 }}>—</span>
-                      <input type="time" value={day.end_time} onChange={e => update(idx, { end_time: e.target.value })} style={timeInput} />
-                    </div>
-                    <span style={{ color: "var(--text3)", fontSize: 12, marginLeft: 4 }}>{t("editor.break")}</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <input type="time" value={day.break_start ?? ""} onChange={e => update(idx, { break_start: e.target.value || null })} style={timeInput} />
-                      <span style={{ color: "var(--text3)", fontSize: 12 }}>—</span>
-                      <input type="time" value={day.break_end ?? ""} onChange={e => update(idx, { break_end: e.target.value || null })} style={timeInput} />
-                    </div>
-                  </div>
-                ) : (
-                  <span style={{ flex: 1, fontSize: 13, color: "var(--text3)" }}>{t("editor.dayOff")}</span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
