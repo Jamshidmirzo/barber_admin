@@ -10,10 +10,6 @@
     "subtitle": "살롱 고객 데이터베이스에 {count}명의 고객이 있습니다",
     "exportButton": "CSV 내보내기",
     "exportingButton": "준비 중...",
-    "tabs": {
-      "list": "전체 고객",
-      "rating": "충성도 랭킹"
-    },
     "sort": {
       "visits": "방문순",
       "revenue": "매출순"
@@ -24,15 +20,7 @@
       "visits": "방문",
       "revenue": "매출"
     },
-    "loadMore": "더 보기",
-    "rating": {
-      "subtitle": "방문 횟수 기준 상위 20명의 고객",
-      "shareButton": "공유",
-      "copiedButton": "복사됨",
-      "emptyState": "아직 랭킹에 표시할 방문 기록이 없습니다",
-      "shareHeader": "🏆 {salon}의 가장 충성도 높은 고객:",
-      "shareFooter": "저희를 선택해 주셔서 감사합니다! 💈"
-    }
+    "loadMore": "더 보기"
   },
   "personal": {
     "subtitle": "고객 {count}명",

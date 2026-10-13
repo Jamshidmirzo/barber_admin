@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { Plus, Search, UserRound, Download, ChevronRight, Trophy, Share2, Check, X } from "lucide-react";
+import { Plus, Search, UserRound, Download, ChevronRight, X } from "lucide-react";
 import api, { parseApiError } from "@/lib/api";
 import { useSalon, isManager } from "@/hooks/useSalon";
 import { useIntlLocale } from "@/lib/locale";
@@ -23,73 +23,29 @@ const inp: React.CSSProperties = {
 export default function ClientsPage() {
   const { salon, role } = useSalon();
   if (!isManager(role)) return <PersonalClients />;
-  return <CrmClients salonId={salon.id} salonName={salon.name} />;
+  return <CrmClients salonId={salon.id} />;
 }
 
 // ─── CRM View (manager) ───────────────────────────────────────────────────────
 
 interface SalonClient {
   id: string; name: string; phone: string;
-  total_visits: number; total_spent: number; loyalty: "gold" | "silver" | null;
+  total_visits: number; total_spent: number;
 }
 interface ClientPage { items: SalonClient[]; total: number; page: number; limit: number; }
-interface LoyaltyItem { rank: number; client_id: string; name: string; phone: string; total_visits: number; total_spent: number; }
 type Sort = "visits" | "revenue";
-type Tab = "list" | "rating";
 const SORT_KEYS: Record<Sort, string> = { visits:"visits", revenue:"revenue" };
 
-function TierBadge({ tier }: { tier: SalonClient["loyalty"] }) {
-  if (tier === "gold") {
-    return (
-      <span style={{
-        fontSize: 9.5,
-        fontWeight: 700,
-        letterSpacing: "0.06em",
-        padding: "2px 7px",
-        borderRadius: 20,
-        background: "rgba(201,164,92,0.13)",
-        color: "var(--gold)",
-        border: "1px solid rgba(201,164,92,0.32)",
-        textTransform: "uppercase" as const,
-        lineHeight: 1,
-      }}>
-        GOLD
-      </span>
-    );
-  }
-  if (tier === "silver") {
-    return (
-      <span style={{
-        fontSize: 9.5,
-        fontWeight: 700,
-        letterSpacing: "0.06em",
-        padding: "2px 7px",
-        borderRadius: 20,
-        background: "rgba(255,255,255,0.06)",
-        color: "var(--text2)",
-        border: "1px solid rgba(255,255,255,0.12)",
-        textTransform: "uppercase" as const,
-        lineHeight: 1,
-      }}>
-        SILVER
-      </span>
-    );
-  }
-  return null;
-}
-
-function CrmClients({ salonId, salonName }: { salonId: string; salonName: string }) {
+function CrmClients({ salonId }: { salonId: string }) {
   const t = useTranslations("Clients");
   const tCommon = useTranslations("Common");
   const router = useRouter();
   const locale = useIntlLocale();
   const currency = currencyForCountry(useAdminCountry());
-  const [tab, setTab] = useState<Tab>("list");
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [sort, setSort] = useState<Sort>("visits");
   const [exporting, setExporting] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => { const t = setTimeout(() => setDebounced(search.trim()), 300); return () => clearTimeout(t); }, [search]);
 
@@ -98,17 +54,10 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
     queryFn: ({ pageParam }) => api.get(`/salons/${salonId}/clients`, { params:{ search:debounced||undefined, sort, page:pageParam, limit:20 } }).then((r) => r.data),
     initialPageParam: 1,
     getNextPageParam: (last, pages) => { const loaded = pages.reduce((n,p)=>n+p.items.length,0); return loaded < last.total ? last.page+1 : undefined; },
-    enabled: tab === "list",
   });
 
   const items = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
   const total = data?.pages[0]?.total ?? 0;
-
-  const { data: loyalty, isLoading: loyaltyLoading } = useQuery<{ items: LoyaltyItem[] }>({
-    queryKey:["salon-clients-loyalty", salonId],
-    queryFn: () => api.get(`/salons/${salonId}/clients/loyalty`, { params:{ limit:20 } }).then((r) => r.data),
-    enabled: tab === "rating",
-  });
 
   async function handleExport() {
     setExporting(true);
@@ -118,15 +67,6 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
       const a = document.createElement("a"); a.href = url; a.download = `clients_${new Date().toISOString().slice(0,10)}.csv`;
       document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     } catch { /**/ } finally { setExporting(false); }
-  }
-
-  function shareRating() {
-    const list = loyalty?.items ?? [];
-    if (!list.length) return;
-    const medals = ["🥇","🥈","🥉"];
-    const lines = list.slice(0,10).map((c,i)=>`${medals[i]??`${c.rank}.`} ${c.name} — ${t("visitsCount", { count:c.total_visits })}`).join("\n");
-    const text = `${t("crm.rating.shareHeader", { salon:salonName })}\n\n${lines}\n\n${t("crm.rating.shareFooter")}`;
-    navigator.clipboard.writeText(text).then(()=>{ setCopied(true); setTimeout(()=>setCopied(false),2000); });
   }
 
   const cardS: React.CSSProperties = { background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)" };
@@ -144,18 +84,7 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
         </button>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display:"flex", background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", padding:4, gap:4, width:"fit-content", marginBottom:20 }}>
-        {(["list","rating"] as Tab[]).map((tb) => (
-          <button key={tb} onClick={() => setTab(tb)} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 16px", borderRadius:9, border:"none", cursor:"pointer", fontSize:13, fontWeight:500, background: tab===tb ? "var(--gold)" : "transparent", color: tab===tb ? "#0a0a0b" : "var(--text2)" }}>
-            {tb === "rating" && <Trophy size={13} />}
-            {tb === "list" ? t("crm.tabs.list") : t("crm.tabs.rating")}
-          </button>
-        ))}
-      </div>
-
-      {tab === "list" ? (
-        <>
+      <>
           {/* Filters */}
           <div style={{ display:"flex", gap:10, marginBottom:16, flexWrap:"wrap" }}>
             <div style={{ position:"relative", flex:1, minWidth:200 }}>
@@ -191,10 +120,7 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
                       <td style={{ padding:"12px 16px" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                           <div style={{ width:34, height:34, borderRadius:"50%", background:"var(--gold-dim)", color:"var(--gold)", fontWeight:700, fontSize:11, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{initials(c.name)}</div>
-                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                            <span style={{ color:"var(--text)", fontWeight:500 }}>{c.name}</span>
-                            <TierBadge tier={c.loyalty} />
-                          </div>
+                          <span style={{ color:"var(--text)", fontWeight:500 }}>{c.name}</span>
                         </div>
                       </td>
                       <td style={{ padding:"12px 16px", color:"var(--text2)" }}>{c.phone}</td>
@@ -215,40 +141,7 @@ function CrmClients({ salonId, salonName }: { salonId: string; salonName: string
               </button>
             </div>
           )}
-        </>
-      ) : (
-        <>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-            <p style={{ color:"var(--text2)", fontSize:13 }}>{t("crm.rating.subtitle")}</p>
-            <button onClick={shareRating} disabled={(loyalty?.items.length ?? 0) === 0} style={{ display:"flex", alignItems:"center", gap:6, background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius)", color:"var(--text2)", padding:"7px 14px", fontSize:13, cursor:"pointer", opacity:(loyalty?.items.length ?? 0) === 0 ? 0.4 : 1 }}>
-              {copied ? <Check size={13} style={{ color:"var(--green)" }} /> : <Share2 size={13} />}
-              {copied ? t("crm.rating.copiedButton") : t("crm.rating.shareButton")}
-            </button>
-          </div>
-          {loyaltyLoading ? <CrmSkeleton /> : (loyalty?.items.length ?? 0) === 0 ? <EmptyState text={t("crm.rating.emptyState")} /> : (
-            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-              {loyalty!.items.map((c) => (
-                <div key={c.client_id} onClick={() => router.push(`/clients/${c.client_id}`)} style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:14, display:"flex", alignItems:"center", gap:14, cursor:"pointer" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--gold-dim2)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
-                >
-                  <div style={{ width:36, height:36, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:700, background: c.rank === 1 ? "var(--gold)" : c.rank <= 3 ? "var(--gold-dim)" : "var(--bg)", color: c.rank === 1 ? "#0a0a0b" : c.rank <= 3 ? "var(--gold)" : "var(--text3)" }}>
-                    {c.rank <= 3 ? ["🥇","🥈","🥉"][c.rank-1] : c.rank}
-                  </div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ color:"var(--text)", fontWeight:500, fontSize:14, margin:0 }}>{c.name}</p>
-                    <p style={{ color:"var(--text3)", fontSize:12, margin:0 }}>{c.phone}</p>
-                  </div>
-                  <div style={{ textAlign:"right", flexShrink:0 }}>
-                    <p style={{ color:"var(--text)", fontWeight:600, fontSize:14, margin:0 }}>{t("visitsCount", { count:c.total_visits })}</p>
-                    <p style={{ color:"var(--text3)", fontSize:12, margin:0 }}>{fmtMoney(c.total_spent, currency, locale)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )}
+      </>
     </div>
   );
 }

@@ -10,10 +10,6 @@
     "subtitle": "{count} клиентов в базе салона",
     "exportButton": "Экспорт CSV",
     "exportingButton": "Готовим...",
-    "tabs": {
-      "list": "Все клиенты",
-      "rating": "Рейтинг лояльности"
-    },
     "sort": {
       "visits": "По визитам",
       "revenue": "По выручке"
@@ -24,15 +20,7 @@
       "visits": "Визиты",
       "revenue": "Выручка"
     },
-    "loadMore": "Показать ещё",
-    "rating": {
-      "subtitle": "Топ-20 клиентов по количеству визитов",
-      "shareButton": "Поделиться",
-      "copiedButton": "Скопировано",
-      "emptyState": "Пока нет визитов для рейтинга",
-      "shareHeader": "🏆 Самые лояльные клиенты {salon}:",
-      "shareFooter": "Спасибо, что выбираете нас! 💈"
-    }
+    "loadMore": "Показать ещё"
   },
   "personal": {
     "subtitle": "{count} клиентов",

@@ -10,10 +10,6 @@
     "subtitle": "{count, plural, one {# client in the salon database} other {# clients in the salon database}}",
     "exportButton": "Export CSV",
     "exportingButton": "Preparing...",
-    "tabs": {
-      "list": "All clients",
-      "rating": "Loyalty rating"
-    },
     "sort": {
       "visits": "By visits",
       "revenue": "By revenue"
@@ -24,15 +20,7 @@
       "visits": "Visits",
       "revenue": "Revenue"
     },
-    "loadMore": "Load more",
-    "rating": {
-      "subtitle": "Top 20 clients by number of visits",
-      "shareButton": "Share",
-      "copiedButton": "Copied",
-      "emptyState": "No visits yet for the rating",
-      "shareHeader": "🏆 Most loyal clients of {salon}:",
-      "shareFooter": "Thank you for choosing us! 💈"
-    }
+    "loadMore": "Load more"
   },
   "personal": {
     "subtitle": "{count, plural, one {# client} other {# clients}}",
