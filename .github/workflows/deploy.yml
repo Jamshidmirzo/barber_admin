@@ -49,7 +49,17 @@ jobs:
       - run: npx tsc --noEmit
 
       # Produces .next/standalone (output: "standalone" in next.config.ts).
-      - run: npm run build
+      # NEXT_PUBLIC_* values are inlined into the client bundle at build
+      # time — the server's runtime env can't supply them afterwards. The
+      # Yandex Maps key lives in the repo's Actions variables (not in git,
+      # this repo is public); without it YandexMapPicker renders its
+      # "missing key" stub and the UZ onboarding can't be submitted, so a
+      # build without it must fail instead of shipping silently.
+      - run: |
+          test -n "$NEXT_PUBLIC_YANDEX_JS_KEY" || { echo "::error::NEXT_PUBLIC_YANDEX_JS_KEY Actions variable is not set"; exit 1; }
+          npm run build
+        env:
+          NEXT_PUBLIC_YANDEX_JS_KEY: ${{ vars.NEXT_PUBLIC_YANDEX_JS_KEY }}
 
       # Next's standalone output deliberately excludes .next/static and
       # public/ — both have to be copied in by hand or the deployed server
