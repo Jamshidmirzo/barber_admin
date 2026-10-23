@@ -58,9 +58,61 @@ interface YandexMapPickerProps {
 // nothing has been selected yet.
 const DEFAULT_CENTER = { lat: 41.311081, lng: 69.240562 };
 
+/** One geocoder hit, in the shape both lookup paths below produce. */
+interface GeocodeHit {
+  lat: number;
+  lng: number;
+  address: string;
+  city: string | null;
+}
+
+// Yandex's developer console now sells "JavaScript API" and "API Геокодера"
+// as separate products with separate keys, and a JavaScript-API-only key
+// can't geocode — `ymaps.geocode` just fails. When a geocoder key is set, the
+// lookups go straight to the HTTP Geocoder (it answers CORS for any origin)
+// instead; without one they fall back to `ymaps.geocode`, which still works
+// for an old combined "JavaScript API и HTTP Геокодер" key.
+interface HttpGeocoderResponse {
+  response?: {
+    GeoObjectCollection?: {
+      featureMember?: {
+        GeoObject?: {
+          Point?: { pos?: string };
+          metaDataProperty?: {
+            GeocoderMetaData?: {
+              text?: string;
+              Address?: { Components?: { kind?: string; name?: string }[] };
+            };
+          };
+        };
+      }[];
+    };
+  };
+}
+
+async function httpGeocode(apiKey: string, request: YmapsCoords | string): Promise<GeocodeHit | null> {
+  // The HTTP Geocoder takes "longitude,latitude" — the reverse of the JS API.
+  const geocode = typeof request === "string" ? request : `${request[1]},${request[0]}`;
+  const params = new URLSearchParams({ apikey: apiKey, geocode, format: "json", lang: "ru_RU", results: "1" });
+  const res = await fetch(`https://geocode-maps.yandex.ru/v1/?${params}`);
+  if (!res.ok) throw new Error(`geocoder ${res.status}`);
+  const data = (await res.json()) as HttpGeocoderResponse;
+  const geoObject = data.response?.GeoObjectCollection?.featureMember?.[0]?.GeoObject;
+  const [lng, lat] = (geoObject?.Point?.pos ?? "").split(" ").map(Number);
+  if (!geoObject || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const meta = geoObject.metaDataProperty?.GeocoderMetaData;
+  return {
+    lat,
+    lng,
+    address: meta?.text ?? "",
+    city: meta?.Address?.Components?.find((c) => c.kind === "locality")?.name ?? null,
+  };
+}
+
 export default function YandexMapPicker({ selected, onPick }: YandexMapPickerProps) {
   const t = useTranslations("YandexMap");
   const jsKey = process.env.NEXT_PUBLIC_YANDEX_JS_KEY;
+  const geocoderKey = process.env.NEXT_PUBLIC_YANDEX_GEOCODER_KEY;
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<YmapsMap | null>(null);
   const placemarkRef = useRef<YmapsPlacemark | null>(null);
@@ -84,39 +136,36 @@ export default function YandexMapPicker({ selected, onPick }: YandexMapPickerPro
     onPickRef.current(buildPickedPlace(lat, lng, resolved, t("selectedPointFallback")));
   }
 
+  // Resolves to null for "no match", rejects when the geocoder itself failed
+  // (bad key, network) — callers report those two differently.
+  async function geocode(request: YmapsCoords | string): Promise<GeocodeHit | null> {
+    if (geocoderKey) return httpGeocode(geocoderKey, request);
+    const ymaps = window.ymaps;
+    if (!ymaps) throw new Error("ymaps not loaded");
+    // `geocode` can throw synchronously as well as reject; inside an async
+    // function both end up as a rejection.
+    const res = await ymaps.geocode(request);
+    const geoObject = res.geoObjects.get(0);
+    if (!geoObject) return null;
+    const [lat, lng] = geoObject.geometry.getCoordinates();
+    return { lat, lng, address: geoObject.getAddressLine(), city: geoObject.getLocalities()[0] ?? null };
+  }
+
   function reverseGeocode(lat: number, lng: number) {
     setGeocodeNotice("");
-    const ymaps = window.ymaps;
-    if (!ymaps) {
-      setGeocodeNotice(t("errors.addressLookupFailed"));
-      commit(lat, lng, null);
-      return;
-    }
-    // `geocode` can throw synchronously as well as reject, so the call itself
-    // is inside the guard, not just its promise.
-    try {
-      ymaps
-        .geocode([lat, lng])
-        .then((res) => {
-          const geoObject = res.geoObjects.get(0) ?? null;
-          if (!geoObject) {
-            setGeocodeNotice(t("errors.addressLookupFailed"));
-            commit(lat, lng, null);
-            return;
-          }
-          commit(lat, lng, {
-            address: geoObject.getAddressLine(),
-            city: geoObject.getLocalities()[0] ?? null,
-          });
-        })
-        .catch(() => {
+    geocode([lat, lng])
+      .then((hit) => {
+        if (!hit) {
           setGeocodeNotice(t("errors.addressLookupFailed"));
           commit(lat, lng, null);
-        });
-    } catch {
-      setGeocodeNotice(t("errors.addressLookupFailed"));
-      commit(lat, lng, null);
-    }
+          return;
+        }
+        commit(lat, lng, { address: hit.address, city: hit.city });
+      })
+      .catch(() => {
+        setGeocodeNotice(t("errors.addressLookupFailed"));
+        commit(lat, lng, null);
+      });
   }
 
   function movePlacemark(lat: number, lng: number, pan = true) {
@@ -213,24 +262,18 @@ export default function YandexMapPicker({ selected, onPick }: YandexMapPickerPro
   async function handleSearch() {
     const query = searchQuery.trim();
     if (query.length < 3) return;
-    const ymaps = window.ymaps;
-    if (!ymaps) return;
+    if (!geocoderKey && !window.ymaps) return;
     setSearching(true); setSearchError("");
     try {
-      const res = await ymaps.geocode(query);
-      const geoObject = res.geoObjects.get(0);
+      const hit = await geocode(query);
       // A rejected call and an empty result mean different things: the first
       // is the geocoder refusing us (usually a bad/unscoped API key), the
       // second is a query that genuinely matches nothing. Saying "address not
       // found" for both sends people off hunting for a typo that isn't there.
-      if (!geoObject) { setSearchError(t("errors.noResults")); return; }
-      const [lat, lng] = geoObject.geometry.getCoordinates();
-      movePlacemark(lat, lng, true);
+      if (!hit) { setSearchError(t("errors.noResults")); return; }
+      movePlacemark(hit.lat, hit.lng, true);
       setGeocodeNotice("");
-      commit(lat, lng, {
-        address: geoObject.getAddressLine(),
-        city: geoObject.getLocalities()[0] ?? null,
-      });
+      commit(hit.lat, hit.lng, { address: hit.address, city: hit.city });
     } catch {
       setSearchError(t("errors.geocoderUnavailable"));
     } finally {

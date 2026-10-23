@@ -54,12 +54,15 @@ jobs:
       # Yandex Maps key lives in the repo's Actions variables (not in git,
       # this repo is public); without it YandexMapPicker renders its
       # "missing key" stub and the UZ onboarding can't be submitted, so a
-      # build without it must fail instead of shipping silently.
+      # build without it must fail instead of shipping silently. The
+      # geocoder key is a separate Yandex product; without it the picker
+      # still works, it just can't turn a point into an address.
       - run: |
           test -n "$NEXT_PUBLIC_YANDEX_JS_KEY" || { echo "::error::NEXT_PUBLIC_YANDEX_JS_KEY Actions variable is not set"; exit 1; }
           npm run build
         env:
           NEXT_PUBLIC_YANDEX_JS_KEY: ${{ vars.NEXT_PUBLIC_YANDEX_JS_KEY }}
+          NEXT_PUBLIC_YANDEX_GEOCODER_KEY: ${{ vars.NEXT_PUBLIC_YANDEX_GEOCODER_KEY }}
 
       # Next's standalone output deliberately excludes .next/static and
       # public/ — both have to be copied in by hand or the deployed server
